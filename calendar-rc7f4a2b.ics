@@ -7,34 +7,34 @@ CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260511
 DTEND;VALUE=DATE:20260512
-SUMMARY:🏃 Easy Run — 30 min
-DESCRIPTION:5 min walk — warm up\n\n20 min in Zone 2\n\n5 min walk — co
- ol down\n\nWeek 2\, Run A — base plan (adjusts on workout day)
+SUMMARY:🏃 Intervals — 2×800 m
+DESCRIPTION:5 min walk — warm up\n\n800 m in Zone 4\n30 sec walk\n800 m i
+ n Zone 4\n\n5 min walk — cool down\n\nWeek 2\, Run B — base plan (adju
+ sts on workout day)
 UID:run-coach-2026-05-11@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260514
 DTEND;VALUE=DATE:20260515
-SUMMARY:🏃 Intervals — 2×800 m
-DESCRIPTION:5 min walk — warm up\n\n800 m in Zone 4\n30 sec walk\n800 m i
- n Zone 4\n\n5 min walk — cool down\n\nWeek 2\, Run B — base plan (adju
- sts on workout day)
+SUMMARY:🏃 Easy Run — 33 min
+DESCRIPTION:5 min walk — warm up\n\n23 min in Zone 2\n\n5 min walk — co
+ ol down\n\nWeek 3\, Run A — base plan (adjusts on workout day)
 UID:run-coach-2026-05-14@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260517
 DTEND;VALUE=DATE:20260518
-SUMMARY:🏃 Easy Run — 33 min
-DESCRIPTION:5 min walk — warm up\n\n23 min in Zone 2\n\n5 min walk — co
- ol down\n\nWeek 3\, Run A — base plan (adjusts on workout day)
+SUMMARY:🏃 Tempo Run — 33 min
+DESCRIPTION:5 min walk — warm up\n\n23 min in Zone 3\n\n5 min walk — co
+ ol down\n\nWeek 3\, Run B — base plan (adjusts on workout day)
 UID:run-coach-2026-05-17@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260520
 DTEND;VALUE=DATE:20260521
-SUMMARY:🏃 Tempo Run — 33 min
-DESCRIPTION:5 min walk — warm up\n\n23 min in Zone 3\n\n5 min walk — co
- ol down\n\nWeek 3\, Run B — base plan (adjusts on workout day)
+SUMMARY:🏃 Easy Run — 20 min
+DESCRIPTION:5 min walk — warm up\n\n10 min in Zone 2\n\n5 min walk — co
+ ol down\n\nWeek 4\, Run A — base plan (adjusts on workout day)
 UID:run-coach-2026-05-20@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -42,31 +42,31 @@ DTSTART;VALUE=DATE:20260523
 DTEND;VALUE=DATE:20260524
 SUMMARY:🏃 Easy Run — 20 min
 DESCRIPTION:5 min walk — warm up\n\n10 min in Zone 2\n\n5 min walk — co
- ol down\n\nWeek 4\, Run A — base plan (adjusts on workout day)
+ ol down\n\nWeek 4\, Run B — base plan (adjusts on workout day)
 UID:run-coach-2026-05-23@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260526
 DTEND;VALUE=DATE:20260527
-SUMMARY:🏃 Easy Run — 20 min
-DESCRIPTION:5 min walk — warm up\n\n10 min in Zone 2\n\n5 min walk — co
- ol down\n\nWeek 4\, Run B — base plan (adjusts on workout day)
+SUMMARY:🏃 Easy Run — 28 min
+DESCRIPTION:5 min walk — warm up\n\n18 min in Zone 2\n\n5 min walk — co
+ ol down\n\nWeek 1\, Run A — base plan (adjusts on workout day)
 UID:run-coach-2026-05-26@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260529
 DTEND;VALUE=DATE:20260530
-SUMMARY:🏃 Easy Run — 28 min
-DESCRIPTION:5 min walk — warm up\n\n18 min in Zone 2\n\n5 min walk — co
- ol down\n\nWeek 1\, Run A — base plan (adjusts on workout day)
+SUMMARY:🏃 Tempo Run — 28 min
+DESCRIPTION:5 min walk — warm up\n\n18 min in Zone 3\n\n5 min walk — co
+ ol down\n\nWeek 1\, Run B — base plan (adjusts on workout day)
 UID:run-coach-2026-05-29@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260601
 DTEND;VALUE=DATE:20260602
-SUMMARY:🏃 Tempo Run — 28 min
-DESCRIPTION:5 min walk — warm up\n\n18 min in Zone 3\n\n5 min walk — co
- ol down\n\nWeek 1\, Run B — base plan (adjusts on workout day)
+SUMMARY:🏃 Easy Run — 30 min
+DESCRIPTION:5 min walk — warm up\n\n20 min in Zone 2\n\n5 min walk — co
+ ol down\n\nWeek 2\, Run A — base plan (adjusts on workout day)
 UID:run-coach-2026-06-01@runcoach
 END:VEVENT
 END:VCALENDAR
