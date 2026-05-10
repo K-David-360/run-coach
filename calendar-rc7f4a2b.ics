@@ -1,0 +1,96 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Run Coach//Run Coach//EN
+X-WR-CALNAME:Run Coach
+X-WR-CALDESC:Your personalised running plan
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260510
+DTEND;VALUE=DATE:20260511
+SUMMARY:Tempo Run — 28 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy jog\, build to a comfortable str
+ ide.\nWork: 18 min (zone3) — Comfortably hard — controlled breathing\,
+  sustainable effort.\nCooldown: 5 min (zone1) — Slow jog then walk. Let 
+ HR come down before stopping.\nWeek 1\, Run B (base plan — adjusts on wo
+ rkout day)
+UID:run-coach-2026-05-10@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260513
+DTEND;VALUE=DATE:20260514
+SUMMARY:Easy Run — 30 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy walk or very light jog — just 
+ get the blood moving.\nWork: 20 min (zone2) — Conversational pace. You s
+ hould be able to speak in full sentences.\nCooldown: 5 min (zone1) — Slo
+ w to a walk\, let heart rate drop naturally.\nWeek 2\, Run A (base plan 
+ — adjusts on workout day)
+UID:run-coach-2026-05-13@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260516
+DTEND;VALUE=DATE:20260517
+SUMMARY:Intervals — 2×800 m
+DESCRIPTION:Warmup: 5 min (zone1) — Easy jog to loosen up.\nInterval 1: 8
+ 00 m (zone4) — Hard but controlled — you should finish feeling like yo
+ u have one more in you.\nRest: 0.5 min (rest) — 30 seconds — walk or s
+ tand\, shake it out.\nInterval 2: 800 m (zone4) — Match the effort of in
+ terval 1.\nCooldown: 5 min (zone1) — Easy jog then walk until fully reco
+ vered.\nWeek 2\, Run B (base plan — adjusts on workout day)
+UID:run-coach-2026-05-16@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260519
+DTEND;VALUE=DATE:20260520
+SUMMARY:Easy Run — 33 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy walk or very light jog — just 
+ get the blood moving.\nWork: 23 min (zone2) — Conversational pace. You s
+ hould be able to speak in full sentences.\nCooldown: 5 min (zone1) — Slo
+ w to a walk\, let heart rate drop naturally.\nWeek 3\, Run A (base plan 
+ — adjusts on workout day)
+UID:run-coach-2026-05-19@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260522
+DTEND;VALUE=DATE:20260523
+SUMMARY:Tempo Run — 33 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy jog\, build to a comfortable str
+ ide.\nWork: 23 min (zone3) — Comfortably hard — controlled breathing\,
+  sustainable effort.\nCooldown: 5 min (zone1) — Slow jog then walk. Let 
+ HR come down before stopping.\nWeek 3\, Run B (base plan — adjusts on wo
+ rkout day)
+UID:run-coach-2026-05-22@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260525
+DTEND;VALUE=DATE:20260526
+SUMMARY:Easy Run — 20 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy walk or very light jog — just 
+ get the blood moving.\nWork: 10 min (zone2) — Conversational pace. You s
+ hould be able to speak in full sentences.\nCooldown: 5 min (zone1) — Slo
+ w to a walk\, let heart rate drop naturally.\nWeek 4\, Run A (base plan 
+ — adjusts on workout day)
+UID:run-coach-2026-05-25@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260528
+DTEND;VALUE=DATE:20260529
+SUMMARY:Easy Run — 20 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy walk or very light jog — just 
+ get the blood moving.\nWork: 10 min (zone2) — Conversational pace. You s
+ hould be able to speak in full sentences.\nCooldown: 5 min (zone1) — Slo
+ w to a walk\, let heart rate drop naturally.\nWeek 4\, Run B (base plan 
+ — adjusts on workout day)
+UID:run-coach-2026-05-28@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260531
+DTEND;VALUE=DATE:20260601
+SUMMARY:Easy Run — 28 min
+DESCRIPTION:Warmup: 5 min (zone1) — Easy walk or very light jog — just 
+ get the blood moving.\nWork: 18 min (zone2) — Conversational pace. You s
+ hould be able to speak in full sentences.\nCooldown: 5 min (zone1) — Slo
+ w to a walk\, let heart rate drop naturally.\nWeek 1\, Run A (base plan 
+ — adjusts on workout day)
+UID:run-coach-2026-05-31@runcoach
+END:VEVENT
+END:VCALENDAR
