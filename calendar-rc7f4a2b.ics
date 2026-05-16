@@ -40,8 +40,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260516
 DTEND;VALUE=DATE:20260517
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
+SUMMARY:⬇️ 🏃‍♂️ Easy Run — 27 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-05-16-B@runcoach
 END:VEVENT
