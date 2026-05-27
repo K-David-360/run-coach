@@ -1,0 +1,31 @@
+{
+  "session_id": "6312ad57-5177-4730-bdf6-463ffa7d2c78",
+  "date": "2026-05-11",
+  "type": "easy",
+  "rule_fired": "HOLD",
+  "flag": "none",
+  "week": 3,
+  "slot": "B",
+  "phase": 1,
+  "summary": "Easy run \u2014 35 min total. Follow the plan \u2014 steady Zone 2 effort.",
+  "blocks": [
+    {
+      "name": "Warmup",
+      "duration_min": 5,
+      "zone": "zone1",
+      "notes": "Easy walk or very light jog \u2014 just get the blood moving."
+    },
+    {
+      "name": "Work",
+      "duration_min": 25,
+      "zone": "zone2",
+      "notes": "Conversational pace, HR 125\u2013140. Slow down or walk if HR climbs above 145."
+    },
+    {
+      "name": "Cooldown",
+      "duration_min": 5,
+      "zone": "zone1",
+      "notes": "Slow to a walk, let heart rate drop naturally."
+    }
+  ]
+}
