@@ -45,7 +45,7 @@ curl -X POST http://localhost:5000/run \
 import base64
 import json
 import os
-from datetime import date
+from datetime import date, timedelta
 
 import requests as http_requests
 from dotenv import load_dotenv
@@ -106,6 +106,30 @@ def _safe_float(value, default=0.0):
         return float(value)
     except (TypeError, ValueError):
         return default
+
+
+def _most_recent_monday(today: date = None) -> date:
+    if today is None:
+        today = date.today()
+    # weekday(): Mon=0, Tue=1, ..., Sun=6
+    # For Mon (0): subtract 0 days → same day
+    # For Wed (2): subtract 2 days → previous Monday
+    # For Sun (6): subtract 6 days → previous Monday
+    return today - timedelta(days=today.weekday())
+
+
+def _week_from_cycle_start(cycle_start_str: str, today: date = None) -> int:
+    """Return training week (1–4) given the ISO date of the cycle's first Monday."""
+    if today is None:
+        today = date.today()
+    try:
+        start = date.fromisoformat(cycle_start_str)
+    except (ValueError, TypeError):
+        return 1
+    if today < start:
+        return 1
+    weeks_elapsed = (today - start).days // 7
+    return weeks_elapsed % 4 + 1
 
 
 def _load_json(path, default=None):
@@ -385,6 +409,14 @@ def post_healthkit():
     today_str = date.today().isoformat()
 
     plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
+
+    # ── Calendar-week anchoring: set cycle_start_date if absent (first deploy) ──
+    if not plan_state.get("cycle_start_date"):
+        plan_state["cycle_start_date"] = _most_recent_monday().isoformat()
+
+    # Recompute current_week from calendar date — this is now the source of truth.
+    plan_state["current_week"] = _week_from_cycle_start(plan_state["cycle_start_date"])
+    _save_json(PLAN_STATE_FILE, plan_state)
 
     # Rest days: skip health processing entirely
     if today_dow in _REST_DAYS:

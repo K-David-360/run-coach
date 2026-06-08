@@ -60,13 +60,13 @@ def test_saturday_of_week4_is_still_week4():
 # ── _most_recent_monday ───────────────────────────────────────────────────────
 
 def test_most_recent_monday_when_today_is_monday():
-    monday = date(2026, 6, 9)
+    monday = date(2026, 6, 8)
     assert _most_recent_monday(monday) == monday
 
 def test_most_recent_monday_when_today_is_wednesday():
-    wednesday = date(2026, 6, 11)
-    assert _most_recent_monday(wednesday) == date(2026, 6, 9)
+    wednesday = date(2026, 6, 10)
+    assert _most_recent_monday(wednesday) == date(2026, 6, 8)
 
 def test_most_recent_monday_when_today_is_sunday():
-    sunday = date(2026, 6, 15)
-    assert _most_recent_monday(sunday) == date(2026, 6, 9)
+    sunday = date(2026, 6, 14)
+    assert _most_recent_monday(sunday) == date(2026, 6, 8)
