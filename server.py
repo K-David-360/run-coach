@@ -82,7 +82,7 @@ _NOTIFICATIONS = {
 
 _DEFAULT_PLAN_STATE = {
     "current_week": 1,
-    "run_in_week": 0,
+    "cycle_start_date": "",
     "consecutive_suppress": 0,
     "total_runs": 0,
     "phase": 1,
@@ -237,14 +237,6 @@ def post_run():
     else:
         plan_state["consecutive_suppress"] = 0
 
-    # Advance run count within week; roll week after 2 runs
-    run_in_week = plan_state.get("run_in_week", 0) + 1
-    if run_in_week >= 2:
-        run_in_week = 0
-        current_week = plan_state.get("current_week", 1)
-        plan_state["current_week"] = 1 if current_week >= 4 else current_week + 1
-
-    plan_state["run_in_week"] = run_in_week
     _save_json(PLAN_STATE_FILE, plan_state)
 
     return jsonify(session), 200
@@ -569,12 +561,6 @@ def post_healthkit():
     else:
         plan_state["consecutive_suppress"] = 0
 
-    run_in_week = plan_state.get("run_in_week", 0) + 1
-    if run_in_week >= 2:
-        run_in_week  = 0
-        current_week = plan_state.get("current_week", 1)
-        plan_state["current_week"] = 1 if current_week >= 4 else current_week + 1
-    plan_state["run_in_week"] = run_in_week
     _save_json(PLAN_STATE_FILE, plan_state)
 
     _push_calendar_to_github(plan_state)
