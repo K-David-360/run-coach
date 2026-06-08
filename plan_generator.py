@@ -264,13 +264,10 @@ def generate_session(decision: str, data: dict) -> dict:
     """
     plan_state = _load_json(PLAN_STATE_FILE, default={})
     current_week = plan_state.get("current_week", 1)
-    run_in_week = plan_state.get("run_in_week", 0)
     phase = plan_state.get("phase", 1)
 
-    # run_in_week is read BEFORE the server increments it:
-    #   0 → this is the first run of the week  (slot A / Tuesday)
-    #   1 → this is the second run of the week (slot B / Saturday)
-    slot = "A" if run_in_week == 0 else "B"
+    # Slot is fixed by calendar day: Tuesday (weekday 1) = A, Saturday (weekday 5) = B
+    slot = "A" if date.today().weekday() == 1 else "B"
 
     plan_table = _PLAN_BY_PHASE.get(phase, _PLAN_PHASE1)
     week_plan = plan_table.get(current_week, plan_table[1])
