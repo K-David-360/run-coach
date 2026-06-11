@@ -33,7 +33,9 @@ def _base_plan_state(**overrides):
 
 def _events_on(ics: str, date_str: str) -> list:
     """Return all SUMMARY values for events on the given YYYYMMDD date string."""
-    lines = ics.splitlines()
+    # Unfold RFC 5545 line continuations (CRLF + space/tab = continuation)
+    unfolded = ics.replace("\r\n ", "").replace("\r\n\t", "").replace("\n ", "").replace("\n\t", "")
+    lines = unfolded.splitlines()
     summaries = []
     in_event = False
     event_date = None
