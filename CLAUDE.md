@@ -29,6 +29,19 @@ Default port: **5001** (5000 is taken by AirPlay Receiver on Mac).
 
 ---
 
+## Terminology
+
+| Term | Meaning |
+|------|---------|
+| **execution** / **daily execution** | When the iOS Shortcut fires and the server processes it (happens every morning) |
+| **run day** | Tuesday (slot A) or Saturday (slot B) — a calendar slot, not a confirmed running workout |
+| **running workout** | A physical run the user actually performed |
+| **`total_runs`** | Count of run-day executions (Tue/Sat fires), NOT running workouts completed |
+
+The server has zero knowledge of actual workout completion. All decisions are driven by passive health metrics.
+
+---
+
 ## How it works
 
 ### iOS Shortcut → server pipeline
@@ -258,17 +271,22 @@ server. Falls back to `load_classification` label if `load_pct` not present.
   "total_runs":                  0,
   "phase":                       1,
   "last_processed_workout_date": "",
-  "last_session_date":           "",
-  "last_session_type":           "",
-  "last_session_decision":       "",
+  "last_execution_date":         "",
+  "last_execution_type":         "",
+  "last_execution_decision":     "",
+  "last_run_a_execution_date":   "",
+  "last_run_a_decision":         "",
+  "last_run_b_execution_date":   "",
+  "last_run_b_decision":         "",
   "kb_weeks_elapsed":            0,
   "kb_peak_rung":                10
 }
 ```
 
-`last_session_*` fields are written after every `/healthkit` POST (including
+`last_execution_*` fields are written after every `/healthkit` POST (including
 rest days) and used by `calendar_generator.py` to show the actual decision
-on today's calendar run event.
+on today's calendar run event. `last_run_a/b_*` fields track the most recent
+execution decision per run slot independently.
 
 ---
 
