@@ -233,6 +233,8 @@ def generate_ics(plan_state: dict) -> str:
     weeks_to_show = max(4, 9 - kb_weeks)
 
     last_execution_type     = plan_state.get("last_execution_type", "")
+    last_execution_date     = plan_state.get("last_execution_date", "")
+    last_execution_decision = plan_state.get("last_execution_decision", "")
 
     last_run_a_execution_date = plan_state.get("last_run_a_execution_date", "")
     last_run_a_decision       = plan_state.get("last_run_a_decision", "")
@@ -275,6 +277,11 @@ def generate_ics(plan_state: dict) -> str:
             if day_key not in strength_schedule:
                 continue
             s   = dict(strength_schedule[day_key])  # shallow copy — don't mutate module dict
+            # Apply live decision emoji when this event matches the last execution date
+            if evt_date.isoformat() == last_execution_date and last_execution_decision:
+                prefix = _DECISION_EMOJI.get(last_execution_decision, "")
+                if prefix and not s["summary"].startswith(prefix):
+                    s["summary"] = prefix + s["summary"]
             if day_key == "wed":
                 if is_deload:
                     s["description"] += "\n\nKB Swings — omitted (deload week)."

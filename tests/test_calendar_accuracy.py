@@ -91,3 +91,29 @@ def test_tuesday_decision_survives_wednesday_execution():
     assert any("⬇️" in s for s in tue_summaries), (
         f"Tuesday decision lost after Wed execution. Got: {tue_summaries}"
     )
+
+
+def test_strength_event_shows_deload_decision():
+    """Wednesday strength event should show ⛔️ when DELOAD fired on that day."""
+    state = _base_plan_state(
+        last_execution_date="2026-06-10",      # Wednesday
+        last_execution_decision="DELOAD",
+    )
+    ics = generate_ics(state)
+    wed_summaries = _events_on(ics, "20260610")
+    assert any("⛔️" in s for s in wed_summaries), (
+        f"Expected ⛔️ on Wednesday DELOAD, got: {wed_summaries}"
+    )
+
+
+def test_strength_event_shows_reduce_decision():
+    """Monday strength event should show ⬇️ when REDUCE fired on that day."""
+    state = _base_plan_state(
+        last_execution_date="2026-06-08",      # Monday
+        last_execution_decision="REDUCE",
+    )
+    ics = generate_ics(state)
+    mon_summaries = _events_on(ics, "20260608")
+    assert any("⬇️" in s for s in mon_summaries), (
+        f"Expected ⬇️ on Monday REDUCE, got: {mon_summaries}"
+    )
