@@ -232,9 +232,7 @@ def generate_ics(plan_state: dict) -> str:
     # Show full KB Phase 1 arc — shrinks as the phase progresses, min 4 weeks
     weeks_to_show = max(4, 9 - kb_weeks)
 
-    last_execution_date     = plan_state.get("last_execution_date", "")
     last_execution_type     = plan_state.get("last_execution_type", "")
-    last_execution_decision = plan_state.get("last_execution_decision", "")
 
     last_run_a_execution_date = plan_state.get("last_run_a_execution_date", "")
     last_run_a_decision       = plan_state.get("last_run_a_decision", "")
@@ -310,12 +308,10 @@ def generate_ics(plan_state: dict) -> str:
                     session = _run_session_actual(
                         last_execution_type, slot_decision, plan_week, slot
                     )
-                    for line in _vevent(run_date, session["summary"], session["description"], uid):
-                        raw_lines.append(_fold(line))
                 else:
                     session = _run_session(plan_week, slot, is_deload)
-                    for line in _vevent(run_date, session["summary"], session["description"], uid):
-                        raw_lines.append(_fold(line))
+                for line in _vevent(run_date, session["summary"], session["description"], uid):
+                    raw_lines.append(_fold(line))
 
     raw_lines.append("END:VCALENDAR")
     return "\r\n".join(raw_lines)
