@@ -236,6 +236,11 @@ def generate_ics(plan_state: dict) -> str:
     last_execution_type     = plan_state.get("last_execution_type", "")
     last_execution_decision = plan_state.get("last_execution_decision", "")
 
+    last_run_a_execution_date = plan_state.get("last_run_a_execution_date", "")
+    last_run_a_decision       = plan_state.get("last_run_a_decision", "")
+    last_run_b_execution_date = plan_state.get("last_run_b_execution_date", "")
+    last_run_b_decision       = plan_state.get("last_run_b_decision", "")
+
     # Anchor to this week's Monday so restarting mid-week doesn't lose current week.
     monday = today - timedelta(days=today.weekday())
 
@@ -292,16 +297,25 @@ def generate_ics(plan_state: dict) -> str:
                 uid = f"rc-lthr-{run_date.isoformat()}@runcoach"
                 for line in _vevent(run_date, "🔬 LTHR Field Test", _LTHR_DESCRIPTION, uid):
                     raw_lines.append(_fold(line))
-            elif run_date.isoformat() == last_execution_date and last_execution_decision:
-                session = _run_session_actual(
-                    last_execution_type, last_execution_decision, plan_week, slot
-                )
-                for line in _vevent(run_date, session["summary"], session["description"], uid):
-                    raw_lines.append(_fold(line))
             else:
-                session = _run_session(plan_week, slot, is_deload)
-                for line in _vevent(run_date, session["summary"], session["description"], uid):
-                    raw_lines.append(_fold(line))
+                # Pick slot-specific execution date and decision
+                if slot == "A":
+                    slot_exec_date = last_run_a_execution_date
+                    slot_decision  = last_run_a_decision
+                else:
+                    slot_exec_date = last_run_b_execution_date
+                    slot_decision  = last_run_b_decision
+
+                if run_date.isoformat() == slot_exec_date and slot_decision:
+                    session = _run_session_actual(
+                        last_execution_type, slot_decision, plan_week, slot
+                    )
+                    for line in _vevent(run_date, session["summary"], session["description"], uid):
+                        raw_lines.append(_fold(line))
+                else:
+                    session = _run_session(plan_week, slot, is_deload)
+                    for line in _vevent(run_date, session["summary"], session["description"], uid):
+                        raw_lines.append(_fold(line))
 
     raw_lines.append("END:VCALENDAR")
     return "\r\n".join(raw_lines)
