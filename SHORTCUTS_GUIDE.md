@@ -70,16 +70,20 @@ The server computes the 7-day HRV baseline from execution history automatically 
 
 ## Step 3 — Deep sleep last night
 
-HealthKit's "last N days" filter is calendar-date-based, not a rolling time window:
-- **< 1 day** (e.g. 0.75): returns samples from today's calendar date only — excludes any sleep that started before midnight
-- **> 1 day** (e.g. 1.5): includes the previous calendar date, so sleep starting before midnight is captured
+HealthKit's "last N days" filter is calendar-date-based and truncates to whole days:
+- **< 1 day** (e.g. 0.75): returns samples from today's calendar date only — any sleep that started before midnight is excluded
+- **≥ 1 day** (e.g. 1.5): includes the full previous calendar date, which pulls in yesterday morning's sleep data too
 
-Use **0.75 days** if you consistently fall asleep after midnight. Use **1.5 days** if you fall asleep before midnight — otherwise the pre-midnight portion of your sleep is excluded.
+There is no day-filter value that precisely captures "last night only." The two practical approaches:
+- **0.75 days** — today only; accurate if you fall asleep after midnight, clips pre-midnight sleep otherwise
+- **Date range filter** — "Start Date is after [yesterday at 8pm]" — precise, but requires a Calculate Date step to build the comparison time
+
+Current recommendation: **0.75 days**. Clips up to ~1 hour of sleep for people who fall asleep around 11pm, but avoids pulling in yesterday morning's data.
 
 - Action: **Find Health Samples**
   - Type: **Sleep**
   - Filter: **Category = Deep**
-  - Filter: **Date is in the last 0.75 Days** *(or 1.5 Days if you sleep before midnight)*
+  - Filter: **Date is in the last 0.75 Days**
 - Action: **Repeat with Each**
   - **Get Details of Health Sample** → **Duration**
     > If "Duration" isn't available: **Calculate** End Date minus Start Date (seconds)
@@ -100,9 +104,9 @@ Use the **same day filter value as Step 3** (0.75 or 1.5 days) consistently acro
 Repeat the duration loop from Step 3 for each category, all adding to
 `Total Sleep Chunks`:
 
-- **Find Health Samples** → Sleep → Category = **Core** → last 0.75 Days *(or 1.5)* → loop → **Add to Variable**: `Total Sleep Chunks`
-- **Find Health Samples** → Sleep → Category = **Deep** → last 0.75 Days *(or 1.5)* → loop → **Add to Variable**: `Total Sleep Chunks`
-- **Find Health Samples** → Sleep → Category = **REM** → last 0.75 Days *(or 1.5)* → loop → **Add to Variable**: `Total Sleep Chunks`
+- **Find Health Samples** → Sleep → Category = **Core** → last **0.75 Days** → loop → **Add to Variable**: `Total Sleep Chunks`
+- **Find Health Samples** → Sleep → Category = **Deep** → last **0.75 Days** → loop → **Add to Variable**: `Total Sleep Chunks`
+- **Find Health Samples** → Sleep → Category = **REM** → last **0.75 Days** → loop → **Add to Variable**: `Total Sleep Chunks`
 
 Then:
 - Action: **Calculate Statistics** on `Total Sleep Chunks` → **Sum**
@@ -262,7 +266,7 @@ Every non-rest-day response includes a `debug` field with the exact values the s
 **If `sleep_total_hrs` looks wrong:**
 Check Step 4 in the Shortcut:
 1. Are all three categories (Core, Deep, REM) being summed? Each needs its own Find Health Samples query.
-2. **Calendar-date vs. time window:** HealthKit's "last N days" filter is calendar-date-based, not a rolling time window. Values < 1 (e.g. 0.75) return only today's calendar date — sleep that started before midnight is excluded. If you fall asleep before midnight, switch to 1.5 days on all three queries.
+2. **Calendar-date behavior:** HealthKit's "last N days" filter truncates to whole days. 0.75 days = today's calendar date only (pre-midnight sleep excluded). Values ≥ 1 pull in the full previous calendar date, including yesterday morning's data. There is no day-filter value that isolates last night only — 0.75 days is the best available option and clips at most ~1 hour for typical sleep schedules.
 3. Is the duration being divided by **3600** (seconds → hours)? HealthKit returns duration in seconds in some configurations.
 
 **If `sleep_deep_hrs` looks wrong:**
