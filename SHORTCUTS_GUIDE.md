@@ -70,12 +70,16 @@ The server computes the 7-day HRV baseline from execution history automatically 
 
 ## Step 3 — Deep sleep last night
 
-18-hour window catches last night without pulling in yesterday morning.
+HealthKit's "last N days" filter is calendar-date-based, not a rolling time window:
+- **< 1 day** (e.g. 0.75): returns samples from today's calendar date only — excludes any sleep that started before midnight
+- **> 1 day** (e.g. 1.5): includes the previous calendar date, so sleep starting before midnight is captured
+
+Use **0.75 days** if you consistently fall asleep after midnight. Use **1.5 days** if you fall asleep before midnight — otherwise the pre-midnight portion of your sleep is excluded.
 
 - Action: **Find Health Samples**
   - Type: **Sleep**
   - Filter: **Category = Deep**
-  - Filter: **Date is in the last 18 Hours**
+  - Filter: **Date is in the last 0.75 Days** *(or 1.5 Days if you sleep before midnight)*
 - Action: **Repeat with Each**
   - **Get Details of Health Sample** → **Duration**
     > If "Duration" isn't available: **Calculate** End Date minus Start Date (seconds)
@@ -91,12 +95,14 @@ The server computes the 7-day HRV baseline from execution history automatically 
 Run **three separate** Find Health Samples queries and funnel all chunks into
 the same variable before summing. Excludes "Awake" intentionally.
 
+Use the **same day filter value as Step 3** (0.75 or 1.5 days) consistently across all three queries.
+
 Repeat the duration loop from Step 3 for each category, all adding to
 `Total Sleep Chunks`:
 
-- **Find Health Samples** → Sleep → Category = **Core** → last 18 Hours → loop → **Add to Variable**: `Total Sleep Chunks`
-- **Find Health Samples** → Sleep → Category = **Deep** → last 18 Hours → loop → **Add to Variable**: `Total Sleep Chunks`
-- **Find Health Samples** → Sleep → Category = **REM** → last 18 Hours → loop → **Add to Variable**: `Total Sleep Chunks`
+- **Find Health Samples** → Sleep → Category = **Core** → last 0.75 Days *(or 1.5)* → loop → **Add to Variable**: `Total Sleep Chunks`
+- **Find Health Samples** → Sleep → Category = **Deep** → last 0.75 Days *(or 1.5)* → loop → **Add to Variable**: `Total Sleep Chunks`
+- **Find Health Samples** → Sleep → Category = **REM** → last 0.75 Days *(or 1.5)* → loop → **Add to Variable**: `Total Sleep Chunks`
 
 Then:
 - Action: **Calculate Statistics** on `Total Sleep Chunks` → **Sum**
@@ -256,11 +262,11 @@ Every non-rest-day response includes a `debug` field with the exact values the s
 **If `sleep_total_hrs` looks wrong:**
 Check Step 4 in the Shortcut:
 1. Are all three categories (Core, Deep, REM) being summed? Each needs its own Find Health Samples query.
-2. Is the time window set to **18 hours** on each query? A shorter window (e.g. 8 hrs) can miss sleep that started before midnight.
+2. **Calendar-date vs. time window:** HealthKit's "last N days" filter is calendar-date-based, not a rolling time window. Values < 1 (e.g. 0.75) return only today's calendar date — sleep that started before midnight is excluded. If you fall asleep before midnight, switch to 1.5 days on all three queries.
 3. Is the duration being divided by **3600** (seconds → hours)? HealthKit returns duration in seconds in some configurations.
 
 **If `sleep_deep_hrs` looks wrong:**
-Check Step 3: only the **Deep** category should be queried, and duration divided by 3600.
+Check Step 3: only the **Deep** category should be queried, same day filter as Step 4, and duration divided by 3600.
 
 > The debug field is absent on rest days (Thu/Sun) — the server short-circuits before health data processing on those days.
 
