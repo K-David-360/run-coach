@@ -11,9 +11,7 @@ skips plan advancement but still re-runs the rule engine with fresh HRV,
 sleep, and load data. You always get a current recommendation without the
 plan counter moving.
 
-**Effort score:** The server uses a neutral effort score of 5 by default.
-iOS Shortcuts doesn't expose workout effort ratings directly — if Apple
-adds this in a future update, Step 7 can be extended to pull it.
+**Terminology:** The Shortcut fires every morning regardless of whether a running workout happened. The server calls this a *daily execution*. "Run day" means Tuesday or Saturday (the calendar slots) — not a confirmed running workout. The server has no knowledge of whether you actually ran.
 
 ---
 
@@ -53,9 +51,9 @@ Apple Watch measures HRV throughout sleep. Get the most recent reading.
 
 ---
 
-## Step 2 — HRV 7-day samples
+## Step 2 — HRV 7-day samples *(optional after first week)*
 
-Get individual nightly readings — the server averages them.
+The server computes the 7-day HRV baseline from execution history automatically after 7 executions. This step seeds the baseline during the first week only.
 
 - Action: **Find Health Samples**
   - Type: **Heart Rate Variability (SDNN)**
@@ -65,6 +63,8 @@ Get individual nightly readings — the server averages them.
   - Inside loop: **Get Details of Health Sample** → **Value**
   - Inside loop: **Add to Variable** → `HRV 7D Samples`
 - *(End Repeat)*
+
+> After 7 executions the server ignores this field and uses history instead. Safe to keep in the Shortcut permanently — the server handles it gracefully either way.
 
 ---
 
@@ -186,17 +186,22 @@ with fresh recovery data.
   - Input: `Server Response`
   - → **Add to Variable**: `Server Response Dict`
 - Action: **Get value for Key in Dictionary**
-  - Key: `summary`
+  - Key: `notification`
   - Dictionary: `Server Response Dict`
 - Action: **Show Notification**
   - Title: `Run Coach`
   - Body: result above
 
-The notification text is the session summary — e.g. "Easy run — 33 min
-total. Follow the plan — steady zone 2 effort."
+The `notification` field is the concise banner text — e.g.
+"✅ On track — follow today's plan as scheduled." or
+"⛔️ Deload week — reduced load across all sessions."
 
-On a rest day the summary reflects what the server recommends for your
-*next* run based on today's recovery and load.
+It's the same message regardless of session type (run, strength, rest),
+which is why it's used for the banner rather than `summary`.
+
+> **Note:** If your Shortcut currently reads the `summary` key here,
+> switch it to `notification`. The `summary` field contains the full
+> session detail (e.g. block durations) which is too long for a banner.
 
 ---
 
@@ -225,13 +230,50 @@ toggle on. Your phone can now reach the Pi from anywhere.
 
 ---
 
+## Verifying what the server received (debug)
+
+Every non-rest-day response includes a `debug` field with the exact values the server processed. Use it to confirm the Shortcut is sending correct data.
+
+**To read the debug output in your Shortcut**, add these steps after Step 9:
+
+- Action: **Get value for Key in Dictionary**
+  - Key: `debug`
+  - Dictionary: `Server Response Dict`
+- Action: **Show Alert** (or **Quick Look**)
+  - Message: result above
+
+**Key debug fields to check:**
+
+| Field | What it confirms |
+|-------|-----------------|
+| `sleep_total_hrs` | Exactly what total sleep value the server received |
+| `sleep_deep_hrs` | Exactly what deep sleep value the server received |
+| `hrv_ratio` | `hrv_last_night ÷ hrv_7d_avg` — should be near 1.0 on a normal day |
+| `hrv_7d_avg` | The 7-day HRV baseline the server computed |
+| `load_classification` | How the server mapped your `load_pct` input |
+| `decision` | The final rule engine output |
+
+**If `sleep_total_hrs` looks wrong:**
+Check Step 4 in the Shortcut:
+1. Are all three categories (Core, Deep, REM) being summed? Each needs its own Find Health Samples query.
+2. Is the time window set to **18 hours** on each query? A shorter window (e.g. 8 hrs) can miss sleep that started before midnight.
+3. Is the duration being divided by **3600** (seconds → hours)? HealthKit returns duration in seconds in some configurations.
+
+**If `sleep_deep_hrs` looks wrong:**
+Check Step 3: only the **Deep** category should be queried, and duration divided by 3600.
+
+> The debug field is absent on rest days (Thu/Sun) — the server short-circuits before health data processing on those days.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
 | "couldn't convert from Rich Text to Dictionary" | Missing "Get Dictionary from Input" step — add it before "Get value for Key" in Step 9 |
 | `{"error": "Invalid or missing JSON body."}` | Key name typo in Step 8 — check every key exactly matches the table |
-| Notification says rest_day in debug | Working as intended — already ran shortcut today |
+| Notification is blank or shows raw JSON | Reading wrong key in Step 9 — must be `notification`, not `summary` |
+| Notification says `rest_day: true` in debug | Working as intended — already ran shortcut today, plan counter won't advance again |
 | `Sleep Deep Hrs` is 0 | Watch didn't detect deep sleep; rule engine handles 0 safely |
 | `Format Date` produces wrong format | Make sure custom format is exactly `yyyy-MM-dd` (lowercase y and d) |
 | Rule engine ignoring load | `load_classification` value doesn't match expected strings — must be exactly one of: `well_below`, `below`, `steady`, `above`, `well_above` |
