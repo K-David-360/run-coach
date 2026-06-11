@@ -38,6 +38,10 @@ def reset():
         "last_execution_date": "",
         "last_execution_type": "",
         "last_execution_decision": "",
+        "last_run_a_execution_date": "",
+        "last_run_a_decision":       "",
+        "last_run_b_execution_date": "",
+        "last_run_b_decision":       "",
         "kb_weeks_elapsed": 0,
         "kb_peak_rung": 10,
     }

@@ -86,9 +86,14 @@ _DEFAULT_PLAN_STATE = {
     "consecutive_suppress": 0,
     "total_runs": 0,   # count of run-day executions (Tue/Sat), NOT running workouts done
     "phase": 1,
+    "last_processed_workout_date": "",
     "last_execution_date": "",
     "last_execution_type": "",
     "last_execution_decision": "",
+    "last_run_a_execution_date": "",   # date of last Tuesday (slot A) execution
+    "last_run_a_decision": "",         # decision from last Tuesday execution
+    "last_run_b_execution_date": "",   # date of last Saturday (slot B) execution
+    "last_run_b_decision": "",         # decision from last Saturday execution
     "kb_weeks_elapsed": 0,
     "kb_peak_rung": 10,
 }
@@ -531,6 +536,12 @@ def post_healthkit():
         plan_state["last_execution_date"] = date.today().isoformat()
         plan_state["last_execution_type"] = session["type"]
         plan_state["last_execution_decision"] = decision["decision"]
+        if today_dow == 1:   # Tuesday → slot A
+            plan_state["last_run_a_execution_date"] = today_str
+            plan_state["last_run_a_decision"]       = decision["decision"]
+        elif today_dow == 5:  # Saturday → slot B
+            plan_state["last_run_b_execution_date"] = today_str
+            plan_state["last_run_b_decision"]       = decision["decision"]
         _save_json(PLAN_STATE_FILE, plan_state)
         _push_calendar_to_github(plan_state)
         return jsonify({
@@ -559,6 +570,12 @@ def post_healthkit():
     plan_state["last_execution_date"] = date.today().isoformat()
     plan_state["last_execution_type"] = session["type"]
     plan_state["last_execution_decision"] = decision["decision"]
+    if today_dow == 1:   # Tuesday → slot A
+        plan_state["last_run_a_execution_date"] = today_str
+        plan_state["last_run_a_decision"]       = decision["decision"]
+    elif today_dow == 5:  # Saturday → slot B
+        plan_state["last_run_b_execution_date"] = today_str
+        plan_state["last_run_b_decision"]       = decision["decision"]
 
     if decision["decision"] == "SUPPRESS":
         plan_state["consecutive_suppress"] = plan_state.get("consecutive_suppress", 0) + 1
