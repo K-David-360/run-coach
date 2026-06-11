@@ -232,9 +232,9 @@ def generate_ics(plan_state: dict) -> str:
     # Show full KB Phase 1 arc — shrinks as the phase progresses, min 4 weeks
     weeks_to_show = max(4, 9 - kb_weeks)
 
-    last_session_date     = plan_state.get("last_session_date", "")
-    last_session_type     = plan_state.get("last_session_type", "")
-    last_session_decision = plan_state.get("last_session_decision", "")
+    last_execution_date     = plan_state.get("last_execution_date", "")
+    last_execution_type     = plan_state.get("last_execution_type", "")
+    last_execution_decision = plan_state.get("last_execution_decision", "")
 
     # Anchor to this week's Monday so restarting mid-week doesn't lose current week.
     monday = today - timedelta(days=today.weekday())
@@ -292,9 +292,9 @@ def generate_ics(plan_state: dict) -> str:
                 uid = f"rc-lthr-{run_date.isoformat()}@runcoach"
                 for line in _vevent(run_date, "🔬 LTHR Field Test", _LTHR_DESCRIPTION, uid):
                     raw_lines.append(_fold(line))
-            elif run_date.isoformat() == last_session_date and last_session_decision:
+            elif run_date.isoformat() == last_execution_date and last_execution_decision:
                 session = _run_session_actual(
-                    last_session_type, last_session_decision, plan_week, slot
+                    last_execution_type, last_execution_decision, plan_week, slot
                 )
                 for line in _vevent(run_date, session["summary"], session["description"], uid):
                     raw_lines.append(_fold(line))

@@ -84,11 +84,11 @@ _DEFAULT_PLAN_STATE = {
     "current_week": 1,
     "cycle_start_date": "",
     "consecutive_suppress": 0,
-    "total_runs": 0,
+    "total_runs": 0,   # count of run-day executions (Tue/Sat), NOT running workouts done
     "phase": 1,
-    "last_session_date": "",
-    "last_session_type": "",
-    "last_session_decision": "",
+    "last_execution_date": "",
+    "last_execution_type": "",
+    "last_execution_decision": "",
     "kb_weeks_elapsed": 0,
     "kb_peak_rung": 10,
 }
@@ -490,7 +490,7 @@ def post_healthkit():
         bell_reset = False
 
         if day_key == "wed" and decision["decision"] in ("BUILD", "HOLD"):
-            if plan_state.get("last_session_date", "") != today_str:
+            if plan_state.get("last_execution_date", "") != today_str:
                 new_kb_weeks = plan_state.get("kb_weeks_elapsed", 0) + 1
                 if new_kb_weeks >= 9:
                     new_kb_weeks = 0
@@ -500,9 +500,9 @@ def post_healthkit():
 
         session = generate_strength_session(decision["decision"], day_key, bell_reset=bell_reset)
         _save_json(CURRENT_SESSION_FILE, session)
-        plan_state["last_session_date"]     = today_str
-        plan_state["last_session_type"]     = session["type"]
-        plan_state["last_session_decision"] = decision["decision"]
+        plan_state["last_execution_date"]     = today_str
+        plan_state["last_execution_type"]     = session["type"]
+        plan_state["last_execution_decision"] = decision["decision"]
         _save_json(PLAN_STATE_FILE, plan_state)
         _push_calendar_to_github(plan_state)
         return jsonify({
@@ -528,9 +528,9 @@ def post_healthkit():
     if is_rest_day:
         # Rest day: fresh recommendation based on today's recovery and load,
         # but don't log to history or advance any plan counters.
-        plan_state["last_session_date"] = date.today().isoformat()
-        plan_state["last_session_type"] = session["type"]
-        plan_state["last_session_decision"] = decision["decision"]
+        plan_state["last_execution_date"] = date.today().isoformat()
+        plan_state["last_execution_type"] = session["type"]
+        plan_state["last_execution_decision"] = decision["decision"]
         _save_json(PLAN_STATE_FILE, plan_state)
         _push_calendar_to_github(plan_state)
         return jsonify({
@@ -556,9 +556,9 @@ def post_healthkit():
 
     plan_state["total_runs"] = plan_state.get("total_runs", 0) + 1
     plan_state["last_processed_workout_date"] = last_workout_date
-    plan_state["last_session_date"] = date.today().isoformat()
-    plan_state["last_session_type"] = session["type"]
-    plan_state["last_session_decision"] = decision["decision"]
+    plan_state["last_execution_date"] = date.today().isoformat()
+    plan_state["last_execution_type"] = session["type"]
+    plan_state["last_execution_decision"] = decision["decision"]
 
     if decision["decision"] == "SUPPRESS":
         plan_state["consecutive_suppress"] = plan_state.get("consecutive_suppress", 0) + 1

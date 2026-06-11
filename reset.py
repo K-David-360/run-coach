@@ -35,9 +35,9 @@ def reset():
         "total_runs": 0,
         "phase": 1,
         "last_processed_workout_date": "",
-        "last_session_date": "",
-        "last_session_type": "",
-        "last_session_decision": "",
+        "last_execution_date": "",
+        "last_execution_type": "",
+        "last_execution_decision": "",
         "kb_weeks_elapsed": 0,
         "kb_peak_rung": 10,
     }
