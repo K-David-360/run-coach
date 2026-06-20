@@ -53,15 +53,24 @@ run, strength, KB ladder, or rest.
 
 **Shortcut collects:**
 - HRV last night (SDNN, ms) — most recent single sample (limit 1, newest first)
-- Deep sleep hours — sum of Deep category samples, last 18 hrs
-- Total sleep hours — sum of Core + Deep + REM, last 18 hrs
-- Training load % — raw percentage Apple shows in Fitness → Activity → Training Load
-  (user types the number, e.g. -21 or 46; server maps to category)
+- Resting HR — most recent single sample (limit 1, sort by End Date newest first)
+- Deep sleep hours — HealthKit filter: Sleep, Type = Deep, last 1 calendar day;
+  then per-sample 18-hour check: `now − sample_start < 18 hrs` (positive = past);
+  sum of matching durations ÷ 3600
+- Total sleep hours — same 18-hour approach for Core, REM, and Asleep categories
+  separately, then `Non Deep Sleep Hrs + Sleep Deep Hrs`. "Asleep" catches
+  uncategorized sleep (naps etc.) and does not overlap with REM/Core/Deep.
+- Training load % — Shortcut opens Fitness Training Load card automatically so user
+  can read the %, then Ask for Input prompt; server maps to category
 - Today's date (yyyy-MM-dd) — used as dedup key
+
+**Tailscale:** Shortcut auto-connects Tailscale at the start and disconnects at the
+end. Pi Tailscale IP is hardcoded in the shortcut as `http://100.109.212.86:5001`.
 
 **HRV 7-day baseline** is computed server-side from the last 7 `hrv_last_night`
 values in `history.json`. Accurate after 7 real sessions; until then uses
-available history or falls back to last night's value.
+available history or falls back to last night's value. The shortcut does NOT send
+7-day samples — baseline is derived entirely from stored history.
 
 **Effort score** is not sent — Apple doesn't expose workout effort ratings in
 Shortcuts. It is not used anywhere in the rule engine.
@@ -229,8 +238,9 @@ Every `/healthkit` response includes:
 | BUILD | ⬆️ Good recovery — you can push a little harder today. |
 | REST | 🛌 Rest day — no training today. |
 
-The Shortcut reads `notification` (not `summary`) for the banner — generic
-enough to apply on any day type.
+The Shortcut reads both `decision_reason` and `notification` from the response
+and concatenates them in the banner body (e.g. "HOLD ✅ On track — follow today's
+plan as scheduled."). Generic enough to apply on any day type.
 
 ---
 

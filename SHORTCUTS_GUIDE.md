@@ -1,128 +1,69 @@
 # Run Coach — iOS Shortcut Guide
 
-**One shortcut. Fully automatic. No manual input.**
+This documents the **working shortcut** (exported as `Run Coach.json`). The steps
+below match the implementation exactly.
 
-Run it manually each morning, or set it to auto-trigger when a Running
-workout ends. Either way it reads everything from HealthKit and POSTs to
-the server.
+**What it does:** Connects Tailscale, collects HealthKit data, POSTs to the Pi,
+shows a notification banner, then disconnects Tailscale. One tap each morning.
 
-**Rest day behavior:** If you already ran the shortcut today, the server
-skips plan advancement but still re-runs the rule engine with fresh HRV,
-sleep, and load data. You always get a current recommendation without the
-plan counter moving.
+**Rest day behavior:** If you already ran the shortcut today, the server skips
+plan advancement but still re-runs the rule engine with fresh recovery data.
 
-**Terminology:** The Shortcut fires every morning regardless of whether a running workout happened. The server calls this a *daily execution*. "Run day" means Tuesday or Saturday (the calendar slots) — not a confirmed running workout. The server has no knowledge of whether you actually ran.
-
----
-
-## Before you start — find your Mac's local IP
-
-The server is running on your Mac for now. Run this in Terminal:
-
-```bash
-ipconfig getifaddr en0
-```
-
-You'll get something like `192.168.1.42` — that's your server address for
-testing. You'll swap it for the Pi's Tailscale IP later.
+**Terminology:** The Shortcut fires every morning regardless of whether a running
+workout happened. The server calls this a *daily execution*. "Run day" means
+Tuesday or Saturday (the calendar slots) — not a confirmed running workout.
 
 ---
 
-## Step 0 — Server URL variable
+## Step 0 — Connect Tailscale
 
-First action in the shortcut. Makes it easy to update the address later.
+- Action: **Tailscale → Connect**
+  - Show When Run: off
+
+This lets the shortcut reach the Pi from anywhere (Wi-Fi or cellular).
+
+---
+
+## Step 1 — Server URL variable
 
 - Action: **Text**
-- Value: `http://192.168.1.42:5001` *(use your actual IP from above)*
-- Tap the result → **Add to Variable** → `Server URL`
+  - Value: `http://100.109.212.86:5001`
+- → **Add to Variable**: `Server URL`
+
+Update this value if the Pi's Tailscale IP changes (`sudo tailscale ip` on the Pi).
 
 ---
 
-## Step 1 — HRV last night
+## Step 2 — Current date (deduplication key)
 
-Apple Watch measures HRV throughout sleep. Get the most recent reading.
+The server uses today's date to detect duplicate runs. If you've already posted
+today, it won't advance the plan counter — it just re-runs the rule engine with
+fresh recovery data.
 
-- Action: **Find Health Samples**
-  - Type: **Heart Rate Variability (SDNN)**
-  - Sort: **Start Date, Newest First**
-  - Limit: **1**
-- Action: **Get Details of Health Sample** → **Value**
-- → **Add to Variable**: `HRV Last Night`
+- Action: **Date** *(gives current date + time)*
+- Action: **Format Date**
+  - Format: *(default — used internally for the 18-hour sleep check below)*
 
----
+Keep a reference to this formatted date — it's used in the sleep steps.
 
-## Step 2 — HRV 7-day samples *(optional after first week)*
+Also format for the POST payload:
 
-The server computes the 7-day HRV baseline from execution history automatically after 7 executions. This step seeds the baseline during the first week only.
-
-- Action: **Find Health Samples**
-  - Type: **Heart Rate Variability (SDNN)**
-  - Filter: **Date is in the last 7 Days**
-  - Sort: **Start Date, Newest First**
-- Action: **Repeat with Each**
-  - Inside loop: **Get Details of Health Sample** → **Value**
-  - Inside loop: **Add to Variable** → `HRV 7D Samples`
-- *(End Repeat)*
-
-> After 7 executions the server ignores this field and uses history instead. Safe to keep in the Shortcut permanently — the server handles it gracefully either way.
+- Action: **Format Date**
+  - Date: result from **Date** above
+  - Format: **Custom** → `yyyy-MM-dd`
+- → **Add to Variable**: `Last Workout Date`
 
 ---
 
-## Step 3 — Deep sleep last night
+## Step 3 — Training load (manual percentage)
 
-HealthKit's "last N days" filter is calendar-date-based and truncates to whole days:
-- **< 1 day** (e.g. 0.75): returns samples from today's calendar date only — any sleep that started before midnight is excluded
-- **≥ 1 day** (e.g. 1.5): includes the full previous calendar date, which pulls in yesterday morning's sleep data too
+The Shortcut opens the Fitness Training Load card automatically so you can read
+the current %, then prompts you to type it in.
 
-There is no day-filter value that precisely captures "last night only." The two practical approaches:
-- **0.75 days** — today only; accurate if you fall asleep after midnight, clips pre-midnight sleep otherwise
-- **Date range filter** — "Start Date is after [yesterday at 8pm]" — precise, but requires a Calculate Date step to build the comparison time
-
-Current recommendation: **0.75 days**. Clips up to ~1 hour of sleep for people who fall asleep around 11pm, but avoids pulling in yesterday morning's data.
-
-- Action: **Find Health Samples**
-  - Type: **Sleep**
-  - Filter: **Category = Deep**
-  - Filter: **Date is in the last 0.75 Days**
-- Action: **Repeat with Each**
-  - **Get Details of Health Sample** → **Duration**
-    > If "Duration" isn't available: **Calculate** End Date minus Start Date (seconds)
-  - **Calculate**: `Repeat Result ÷ 3600`
-  - **Add to Variable**: `Deep Sleep Chunks`
-- Action: **Calculate Statistics** on `Deep Sleep Chunks` → **Sum**
-- → **Add to Variable**: `Sleep Deep Hrs`
-
----
-
-## Step 4 — Total sleep last night
-
-Run **three separate** Find Health Samples queries and funnel all chunks into
-the same variable before summing. Excludes "Awake" intentionally.
-
-Use the **same day filter value as Step 3** (0.75 or 1.5 days) consistently across all three queries.
-
-Repeat the duration loop from Step 3 for each category, all adding to
-`Total Sleep Chunks`:
-
-- **Find Health Samples** → Sleep → Category = **Core** → last **0.75 Days** → loop → **Add to Variable**: `Total Sleep Chunks`
-- **Find Health Samples** → Sleep → Category = **Deep** → last **0.75 Days** → loop → **Add to Variable**: `Total Sleep Chunks`
-- **Find Health Samples** → Sleep → Category = **REM** → last **0.75 Days** → loop → **Add to Variable**: `Total Sleep Chunks`
-
-Then:
-- Action: **Calculate Statistics** on `Total Sleep Chunks` → **Sum**
-- → **Add to Variable**: `Sleep Total Hrs`
-
----
-
-## Step 5 — Training load (manual percentage)
-
-Glance at the Fitness app → Activity → Training Load and note the percentage
-Apple shows (e.g. +46%, -18%). Type it in here — the server maps it to the
-right category automatically.
-
+- Action: **Fitness → Open Training Load** *(opens the Training Load summary card)*
 - Action: **Ask for Input**
-  - Input Type: **Number**
-  - Prompt: `Training load % (e.g. -18 or 46)`
+  - Input Type: **Number** (whole numbers only, no decimals)
+  - Prompt: `Training Load %`
 - → **Add to Variable**: `Load Pct`
 
 > **Mapping (for reference):** > +50% = well above, +20–50% = above,
@@ -130,163 +71,174 @@ right category automatically.
 
 ---
 
-## Step 6 — Resting heart rate
-
-Apple Watch computes a daily resting HR figure. Get the most recent value.
+## Step 4 — Resting heart rate
 
 - Action: **Find Health Samples**
   - Type: **Resting Heart Rate**
-  - Sort: **Start Date, Newest First**
+  - Sort: **End Date, Newest First**
   - Limit: **1**
 - Action: **Get Details of Health Sample** → **Value**
 - → **Add to Variable**: `Resting HR`
 
-> If the watch hasn't computed today's resting HR yet (common early in the
-> morning), this will return yesterday's value — that's fine. The server
-> handles a missing or zero value safely.
+> If the watch hasn't computed today's resting HR yet (common early morning),
+> this returns yesterday's value — fine. The server handles a missing or zero value safely.
 
 ---
 
-## Step 7 — Today's date (deduplication key)
+## Step 5 — HRV last night
 
-The server uses today's date to detect rest days. If you've already posted
-today, it won't advance the plan counter — it just re-runs the rule engine
-with fresh recovery data.
+- Action: **Find Health Samples**
+  - Type: **Heart Rate Variability (SDNN)**
+  - Sort: **Start Date, Newest First**
+  - Limit: **1**
+  - Filter: **Start Date is in the last 1 Days**
+- Action: **Get Details of Health Sample** → **Value**
+- → **Add to Variable**: `HRV Last Night`
 
-- Action: **Date**
-  *(this gives you the current date and time)*
-- Action: **Format Date**
-  - Date: result from above
-  - Format: **Custom**
-  - Custom format: `yyyy-MM-dd`
-- → **Add to Variable**: `Last Workout Date`
+> The server computes the 7-day HRV baseline from stored history — the shortcut
+> only sends last night's single value.
 
-> If you don't see "Format Date", search for it in the action list. It's
-> under the Scripting or Date section. The custom format `yyyy-MM-dd`
-> produces strings like `2026-05-09`.
+---
+
+## Step 6 — Deep sleep (18-hour window)
+
+HealthKit's "last N days" filter is calendar-date-based. Using 1 day gives all
+samples from the current and previous calendar dates — potentially too far back.
+The shortcut applies a secondary 18-hour check per sample to isolate last night.
+
+**How the 18-hour check works:** `Get Time Between Dates` computes
+`now − sample_start` in hours (positive = past). If the result is < 18, the
+sample started within the last 18 hours and belongs to last night.
+
+- Action: **Find Health Samples**
+  - Type: **Sleep**
+  - Filter: **Category = Deep**
+  - Filter: **Start Date is in the last 1 Days**
+  - Limit: disabled
+- Action: **Repeat with Each** (over the health samples)
+  - **Get Details of Health Sample** → **Start Date** (of Repeat Item)
+  - **Get Time Between Dates**
+    - From: today's formatted date (from Step 2)
+    - To: sample's Start Date
+    - In: **Hours**
+  - **If** Time Between Dates **< 18**:
+    - **Get Details of Health Sample** → **Duration** (of Repeat Item)
+    - **Calculate**: `Duration ÷ 3600`
+    - **Add to Variable**: `Deep Sleep Chunks`
+  - *(End If)*
+- *(End Repeat)*
+- Action: **Calculate Statistics** on `Deep Sleep Chunks` → **Sum**
+- → **Add to Variable**: `Sleep Deep Hrs`
+
+---
+
+## Step 7 — Total sleep (18-hour window)
+
+Same 18-hour approach, looping over three categories. "Asleep" catches
+uncategorized sleep (e.g. naps) that HealthKit doesn't assign to REM/Core/Deep —
+these categories don't overlap, so no double-counting.
+
+- Action: **List** → items: `Asleep`, `REM`, `Core`
+- Action: **Repeat with Each** (over the list)
+  - **Find Health Samples**
+    - Type: **Sleep**
+    - Filter: **Category = [Repeat Item]**
+    - Filter: **Start Date is in the last 1 Days**
+    - Limit: disabled
+  - **Repeat with Each** (over the health samples)
+    - **Get Details of Health Sample** → **Start Date** (of Repeat Item 2)
+    - **Get Time Between Dates** (same as Step 6 — `now − start`)
+    - **If** result **< 18**:
+      - **Get Details of Health Sample** → **Duration** (of Repeat Item 2)
+      - **Calculate**: `Duration ÷ 3600`
+      - **Add to Variable**: `Non Deep Sleep Chunks`
+    - *(End If)*
+  - *(End inner Repeat)*
+- *(End outer Repeat)*
+- Action: **Calculate Statistics** on `Non Deep Sleep Chunks` → **Sum**
+- → **Add to Variable**: `Non Deep Sleep Hrs`
+- Action: **Calculate**: `Non Deep Sleep Hrs + Sleep Deep Hrs`
+- → **Add to Variable**: `Total Sleep Hrs`
 
 ---
 
 ## Step 8 — POST to server
 
 - Action: **Get Contents of URL**
-  - URL: tap the field → insert variable `Server URL` → then type `/healthkit`
-    directly after it (no space)
+  - URL: `[Server URL]/healthkit`
   - Method: **POST**
   - Request Body: **JSON**
-  - Add each row below as a key-value pair:
 
 | Key | Variable |
-|---|---|
+|-----|----------|
 | `last_workout_date` | `Last Workout Date` |
 | `hrv_last_night` | `HRV Last Night` |
-| `hrv_7d_samples` | `HRV 7D Samples` |
 | `sleep_deep_hrs` | `Sleep Deep Hrs` |
-| `sleep_total_hrs` | `Sleep Total Hrs` |
-| `resting_hr` | `Resting HR` |
+| `sleep_total_hrs` | `Total Sleep Hrs` |
 | `load_pct` | `Load Pct` |
+| `resting_hr` | `Resting HR` |
 
 - → **Add to Variable**: `Server Response`
 
 ---
 
-## Step 9 — Notification
+## Step 9 — Parse and show notification
 
 - Action: **Get Dictionary from Input**
   - Input: `Server Response`
   - → **Add to Variable**: `Server Response Dict`
-- Action: **Get value for Key in Dictionary**
-  - Key: `notification`
-  - Dictionary: `Server Response Dict`
+- Action: **Get Value for Key** → Key: `decision_reason`
+- Action: **Get Value for Key** → Key: `notification`
 - Action: **Show Notification**
-  - Title: `Run Coach`
-  - Body: result above
+  - Title: *(empty)*
+  - Body: `[decision_reason] [notification]`
 
-The `notification` field is the concise banner text — e.g.
-"✅ On track — follow today's plan as scheduled." or
-"⛔️ Deload week — reduced load across all sessions."
-
-It's the same message regardless of session type (run, strength, rest),
-which is why it's used for the banner rather than `summary`.
-
-> **Note:** If your Shortcut currently reads the `summary` key here,
-> switch it to `notification`. The `summary` field contains the full
-> session detail (e.g. block durations) which is too long for a banner.
+The banner shows the rule engine decision label followed by the notification text,
+e.g. `HOLD ✅ On track — follow today's plan as scheduled.`
 
 ---
 
-## Optional: auto-trigger after a run
+## Step 10 — Disconnect Tailscale
 
-Shortcuts → **Automation** → **+** → **Workout** → **Ends** → **Running**
-→ select this shortcut → disable "Ask Before Running"
-
----
-
-## When you move to the Pi
-
-1. Update the `Server URL` variable to `http://100.x.x.x:5001`
-   (your Pi's Tailscale IP — run `sudo tailscale ip` on the Pi to find it)
-2. Everything else stays the same
-
-**Tailscale setup on the Pi:**
-```bash
-curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up        # follow the auth link it prints
-sudo tailscale ip        # copy this address into the shortcut
-```
-
-**On iPhone:** Install Tailscale → App Store, sign in with same account,
-toggle on. Your phone can now reach the Pi from anywhere.
+- Action: **Tailscale → Disconnect**
+  - Show When Run: off
 
 ---
 
 ## Verifying what the server received (debug)
 
-Every non-rest-day response includes a `debug` field with the exact values the server processed. Use it to confirm the Shortcut is sending correct data.
+Every non-rest-day response includes a `debug` field. Add these steps after Step 9
+to inspect it:
 
-**To read the debug output in your Shortcut**, add these steps after Step 9:
+- Action: **Get Value for Key** → Key: `debug` → Dictionary: `Server Response Dict`
+- Action: **Show Alert** (or **Quick Look**) → result above
 
-- Action: **Get value for Key in Dictionary**
-  - Key: `debug`
-  - Dictionary: `Server Response Dict`
-- Action: **Show Alert** (or **Quick Look**)
-  - Message: result above
-
-**Key debug fields to check:**
+**Key debug fields:**
 
 | Field | What it confirms |
 |-------|-----------------|
-| `sleep_total_hrs` | Exactly what total sleep value the server received |
-| `sleep_deep_hrs` | Exactly what deep sleep value the server received |
-| `hrv_ratio` | `hrv_last_night ÷ hrv_7d_avg` — should be near 1.0 on a normal day |
-| `hrv_7d_avg` | The 7-day HRV baseline the server computed |
+| `sleep_total_hrs` | Exact total sleep value the server received |
+| `sleep_deep_hrs` | Exact deep sleep value the server received |
+| `hrv_ratio` | `hrv_last_night ÷ hrv_7d_avg` — near 1.0 on a normal day |
+| `hrv_7d_avg` | 7-day HRV baseline computed from stored history |
 | `load_classification` | How the server mapped your `load_pct` input |
-| `decision` | The final rule engine output |
+| `decision` | Final rule engine output |
 
-**If `sleep_total_hrs` looks wrong:**
-Check Step 4 in the Shortcut:
-1. Are all three categories (Core, Deep, REM) being summed? Each needs its own Find Health Samples query.
-2. **Calendar-date behavior:** HealthKit's "last N days" filter truncates to whole days. 0.75 days = today's calendar date only (pre-midnight sleep excluded). Values ≥ 1 pull in the full previous calendar date, including yesterday morning's data. There is no day-filter value that isolates last night only — 0.75 days is the best available option and clips at most ~1 hour for typical sleep schedules.
-3. Is the duration being divided by **3600** (seconds → hours)? HealthKit returns duration in seconds in some configurations.
-
-**If `sleep_deep_hrs` looks wrong:**
-Check Step 3: only the **Deep** category should be queried, same day filter as Step 4, and duration divided by 3600.
-
-> The debug field is absent on rest days (Thu/Sun) — the server short-circuits before health data processing on those days.
+> The `debug` field is absent on rest days (Thu/Sun) — server short-circuits before
+> health data processing on those days.
 
 ---
 
 ## Troubleshooting
 
 | Symptom | Fix |
-|---|---|
-| "couldn't convert from Rich Text to Dictionary" | Missing "Get Dictionary from Input" step — add it before "Get value for Key" in Step 9 |
-| `{"error": "Invalid or missing JSON body."}` | Key name typo in Step 8 — check every key exactly matches the table |
-| Notification is blank or shows raw JSON | Reading wrong key in Step 9 — must be `notification`, not `summary` |
-| Notification says `rest_day: true` in debug | Working as intended — already ran shortcut today, plan counter won't advance again |
+|---------|-----|
+| Shortcut fails immediately | Tailscale not installed or not signed in — install from App Store |
+| "couldn't convert from Rich Text to Dictionary" | Missing "Get Dictionary from Input" before "Get Value for Key" in Step 9 |
+| `{"error": "Invalid or missing JSON body."}` | Key name typo in Step 8 — check every key matches the table exactly |
+| Notification body is blank | `decision_reason` or `notification` key missing — confirm server is up to date |
 | `Sleep Deep Hrs` is 0 | Watch didn't detect deep sleep; rule engine handles 0 safely |
-| `Format Date` produces wrong format | Make sure custom format is exactly `yyyy-MM-dd` (lowercase y and d) |
-| Rule engine ignoring load | `load_classification` value doesn't match expected strings — must be exactly one of: `well_below`, `below`, `steady`, `above`, `well_above` |
-| Shortcut times out | Server not running, or IP/port wrong |
-| Works on Wi-Fi, fails on cellular | Open Tailscale app on phone, make sure it's connected |
-| Plan counter advanced twice in one day | `Last Workout Date` date format changed mid-day — should be consistent |
+| `Format Date` wrong format | Custom format must be exactly `yyyy-MM-dd` (lowercase y and d) |
+| Works on Wi-Fi, fails on cellular | Open Tailscale app on phone and make sure it's connected before running |
+| Plan counter advanced twice in one day | `Last Workout Date` format changed — must be consistent `yyyy-MM-dd` |
+| Server not reachable | Check Pi is on and `systemctl status run-coach` shows active |
