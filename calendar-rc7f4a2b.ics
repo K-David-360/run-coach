@@ -5,50 +5,9 @@ X-WR-CALNAME:Run Coach
 X-WR-CALDESC:Your personalised running and strength plan
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260615
-DTEND;VALUE=DATE:20260616
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
-UID:rc-strength-2026-06-15-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260617
-DTEND;VALUE=DATE:20260618
-SUMMARY:🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 10\n1→10→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.
-UID:rc-strength-2026-06-17-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260619
-DTEND;VALUE=DATE:20260620
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
-UID:rc-strength-2026-06-19-fri@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260616
-DTEND;VALUE=DATE:20260617
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
-UID:rc-run-2026-06-16-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260620
-DTEND;VALUE=DATE:20260621
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
-UID:rc-run-2026-06-20-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260622
 DTEND;VALUE=DATE:20260623
-SUMMARY:🏋️ Lower Body
+SUMMARY:⛔️ 🏋️ Lower Body
 DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
  t or mobility tomorrow.
 UID:rc-strength-2026-06-22-mon@runcoach
@@ -113,14 +72,10 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260704
 DTEND;VALUE=DATE:20260705
-SUMMARY:🔬 LTHR Field Test
-DESCRIPTION:Replaces today's Run 2.\n\n10 mins walking warm up\n\n30 mins a
- ll-out sustained effort\n(hardest pace you can hold for the full 30 mins 
- — not a sprint)\n\n5 mins walking cool down\n\nAfter: note your average 
- HR for the final 20 mins.\nThat number is your LTHR.\n\nNext steps:\n1. Re
- calculate zone boundaries from the new LTHR\n2. Update Apple Watch custom 
- zone breakpoints\n3. Set "phase": 2 in data/plan_state.json
-UID:rc-lthr-2026-07-04@runcoach
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-07-04-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260706
@@ -158,10 +113,14 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260711
 DTEND;VALUE=DATE:20260712
-SUMMARY:🏃‍♂️ Easy Run — 30 mins
-DESCRIPTION:5 mins walking warm up\n\n20 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-07-11-B@runcoach
+SUMMARY:🔬 LTHR Field Test
+DESCRIPTION:Replaces today's Run 2.\n\n10 mins walking warm up\n\n30 mins a
+ ll-out sustained effort\n(hardest pace you can hold for the full 30 mins 
+ — not a sprint)\n\n5 mins walking cool down\n\nAfter: note your average 
+ HR for the final 20 mins.\nThat number is your LTHR.\n\nNext steps:\n1. Re
+ calculate zone boundaries from the new LTHR\n2. Update Apple Watch custom 
+ zone breakpoints\n3. Set "phase": 2 in data/plan_state.json
+UID:rc-lthr-2026-07-11@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260713
@@ -358,5 +317,46 @@ SUMMARY:🏃‍♂️ Easy Run — 33 mins
 DESCRIPTION:5 mins walking warm up\n\n23 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-08-15-B@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260817
+DTEND;VALUE=DATE:20260818
+SUMMARY:🏋️ Lower Body
+DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
+ t or mobility tomorrow.
+UID:rc-strength-2026-08-17-mon@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260819
+DTEND;VALUE=DATE:20260820
+SUMMARY:🏋️ Upper Body + KB Ladder
+DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
+  for Saturday.\n\nKB Breathing Ladder — Peak 10\n1→10→1 swings. 1 br
+ eath per swing as rest. Fixed bell weight.
+UID:rc-strength-2026-08-19-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260821
+DTEND;VALUE=DATE:20260822
+SUMMARY:🏋️ Full Body
+DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
+ .
+UID:rc-strength-2026-08-21-fri@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260818
+DTEND;VALUE=DATE:20260819
+SUMMARY:🏃‍♂️ Easy Run — 33 mins
+DESCRIPTION:5 mins walking warm up\n\n23 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-08-18-A@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260822
+DTEND;VALUE=DATE:20260823
+SUMMARY:🏃‍♂️ Easy Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-08-22-B@runcoach
 END:VEVENT
 END:VCALENDAR
