@@ -226,6 +226,7 @@ def post_run():
         "decision": decision,
         "session": session,
     })
+    history = history[-30:]
     _save_json(HISTORY_FILE, history)
 
     # 6. Write current session
