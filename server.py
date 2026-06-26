@@ -506,6 +506,13 @@ def post_healthkit():
 
         session = generate_strength_session(decision["decision"], day_key, bell_reset=bell_reset)
         _save_json(CURRENT_SESSION_FILE, session)
+
+        # Append to history (same as run days — all non-rest days count)
+        history = _load_json(HISTORY_FILE, default=[])
+        history.append({"run_data": data, "decision": decision, "session": session})
+        history = history[-30:]
+        _save_json(HISTORY_FILE, history)
+
         plan_state["last_execution_date"]     = today_str
         plan_state["last_execution_type"]     = session["type"]
         plan_state["last_execution_decision"] = decision["decision"]
