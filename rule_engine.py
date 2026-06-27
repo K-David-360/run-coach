@@ -14,6 +14,7 @@ conservative signal wins. This matches the training structure doc.
 
 import json
 import os
+from datetime import date, timedelta
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -49,11 +50,15 @@ def _get_consecutive_suppress() -> int:
     return count
 
 
-def _count_nights_below(threshold_hrs: float, n: int = 7) -> int:
-    """Count entries in the last n history records where total sleep < threshold."""
+def _count_nights_below(threshold_hrs: float, days: int = 7) -> int:
+    """Count history entries in the last `days` calendar days where total sleep < threshold."""
     history = _load_json(HISTORY_FILE, default=[])
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
     count = 0
-    for entry in history[-n:]:
+    for entry in history:
+        entry_date = entry.get("session", {}).get("date") or entry.get("run_data", {}).get("last_workout_date", "")
+        if entry_date < cutoff:
+            continue
         total = entry.get("run_data", {}).get("sleep", {}).get("total_hrs", 0)
         if 0 < total < threshold_hrs:
             count += 1
@@ -129,7 +134,7 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
         }
 
     # ── P2 DELOAD ────────────────────────────────────────────────────────────
-    nights_below_5 = _count_nights_below(5.0, n=7)
+    nights_below_5 = _count_nights_below(5.0, days=7)
     if current_week % 4 == 0:
         return {"decision": "DELOAD", "reason": "Week 4 deload", "action": _deload_action}
     if consecutive_suppress >= 2:

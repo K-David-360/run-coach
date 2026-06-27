@@ -406,15 +406,6 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 
 ## Remaining tasks
 
-### Pending confirmation
-
-- **History window fix** — strength days (Mon/Wed/Fri) now write to `history.json`
-  so the 7-entry rule engine window advances 5x/week instead of 2x/week. Deployed
-  2026-06-26. Two misread entries (Jun 09 1.78h, Jun 13 4.44h) are still inside the
-  window as of deploy date, keeping the "2+ nights < 5h" DELOAD trigger active. Should
-  clear naturally by ~Jun 30 as clean entries push the bad reads out. Confirm DELOAD
-  clears and move to Completed.
-
 ### Code
 
 1. **Manual "rough week" override** — a way to shift the recommendation one
@@ -427,6 +418,9 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 
 ### Completed
 
+- ~~History window fix~~ — `_count_nights_below` now uses a 7-calendar-day lookback
+  instead of last-7-entries. Two misread entries (Jun 09 1.78h, Jun 13 4.44h) deleted
+  from `history.json`. DELOAD cleared 2026-06-27.
 - ~~Resting HR rule engine signal~~ — Done
 - ~~Pi deployment~~ — Done
 - ~~Tailscale~~ — Done
