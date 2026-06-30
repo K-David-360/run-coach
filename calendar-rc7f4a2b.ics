@@ -23,17 +23,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260630
 DTEND;VALUE=DATE:20260701
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
+DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
+ ol down
 UID:rc-run-2026-06-30-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260704
 DTEND;VALUE=DATE:20260705
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
+DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
+ ol down
 UID:rc-run-2026-07-04-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -182,17 +182,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260728
 DTEND;VALUE=DATE:20260729
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
+DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
+ ol down
 UID:rc-run-2026-07-28-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260801
 DTEND;VALUE=DATE:20260802
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
+DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
+ ol down
 UID:rc-run-2026-08-01-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -337,17 +337,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260825
 DTEND;VALUE=DATE:20260826
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
+DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
+ ol down
 UID:rc-run-2026-08-25-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260829
 DTEND;VALUE=DATE:20260830
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 1\n\n5 mins walking c
- ool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
+DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
+ ol down
 UID:rc-run-2026-08-29-B@runcoach
 END:VEVENT
 END:VCALENDAR
