@@ -292,11 +292,12 @@ def generate_session(decision: str, data: dict) -> dict:
 
     # ── DELOAD ───────────────────────────────────────────────────────────────
     elif decision == "DELOAD":
-        session_type = "deload"
-        blocks = _deload_blocks()
+        session_type = "easy"
+        work_min = ceil((base_work_min or 18) * 0.70)
+        blocks = _easy_blocks(work_min)
         summary = (
-            f"Deload run — {_total_min(blocks)} min total. "
-            "Zone 1 only. Let the training from the past three weeks settle in."
+            f"Deload run — {_total_min(blocks)} min total (~70% of planned). "
+            "Zone 2 at your normal easy pace — same effort, less time."
         )
 
     # ── REDUCE ───────────────────────────────────────────────────────────────
