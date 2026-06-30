@@ -20,7 +20,6 @@ from math import ceil
 from plan_generator import (
     _PLAN_PHASE1 as _PLAN,
     _easy_blocks,
-    _deload_blocks,
     _total_min,
     kb_peak_from_weeks,
 )
@@ -130,11 +129,12 @@ def _format_run_description(blocks: list) -> str:
 
 def _run_session(plan_week: int, slot: str, is_deload: bool) -> dict:
     """Base-plan (HOLD) run event — shown for all future sessions."""
+    base = _PLAN.get(plan_week, _PLAN[1])[slot]
     if is_deload:
-        blocks  = _deload_blocks()
+        # Deload: 70% of week 4 base duration (~14 min work total)
+        blocks  = _easy_blocks(max(8, int(10 * 0.70)))
         summary = f"⛔️ 🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:
-        base     = _PLAN.get(plan_week, _PLAN[1])[slot]
         blocks   = _easy_blocks(base["work_min"] or 18)
         label    = _SESSION_LABEL.get(base["type"], "Easy Run")
         summary  = f"🏃‍♂️ {label} — {_total_min(blocks)} mins"
@@ -148,10 +148,14 @@ def _run_session_actual(session_type: str, decision: str, plan_week: int, slot: 
     base = _PLAN.get(plan_week, _PLAN[1])[slot]
     base_work_min = base["work_min"] or 18
 
-    if decision in ("DELOAD", "SUPPRESS"):
-        blocks   = _deload_blocks()
-        label    = "Recovery Only" if decision == "SUPPRESS" else "Deload Run"
-        summary  = f"{prefix}🏃‍♂️ {label} — {_total_min(blocks)} mins"
+    if decision == "SUPPRESS":
+        work_min = max(8, base_work_min - 5)
+        blocks   = _easy_blocks(work_min)
+        summary  = f"{prefix}🏃‍♂️ Recovery Only — {_total_min(blocks)} mins"
+    elif decision == "DELOAD":
+        work_min = max(8, int(base_work_min * 0.70))
+        blocks   = _easy_blocks(work_min)
+        summary  = f"{prefix}🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:
         if decision == "REDUCE":
             work_min = max(8, ceil(base_work_min * 0.85))

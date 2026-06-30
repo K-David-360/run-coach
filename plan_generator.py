@@ -130,17 +130,6 @@ def _intervals_blocks() -> list:
     ]
 
 
-def _deload_blocks() -> list:
-    return [
-        {"name": "Warmup",   "duration_min": _WARMUP_MIN,  "zone": "zone1",
-         "notes": "Slow walk or very light jog."},
-        {"name": "Work",     "duration_min": 10,            "zone": "zone1",
-         "notes": "Very easy — this is active recovery, not a workout. Stay well below 130 bpm."},
-        {"name": "Cooldown", "duration_min": _COOLDOWN_MIN, "zone": "zone1",
-         "notes": "Easy walk to finish."},
-    ]
-
-
 # ── KB Breathing Ladder ───────────────────────────────────────────────────────
 
 def kb_peak_from_weeks(weeks_elapsed: int) -> int:
@@ -244,8 +233,6 @@ def _blocks_for_type(session_type: str, work_min: int) -> list:
         return _tempo_blocks(work_min)
     elif session_type == "intervals":
         return _intervals_blocks()
-    elif session_type == "deload":
-        return _deload_blocks()
     return _easy_blocks(work_min)
 
 
