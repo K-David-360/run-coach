@@ -147,7 +147,7 @@ the LTHR field test.
 | 1 | Easy 28 min | Easy 30 min |
 | 2 | Easy 30 min | Easy 33 min |
 | 3 | Easy 33 min | Easy 35 min |
-| 4 | Deload 20 min | Deload 20 min |
+| 4 | Deload ~70% duration, Zone 2 | Deload ~70% duration, Zone 2 |
 
 Week 4 is always a deload regardless of rule engine decision.
 `run_in_week` tracks slot (0 = A next, 1 = B next), resets after 2 runs
@@ -178,7 +178,7 @@ the flag.
 | BUILD | ⬆️ | Full planned load |
 | HOLD | (none) | Follow planned load |
 | REDUCE | ⬇️ | ~80% of planned load |
-| DELOAD | ⛔️ | Light load, cut sets |
+| DELOAD | ⛔️ | Same weight, half the sets |
 | SUPPRESS | ⛔️ | Skip or very easy only |
 
 ---

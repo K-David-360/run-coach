@@ -7,14 +7,14 @@ Phase 1 (weeks 1–6, current): both runs Zone 2 easy only.
   Week 1:  Run A = easy 28 min  |  Run B = easy 30 min
   Week 2:  Run A = easy 30 min  |  Run B = easy 33 min
   Week 3:  Run A = easy 33 min  |  Run B = easy 35 min
-  Week 4:  Run A = easy 20 min  |  Run B = easy 20 min  (deload)
+  Week 4:  Run A = deload ~70% Zone 2  |  Run B = deload ~70% Zone 2
 
 Phase 2 / Phase 3 plan tables are defined but not yet active. Phase advances
 manually in plan_state.json after the LTHR field test at week 6–8.
 
 Rule overrides:
   SUPPRESS  → easy, duration capped below base
-  DELOAD    → zone 1 easy blocks, deload durations
+  DELOAD    → zone 2 easy blocks, ~70% duration (Galpin protocol)
   REDUCE    → keep type, work block trimmed ~15%
   HOLD      → base plan as-is
   BUILD     → easy +10% (Phase 1); session upgrade in Phase 2+
