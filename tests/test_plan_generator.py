@@ -36,3 +36,13 @@ def test_deload_run_is_70pct_of_base(mock_load):
     assert work_block["duration_min"] == expected, (
         f"Expected {expected} (70% of week 3 base), got {work_block['duration_min']}"
     )
+
+@patch("plan_generator._load_json", return_value={"kb_weeks_elapsed": 0})
+def test_strength_deload_messaging(mock_load):
+    """Strength DELOAD should say 'same weight, half the sets' not 'light load'."""
+    from plan_generator import generate_strength_session
+    session = generate_strength_session("DELOAD", "mon")
+    notes = session["blocks"][0]["notes"].lower()
+    assert "same weight" in notes, f"Expected 'same weight' in notes: {notes}"
+    assert "half" in notes or "50%" in notes, f"Expected set reduction language: {notes}"
+    assert "light" not in notes, f"'light' should not appear: {notes}"

@@ -179,7 +179,7 @@ _STRENGTH_PHRASE = {
     "BUILD":    "Push it today.",
     "HOLD":     "Follow the plan.",
     "REDUCE":   "Pull back — 80% of planned load.",
-    "DELOAD":   "Easy load only — deload week.",
+    "DELOAD":   "Deload week — same weight, half the sets.",
     "SUPPRESS": "Easy load only.",
 }
 
@@ -187,7 +187,7 @@ _STRENGTH_NOTES = {
     "BUILD":    "Recovery looks strong — lift at full planned load.",
     "HOLD":     "Follow planned load.",
     "REDUCE":   "Back off — work at roughly 80% of planned load.",
-    "DELOAD":   "Deload week — keep loads light, cut sets if needed.",
+    "DELOAD":   "Deload week — keep the same weight as planned. Cut your sets to 50% of normal.",
     "SUPPRESS": "Skip if feeling rough. If you lift, keep it very easy.",
 }
 
