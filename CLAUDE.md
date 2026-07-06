@@ -177,7 +177,7 @@ the flag.
 |----------|---------------|----------------|
 | BUILD | ⬆️ | Full planned load |
 | HOLD | (none) | Follow planned load |
-| REDUCE | ⬇️ | ~80% of planned load |
+| REDUCE | ⬇️ | Same weight, ~80% of sets |
 | DELOAD | ⛔️ | Same weight, half the sets |
 | SUPPRESS | ⛔️ | Skip or very easy only |
 
