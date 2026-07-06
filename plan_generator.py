@@ -167,7 +167,7 @@ _STRENGTH_PREFIX = {
 _STRENGTH_PHRASE = {
     "BUILD":    "Push it today.",
     "HOLD":     "Follow the plan.",
-    "REDUCE":   "Pull back — 80% of planned load.",
+    "REDUCE":   "Pull back — same weight, drop to ~80% of your sets.",
     "DELOAD":   "Deload week — same weight, half the sets.",
     "SUPPRESS": "Easy load only.",
 }
@@ -175,7 +175,7 @@ _STRENGTH_PHRASE = {
 _STRENGTH_NOTES = {
     "BUILD":    "Recovery looks strong — lift at full planned load.",
     "HOLD":     "Follow planned load.",
-    "REDUCE":   "Back off — work at roughly 80% of planned load.",
+    "REDUCE":   "Back off on volume — keep the same weight as planned. Drop to roughly 80% of your normal sets.",
     "DELOAD":   "Deload week — keep the same weight as planned. Cut your sets to 50% of normal.",
     "SUPPRESS": "Skip if feeling rough. If you lift, keep it very easy.",
 }

@@ -46,3 +46,13 @@ def test_strength_deload_messaging(mock_load):
     assert "same weight" in notes, f"Expected 'same weight' in notes: {notes}"
     assert "half" in notes or "50%" in notes, f"Expected set reduction language: {notes}"
     assert "light" not in notes, f"'light' should not appear: {notes}"
+
+@patch("plan_generator._load_json", return_value={"kb_weeks_elapsed": 0})
+def test_strength_reduce_messaging(mock_load):
+    """Strength REDUCE should say 'same weight, fewer sets' — not 'load' or 'light'."""
+    from plan_generator import generate_strength_session
+    session = generate_strength_session("REDUCE", "mon")
+    notes = session["blocks"][0]["notes"].lower()
+    assert "same weight" in notes, f"Expected 'same weight' in notes: {notes}"
+    assert "set" in notes, f"Expected set-reduction language in notes: {notes}"
+    assert "load" not in notes, f"'load' should not appear (implies weight cut): {notes}"
