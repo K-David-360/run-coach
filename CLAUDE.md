@@ -418,6 +418,13 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 
 ### Completed
 
+- ~~Galpin deload protocol alignment~~ — Deload/reduce tiers now cut volume only,
+  never intensity, per Huberman Lab/Galpin guest series (`docs/deload_protocol.md`).
+  Runs: DELOAD = same zone, 70% duration; REDUCE = same zone, 85% duration
+  (already correct, no change needed). Strength: DELOAD = same weight, 50% of
+  sets; REDUCE = same weight, ~80% of sets (both previously worded as load/weight
+  cuts — fixed 2026-06-29 and 2026-07-06 respectively). Dead `_deload_blocks()`
+  helper removed as part of this work.
 - ~~History window fix~~ — `_count_nights_below` now uses a 7-calendar-day lookback
   instead of last-7-entries. Two misread entries (Jun 09 1.78h, Jun 13 4.44h) deleted
   from `history.json`. DELOAD cleared 2026-06-27.
