@@ -7,7 +7,7 @@ CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260706
 DTEND;VALUE=DATE:20260707
-SUMMARY:⬇️ 🏋️ Lower Body
+SUMMARY:🏋️ Lower Body
 DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
  t or mobility tomorrow.
 UID:rc-strength-2026-07-06-mon@runcoach
@@ -32,8 +32,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260707
 DTEND;VALUE=DATE:20260708
-SUMMARY:🏃‍♂️ Easy Run — 28 mins
-DESCRIPTION:5 mins walking warm up\n\n18 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⬇️ 🏃‍♂️ Easy Run — 26 mins
+DESCRIPTION:5 mins walking warm up\n\n16 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-07-07-A@runcoach
 END:VEVENT
