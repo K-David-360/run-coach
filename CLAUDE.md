@@ -430,6 +430,12 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 - ~~Strength session intensity class~~ — Done
 - ~~Calendar anchored to current Monday (not next)~~ — Done
 - ~~KB-phase-anchored calendar window~~ — Done
+- ~~Calendar accuracy test fixtures anchored to stale dates~~ — `generate_ics()`
+  now accepts an optional `today` param (same `today=None` convention as
+  `_most_recent_monday`/`_week_from_cycle_start`); tests in
+  `test_calendar_accuracy.py` pass a fixed anchor Monday instead of hardcoded
+  `2026-06-xx` strings that fell outside the rolling calendar window as real
+  time passed.
 
 ---
 
@@ -467,6 +473,12 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
   Only today's event is updated with the actual decision via `last_session_*`.
 - **LTHR field test auto-scheduled** — appears in calendar at run 10, urgent
   at run 14, disappears when phase advances. No manual reminder needed.
+- **Date-dependent functions accept `today: date = None`** — `_most_recent_monday`,
+  `_week_from_cycle_start`, and `generate_ics` all default to `date.today()`
+  but accept an explicit `today` override. Tests pass a fixed date instead of
+  hardcoding absolute date strings, so fixtures don't go stale as real time
+  passes relative to rolling windows (e.g. the calendar's Monday-anchored
+  KB-phase window).
 - **Port 5001** — macOS AirPlay Receiver occupies 5000.
 - **`_safe_float()` helper** — Shortcuts sends empty strings for missing
   health values; bare `float()` crashes on `""`.
