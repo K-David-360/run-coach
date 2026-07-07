@@ -6,14 +6,21 @@ strength-day decision display.
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from datetime import date
+from datetime import date, timedelta
 from calendar_generator import generate_ics
+
+# Fixed anchor Monday — generate_ics is passed this explicitly as `today` so
+# these fixtures stay valid regardless of when the suite actually runs.
+_MONDAY = date(2026, 6, 8)
+_TUESDAY = _MONDAY + timedelta(days=1)
+_WEDNESDAY = _MONDAY + timedelta(days=2)
+_SATURDAY = _MONDAY + timedelta(days=5)
 
 
 def _base_plan_state(**overrides):
     state = {
         "current_week":                1,
-        "cycle_start_date":            "2026-06-08",   # Monday
+        "cycle_start_date":            _MONDAY.isoformat(),
         "consecutive_suppress":        0,
         "total_runs":                  0,
         "phase":                       1,
@@ -59,35 +66,35 @@ def _events_on(ics: str, date_str: str) -> list:
 def test_run_a_decision_visible_after_tuesday_execution():
     """Tuesday's REDUCE decision should appear in the calendar as down-arrow."""
     state = _base_plan_state(
-        last_run_a_execution_date="2026-06-09",  # Tuesday
+        last_run_a_execution_date=_TUESDAY.isoformat(),
         last_run_a_decision="REDUCE",
     )
-    ics = generate_ics(state)
-    summaries = _events_on(ics, "20260609")
+    ics = generate_ics(state, today=_MONDAY)
+    summaries = _events_on(ics, _TUESDAY.strftime("%Y%m%d"))
     assert any("⬇️" in s for s in summaries), f"Expected ⬇️ in Tue summary, got: {summaries}"
 
 
 def test_run_b_decision_visible_after_saturday_execution():
     """Saturday's BUILD decision should appear in the calendar as up-arrow."""
     state = _base_plan_state(
-        last_run_b_execution_date="2026-06-13",  # Saturday
+        last_run_b_execution_date=_SATURDAY.isoformat(),
         last_run_b_decision="BUILD",
     )
-    ics = generate_ics(state)
-    summaries = _events_on(ics, "20260613")
+    ics = generate_ics(state, today=_MONDAY)
+    summaries = _events_on(ics, _SATURDAY.strftime("%Y%m%d"))
     assert any("⬆️" in s for s in summaries), f"Expected ⬆️ in Sat summary, got: {summaries}"
 
 
 def test_tuesday_decision_survives_wednesday_execution():
     """After Wednesday fires, Tuesday's run decision must still show in calendar."""
     state = _base_plan_state(
-        last_run_a_execution_date="2026-06-09",
+        last_run_a_execution_date=_TUESDAY.isoformat(),
         last_run_a_decision="REDUCE",
-        last_execution_date="2026-06-10",        # Wednesday overwrote last_execution_date
+        last_execution_date=_WEDNESDAY.isoformat(),   # Wednesday overwrote last_execution_date
         last_execution_decision="DELOAD",
     )
-    ics = generate_ics(state)
-    tue_summaries = _events_on(ics, "20260609")
+    ics = generate_ics(state, today=_MONDAY)
+    tue_summaries = _events_on(ics, _TUESDAY.strftime("%Y%m%d"))
     assert any("⬇️" in s for s in tue_summaries), (
         f"Tuesday decision lost after Wed execution. Got: {tue_summaries}"
     )
@@ -96,11 +103,11 @@ def test_tuesday_decision_survives_wednesday_execution():
 def test_strength_event_shows_deload_decision():
     """Wednesday strength event should show ⛔️ when DELOAD fired on that day."""
     state = _base_plan_state(
-        last_execution_date="2026-06-10",      # Wednesday
+        last_execution_date=_WEDNESDAY.isoformat(),
         last_execution_decision="DELOAD",
     )
-    ics = generate_ics(state)
-    wed_summaries = _events_on(ics, "20260610")
+    ics = generate_ics(state, today=_MONDAY)
+    wed_summaries = _events_on(ics, _WEDNESDAY.strftime("%Y%m%d"))
     assert any("⛔️" in s for s in wed_summaries), (
         f"Expected ⛔️ on Wednesday DELOAD, got: {wed_summaries}"
     )
@@ -109,11 +116,11 @@ def test_strength_event_shows_deload_decision():
 def test_strength_event_shows_reduce_decision():
     """Monday strength event should show ⬇️ when REDUCE fired on that day."""
     state = _base_plan_state(
-        last_execution_date="2026-06-08",      # Monday
+        last_execution_date=_MONDAY.isoformat(),
         last_execution_decision="REDUCE",
     )
-    ics = generate_ics(state)
-    mon_summaries = _events_on(ics, "20260608")
+    ics = generate_ics(state, today=_MONDAY)
+    mon_summaries = _events_on(ics, _MONDAY.strftime("%Y%m%d"))
     assert any("⬇️" in s for s in mon_summaries), (
         f"Expected ⬇️ on Monday REDUCE, got: {mon_summaries}"
     )

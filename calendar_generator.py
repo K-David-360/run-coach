@@ -226,8 +226,9 @@ _LTHR_DESCRIPTION = (
 )
 
 
-def generate_ics(plan_state: dict) -> str:
-    today        = date.today()
+def generate_ics(plan_state: dict, today: date = None) -> str:
+    if today is None:
+        today = date.today()
     current_week = plan_state.get("current_week", 1)
     total_runs   = plan_state.get("total_runs", 0)
     phase        = plan_state.get("phase", 1)
