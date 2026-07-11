@@ -24,7 +24,7 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260710
 DTEND;VALUE=DATE:20260711
-SUMMARY:⬇️ 🏋️ Full Body
+SUMMARY:🏋️ Full Body
 DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
  .
 UID:rc-strength-2026-07-10-fri@runcoach
@@ -40,8 +40,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260711
 DTEND;VALUE=DATE:20260712
-SUMMARY:🏃‍♂️ Easy Run — 30 mins
-DESCRIPTION:5 mins walking warm up\n\n20 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⬇️ 🏃‍♂️ Easy Run — 27 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-07-11-B@runcoach
 END:VEVENT
