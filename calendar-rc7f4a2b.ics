@@ -32,8 +32,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260714
 DTEND;VALUE=DATE:20260715
-SUMMARY:🏃‍♂️ Easy Run — 30 mins
-DESCRIPTION:5 mins walking warm up\n\n20 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⬇️ 🏃‍♂️ Easy Run — 27 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-07-14-A@runcoach
 END:VEVENT
