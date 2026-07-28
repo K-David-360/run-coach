@@ -8,16 +8,17 @@ BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260727
 DTEND;VALUE=DATE:20260728
 SUMMARY:⛔️ 🏋️ Full Body
-DESCRIPTION:Deload week: full body only\, no lower body work.\nShort sessio
- n\, reduced load.
+DESCRIPTION:Deload week: full body only\, no lower body work.\nSame weight 
+ as planned — cut your sets to 50% of normal.
 UID:rc-strength-2026-07-27-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260729
 DTEND;VALUE=DATE:20260730
 SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Deload week: upper body at reduced load. Keep it easy.\n\nKB Sw
- ings — omitted (deload week).
+DESCRIPTION:Deload week: upper body at same weight as planned — cut your 
+ sets to 50% of normal. Keep it easy.\n\nKB Swings — omitted (deload week
+ ).
 UID:rc-strength-2026-07-29-wed@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -167,16 +168,17 @@ BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260824
 DTEND;VALUE=DATE:20260825
 SUMMARY:⛔️ 🏋️ Full Body
-DESCRIPTION:Deload week: full body only\, no lower body work.\nShort sessio
- n\, reduced load.
+DESCRIPTION:Deload week: full body only\, no lower body work.\nSame weight 
+ as planned — cut your sets to 50% of normal.
 UID:rc-strength-2026-08-24-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260826
 DTEND;VALUE=DATE:20260827
 SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Deload week: upper body at reduced load. Keep it easy.\n\nKB Sw
- ings — omitted (deload week).
+DESCRIPTION:Deload week: upper body at same weight as planned — cut your 
+ sets to 50% of normal. Keep it easy.\n\nKB Swings — omitted (deload week
+ ).
 UID:rc-strength-2026-08-26-wed@runcoach
 END:VEVENT
 BEGIN:VEVENT
