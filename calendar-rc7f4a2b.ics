@@ -287,37 +287,4 @@ DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-09-19-B@runcoach
 END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260921
-DTEND;VALUE=DATE:20260922
-SUMMARY:⛔️ 🏋️ Full Body
-DESCRIPTION:Deload week: full body only\, no lower body work.\nSame weight 
- as planned — cut your sets to 50% of normal.
-UID:rc-strength-2026-09-21-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260923
-DTEND;VALUE=DATE:20260924
-SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Deload week: upper body at same weight as planned — cut your 
- sets to 50% of normal. Keep it easy.\n\nKB Swings — omitted (deload week
- ).
-UID:rc-strength-2026-09-23-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260923
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
-DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
- ol down
-UID:rc-run-2026-09-22-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260926
-DTEND;VALUE=DATE:20260927
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
-DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
- ol down
-UID:rc-run-2026-09-26-B@runcoach
-END:VEVENT
 END:VCALENDAR
