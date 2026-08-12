@@ -40,10 +40,14 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260815
 DTEND;VALUE=DATE:20260816
-SUMMARY:🏃‍♂️ Easy Run — 33 mins
-DESCRIPTION:5 mins walking warm up\n\n23 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-08-15-B@runcoach
+SUMMARY:🔬 LTHR Field Test
+DESCRIPTION:Replaces today's Run 2.\n\n10 mins walking warm up\n\n30 mins a
+ ll-out sustained effort\n(hardest pace you can hold for the full 30 mins 
+ — not a sprint)\n\n5 mins walking cool down\n\nAfter: note your average 
+ HR for the final 20 mins.\nThat number is your LTHR.\n\nNext steps:\n1. Re
+ calculate zone boundaries from the new LTHR\n2. Update Apple Watch custom 
+ zone breakpoints\n3. Set "phase": 2 in data/plan_state.json
+UID:rc-lthr-2026-08-15@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260817
@@ -81,14 +85,10 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260822
 DTEND;VALUE=DATE:20260823
-SUMMARY:🔬 LTHR Field Test
-DESCRIPTION:Replaces today's Run 2.\n\n10 mins walking warm up\n\n30 mins a
- ll-out sustained effort\n(hardest pace you can hold for the full 30 mins 
- — not a sprint)\n\n5 mins walking cool down\n\nAfter: note your average 
- HR for the final 20 mins.\nThat number is your LTHR.\n\nNext steps:\n1. Re
- calculate zone boundaries from the new LTHR\n2. Update Apple Watch custom 
- zone breakpoints\n3. Set "phase": 2 in data/plan_state.json
-UID:rc-lthr-2026-08-22@runcoach
+SUMMARY:🏃‍♂️ Easy Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-08-22-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260824
