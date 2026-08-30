@@ -24,17 +24,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260825
 DTEND;VALUE=DATE:20260826
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
-DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
- ol down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+ ool down
 UID:rc-run-2026-08-25-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260829
 DTEND;VALUE=DATE:20260830
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
-DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
- ol down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+ ool down
 UID:rc-run-2026-08-29-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -65,17 +65,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260901
 DTEND;VALUE=DATE:20260902
-SUMMARY:🏃‍♂️ Easy Run — 28 mins
-DESCRIPTION:5 mins walking warm up\n\n18 mins in Zone 2\n\n5 mins walking c
+SUMMARY:🏃‍♂️ Easy Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-09-01-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260905
 DTEND;VALUE=DATE:20260906
-SUMMARY:🏃‍♂️ Easy Run — 30 mins
-DESCRIPTION:5 mins walking warm up\n\n20 mins in Zone 2\n\n5 mins walking c
- ool down
+SUMMARY:🏃‍♂️ Progression Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down
 UID:rc-run-2026-09-05-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -106,17 +106,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260908
 DTEND;VALUE=DATE:20260909
-SUMMARY:🏃‍♂️ Easy Run — 30 mins
-DESCRIPTION:5 mins walking warm up\n\n20 mins in Zone 2\n\n5 mins walking c
+SUMMARY:🏃‍♂️ Easy Run — 37 mins
+DESCRIPTION:5 mins walking warm up\n\n27 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-09-08-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260912
 DTEND;VALUE=DATE:20260913
-SUMMARY:🏃‍♂️ Easy Run — 33 mins
-DESCRIPTION:5 mins walking warm up\n\n23 mins in Zone 2\n\n5 mins walking c
- ool down
+SUMMARY:🏃‍♂️ Progression Run — 37 mins
+DESCRIPTION:5 mins walking warm up\n\n19 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down
 UID:rc-run-2026-09-12-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -147,17 +147,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260915
 DTEND;VALUE=DATE:20260916
-SUMMARY:🏃‍♂️ Easy Run — 33 mins
-DESCRIPTION:5 mins walking warm up\n\n23 mins in Zone 2\n\n5 mins walking c
+SUMMARY:🏃‍♂️ Easy Run — 40 mins
+DESCRIPTION:5 mins walking warm up\n\n30 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-09-15-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260919
 DTEND;VALUE=DATE:20260920
-SUMMARY:🏃‍♂️ Easy Run — 35 mins
-DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
- ool down
+SUMMARY:🏃‍♂️ Progression Run — 40 mins
+DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down
 UID:rc-run-2026-09-19-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -180,17 +180,17 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260922
 DTEND;VALUE=DATE:20260923
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
-DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
- ol down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+ ool down
 UID:rc-run-2026-09-22-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260926
 DTEND;VALUE=DATE:20260927
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 18 mins
-DESCRIPTION:5 mins walking warm up\n\n8 mins in Zone 2\n\n5 mins walking co
- ol down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+ ool down
 UID:rc-run-2026-09-26-B@runcoach
 END:VEVENT
 END:VCALENDAR
