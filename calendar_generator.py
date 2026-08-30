@@ -18,7 +18,8 @@ from datetime import date, timedelta
 from math import ceil
 
 from plan_generator import (
-    _PLAN_PHASE1 as _PLAN,
+    _PLAN_BY_PHASE,
+    _blocks_for_type,
     _easy_blocks,
     _total_min,
     kb_peak_from_weeks,
@@ -62,11 +63,11 @@ _STRENGTH_NORMAL = {
 _STRENGTH_DELOAD = {
     "mon": {
         "summary":     "⛔️ 🏋️ Full Body",
-        "description": "Deload week: full body only, no lower body work.\nShort session, reduced load.",
+        "description": "Deload week: full body only, no lower body work.\nSame weight as planned — cut your sets to 50% of normal.",
     },
     "wed": {
         "summary":     "⛔️ 🏋️ Upper Body + KB Ladder",
-        "description": "Deload week: upper body at reduced load. Keep it easy.",
+        "description": "Deload week: upper body at same weight as planned — cut your sets to 50% of normal. Keep it easy.",
     },
     # No Friday session during deload
 }
@@ -127,25 +128,25 @@ def _format_run_description(blocks: list) -> str:
 
 # ── Run session builders ──────────────────────────────────────────────────────
 
-def _run_session(plan_week: int, slot: str, is_deload: bool) -> dict:
+def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict:
     """Base-plan (HOLD) run event — shown for all future sessions."""
-    base = _PLAN.get(plan_week, _PLAN[1])[slot]
+    base = plan.get(plan_week, plan[1])[slot]
     if is_deload:
-        # Deload: 70% of week 4 base duration (~14 min work total)
-        blocks  = _easy_blocks(max(8, int(10 * 0.70)))
+        # Deload: 70% of week-4 base duration, Zone 2 easy (Galpin protocol)
+        blocks  = _easy_blocks(max(8, int((base["work_min"] or 10) * 0.70)))
         summary = f"⛔️ 🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:
-        blocks   = _easy_blocks(base["work_min"] or 18)
+        blocks   = _blocks_for_type(base["type"], base["work_min"] or 18)
         label    = _SESSION_LABEL.get(base["type"], "Easy Run")
         summary  = f"🏃‍♂️ {label} — {_total_min(blocks)} mins"
 
     return {"summary": summary, "description": _format_run_description(blocks)}
 
 
-def _run_session_actual(session_type: str, decision: str, plan_week: int, slot: str) -> dict:
+def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week: int, slot: str) -> dict:
     """Today's run event — uses the real rule engine decision."""
     prefix = _DECISION_EMOJI.get(decision, "")
-    base = _PLAN.get(plan_week, _PLAN[1])[slot]
+    base = plan.get(plan_week, plan[1])[slot]
     base_work_min = base["work_min"] or 18
 
     if decision == "SUPPRESS":
@@ -163,7 +164,7 @@ def _run_session_actual(session_type: str, decision: str, plan_week: int, slot: 
             work_min = ceil(base_work_min * 1.10)
         else:
             work_min = base_work_min
-        blocks   = _easy_blocks(work_min)
+        blocks   = _blocks_for_type(base["type"], work_min)
         label    = _SESSION_LABEL.get(base["type"], "Easy Run")
         summary  = f"{prefix}🏃‍♂️ {label} — {_total_min(blocks)} mins"
     return {"summary": summary, "description": _format_run_description(blocks)}
@@ -229,8 +230,8 @@ _LTHR_DESCRIPTION = (
 def generate_ics(plan_state: dict) -> str:
     today        = date.today()
     current_week = plan_state.get("current_week", 1)
-    total_runs   = plan_state.get("total_runs", 0)
     phase        = plan_state.get("phase", 1)
+    plan         = _PLAN_BY_PHASE.get(phase, _PLAN_BY_PHASE[1])
     kb_weeks     = plan_state.get("kb_weeks_elapsed", 0)
     kb_peak      = kb_peak_from_weeks(kb_weeks)
     # Show full KB Phase 1 arc — shrinks as the phase progresses, min 4 weeks
@@ -248,12 +249,14 @@ def generate_ics(plan_state: dict) -> str:
     # Anchor to this week's Monday so restarting mid-week doesn't lose current week.
     monday = today - timedelta(days=today.weekday())
 
-    # LTHR field test: show on an upcoming Saturday once 10 runs are done.
-    # Urgent (>= 14 runs): next Saturday. Approaching: Saturday after that.
+    # LTHR field test: date is fixed once by server.py when total_runs first
+    # crosses 10 (and bumped once more at 14). Read it as-is — recomputing it
+    # relative to "today" here would make it slide forward every calendar
+    # push and never arrive.
     lthr_date = None
-    if phase == 1 and total_runs >= 10:
-        lthr_week_offset = 1 if total_runs >= 14 else 2
-        lthr_date = monday + timedelta(weeks=lthr_week_offset, days=5)
+    lthr_test_date_str = plan_state.get("lthr_test_date", "")
+    if phase == 1 and lthr_test_date_str:
+        lthr_date = date.fromisoformat(lthr_test_date_str)
 
     raw_lines = [
         "BEGIN:VCALENDAR",
@@ -317,10 +320,10 @@ def generate_ics(plan_state: dict) -> str:
 
                 if run_date.isoformat() == slot_exec_date and slot_decision:
                     session = _run_session_actual(
-                        last_execution_type, slot_decision, plan_week, slot
+                        plan, last_execution_type, slot_decision, plan_week, slot
                     )
                 else:
-                    session = _run_session(plan_week, slot, is_deload)
+                    session = _run_session(plan, plan_week, slot, is_deload)
                 for line in _vevent(run_date, session["summary"], session["description"], uid):
                     raw_lines.append(_fold(line))
 

@@ -96,6 +96,8 @@ _DEFAULT_PLAN_STATE = {
     "last_run_b_decision": "",         # decision from last Saturday execution
     "kb_weeks_elapsed": 0,
     "kb_peak_rung": 10,
+    "lthr_test_date": "",   # ISO date, set once when total_runs crosses 10/14 — never recomputed relative to "today"
+    "lthr_test_tier":  "",  # "" / "scheduled" (>=10) / "urgent" (>=14) — guards against re-bumping the date
 }
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -574,6 +576,7 @@ def post_healthkit():
     _save_json(HISTORY_FILE, history)
 
     plan_state["total_runs"] = plan_state.get("total_runs", 0) + 1
+    new_total_runs = plan_state["total_runs"]
     plan_state["last_processed_workout_date"] = last_workout_date
     plan_state["last_execution_date"] = date.today().isoformat()
     plan_state["last_execution_type"] = session["type"]
@@ -584,6 +587,21 @@ def post_healthkit():
     elif today_dow == 5:  # Saturday → slot B
         plan_state["last_run_b_execution_date"] = today_str
         plan_state["last_run_b_decision"]       = decision["decision"]
+
+    # LTHR field test: fix a concrete date once, gated by tier (not by exact
+    # threshold-crossing, so it also self-heals state that was already past
+    # a threshold before this tracking existed). Never recompute relative to
+    # "today" on later calendar pushes, or the date perpetually slides
+    # forward with the calendar and never arrives.
+    if plan_state.get("phase", 1) == 1:
+        tier = plan_state.get("lthr_test_tier", "")
+        monday_this_week = date.today() - timedelta(days=date.today().weekday())
+        if new_total_runs >= 14 and tier != "urgent":
+            plan_state["lthr_test_date"] = (monday_this_week + timedelta(weeks=1, days=5)).isoformat()
+            plan_state["lthr_test_tier"] = "urgent"
+        elif new_total_runs >= 10 and tier == "":
+            plan_state["lthr_test_date"] = (monday_this_week + timedelta(weeks=2, days=5)).isoformat()
+            plan_state["lthr_test_tier"] = "scheduled"
 
     if decision["decision"] == "SUPPRESS":
         plan_state["consecutive_suppress"] = plan_state.get("consecutive_suppress", 0) + 1

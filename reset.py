@@ -44,6 +44,8 @@ def reset():
         "last_run_b_decision":       "",
         "kb_weeks_elapsed": 0,
         "kb_peak_rung": 10,
+        "lthr_test_date": "",
+        "lthr_test_tier": "",
     }
 
     with open(PLAN_STATE_FILE, "w") as f:
