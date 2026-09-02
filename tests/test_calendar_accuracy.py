@@ -70,6 +70,61 @@ def _events_on(ics: str, date_str: str) -> list:
     return summaries
 
 
+def _descriptions_on(ics: str, date_str: str) -> list:
+    """Return all DESCRIPTION values for events on the given YYYYMMDD date string."""
+    unfolded = ics.replace("\r\n ", "").replace("\r\n\t", "").replace("\n ", "").replace("\n\t", "")
+    lines = unfolded.splitlines()
+    descriptions = []
+    in_event = False
+    event_date = None
+    description = None
+    for line in lines:
+        if line.strip() == "BEGIN:VEVENT":
+            in_event = True
+            event_date = None
+            description = None
+        elif line.strip() == "END:VEVENT":
+            if in_event and event_date == date_str and description is not None:
+                descriptions.append(description)
+            in_event = False
+        elif in_event and line.startswith("DTSTART;VALUE=DATE:"):
+            event_date = line.split(":")[1].strip()
+        elif in_event and line.startswith("DESCRIPTION:"):
+            description = line[len("DESCRIPTION:"):]
+    return descriptions
+
+
+def test_strength_reduce_appends_set_guidance():
+    """A REDUCE strength day spells out the set cut in the calendar description."""
+    mon = _day(0)
+    state = _base_plan_state(last_execution_date=mon, last_execution_decision="REDUCE")
+    ics = generate_ics(state)
+    descs = _descriptions_on(ics, _ymd(mon))
+    assert any("80% of your normal sets" in d for d in descs), descs
+
+
+def test_strength_hold_has_no_guidance_line():
+    """HOLD adds no callout — the base description is unchanged."""
+    mon = _day(0)
+    state = _base_plan_state(last_execution_date=mon, last_execution_decision="HOLD")
+    ics = generate_ics(state)
+    descs = _descriptions_on(ics, _ymd(mon))
+    assert descs and all("Follow planned load" not in d for d in descs), descs
+
+
+def test_strength_deload_week_guidance_not_doubled():
+    """On a scheduled deload week the static wording is not duplicated by a live DELOAD."""
+    mon = _day(0)
+    state = _base_plan_state(
+        current_week=4, cycle_start_date=(_MONDAY - timedelta(weeks=3)).isoformat(),
+        last_execution_date=mon, last_execution_decision="DELOAD",
+    )
+    ics = generate_ics(state)
+    descs = _descriptions_on(ics, _ymd(mon))
+    assert descs, descs
+    assert descs[0].count("50% of normal") == 1, descs
+
+
 def test_run_a_decision_visible_after_tuesday_execution():
     """Tuesday's REDUCE decision should appear in the calendar as down-arrow."""
     tue = _day(1)

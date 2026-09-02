@@ -12,6 +12,10 @@ Fixed weekly schedule (Mon–Sun):
 
 Week 4 (deload): strength labels change; no lower body, no Friday session.
 Decision emoji prefixes: ⬆️ BUILD · ⬇️ REDUCE · ⛔️ SUPPRESS/DELOAD · (none) HOLD
+
+Today's strength event also gets a set/load guidance line appended to its
+description (from plan_generator._STRENGTH_NOTES) for every non-HOLD decision,
+so the calendar spells out how to adjust volume — not just the flag emoji.
 """
 
 from datetime import date, timedelta
@@ -19,6 +23,7 @@ from math import ceil
 
 from plan_generator import (
     _PLAN_BY_PHASE,
+    _STRENGTH_NOTES,
     _blocks_for_type,
     _easy_blocks,
     _total_min,
@@ -284,11 +289,18 @@ def generate_ics(plan_state: dict) -> str:
             if day_key not in strength_schedule:
                 continue
             s   = dict(strength_schedule[day_key])  # shallow copy — don't mutate module dict
-            # Apply live decision emoji when this event matches the last execution date
+            guidance = ""
+            # Apply live decision emoji + set/load guidance when this event
+            # matches the last execution date.
             if evt_date.isoformat() == last_execution_date and last_execution_decision:
                 prefix = _DECISION_EMOJI.get(last_execution_decision, "")
                 if prefix and not s["summary"].startswith(prefix):
                     s["summary"] = prefix + s["summary"]
+                # Spell out how to adjust sets/load for today. HOLD needs no
+                # callout; scheduled deload weeks already carry the wording.
+                note = _STRENGTH_NOTES.get(last_execution_decision, "")
+                if note and last_execution_decision != "HOLD" and not is_deload:
+                    guidance = f"\n\n{prefix}{note}"
             if day_key == "wed":
                 if is_deload:
                     s["description"] += "\n\nKB Swings — omitted (deload week)."
@@ -297,6 +309,7 @@ def generate_ics(plan_state: dict) -> str:
                         f"\n\nKB Breathing Ladder — Peak {kb_peak}\n"
                         f"1→{kb_peak}→1 swings. 1 breath per swing as rest. Fixed bell weight."
                     )
+            s["description"] += guidance
             uid = f"rc-strength-{evt_date.isoformat()}-{day_key}@runcoach"
             for line in _vevent(evt_date, s["summary"], s["description"], uid):
                 raw_lines.append(_fold(line))
