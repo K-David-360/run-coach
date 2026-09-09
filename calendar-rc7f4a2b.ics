@@ -15,10 +15,12 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260909
 DTEND;VALUE=DATE:20260910
-SUMMARY:🏋️ Upper Body + KB Ladder
+SUMMARY:⬇️ 🏋️ Upper Body + KB Ladder
 DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
   for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.
+ eath per swing as rest. Fixed bell weight.\n\n⬇️ Back off on volume 
+ — keep the same weight as planned. Drop to roughly 80% of your normal se
+ ts.
 UID:rc-strength-2026-09-09-wed@runcoach
 END:VEVENT
 BEGIN:VEVENT
