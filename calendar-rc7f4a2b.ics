@@ -24,10 +24,9 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260911
 DTEND;VALUE=DATE:20260912
-SUMMARY:⬇️ 🏋️ Full Body
+SUMMARY:🏋️ Full Body
 DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .\n\n⬇️ Back off on volume — keep the same weight as planned. Drop t
- o roughly 80% of your normal sets.
+ .
 UID:rc-strength-2026-09-11-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
