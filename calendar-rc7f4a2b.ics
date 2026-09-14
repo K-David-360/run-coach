@@ -5,52 +5,12 @@ X-WR-CALNAME:Run Coach
 X-WR-CALDESC:Your personalised running and strength plan
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260907
-DTEND;VALUE=DATE:20260908
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
-UID:rc-strength-2026-09-07-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260909
-DTEND;VALUE=DATE:20260910
-SUMMARY:🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.
-UID:rc-strength-2026-09-09-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260911
-DTEND;VALUE=DATE:20260912
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
-UID:rc-strength-2026-09-11-fri@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260908
-DTEND;VALUE=DATE:20260909
-SUMMARY:🏃‍♂️ Easy Run — 37 mins
-DESCRIPTION:5 mins walking warm up\n\n27 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-09-08-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260912
-DTEND;VALUE=DATE:20260913
-SUMMARY:🏃‍♂️ Progression Run — 37 mins
-DESCRIPTION:5 mins walking warm up\n\n19 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down
-UID:rc-run-2026-09-12-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260914
 DTEND;VALUE=DATE:20260915
-SUMMARY:🏋️ Lower Body
+SUMMARY:⬆️ 🏋️ Lower Body
 DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
+ t or mobility tomorrow.\n\n⬆️ Recovery looks strong — lift at full p
+ lanned load.
 UID:rc-strength-2026-09-14-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -200,5 +160,46 @@ SUMMARY:🏃‍♂️ Progression Run — 37 mins
 DESCRIPTION:5 mins walking warm up\n\n19 mins in Zone 2\n8 mins in Zone 3\n
  \n5 mins walking cool down
 UID:rc-run-2026-10-10-B@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261012
+DTEND;VALUE=DATE:20261013
+SUMMARY:🏋️ Lower Body
+DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
+ t or mobility tomorrow.
+UID:rc-strength-2026-10-12-mon@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261014
+DTEND;VALUE=DATE:20261015
+SUMMARY:🏋️ Upper Body + KB Ladder
+DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
+  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
+ eath per swing as rest. Fixed bell weight.
+UID:rc-strength-2026-10-14-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261016
+DTEND;VALUE=DATE:20261017
+SUMMARY:🏋️ Full Body
+DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
+ .
+UID:rc-strength-2026-10-16-fri@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261013
+DTEND;VALUE=DATE:20261014
+SUMMARY:🏃‍♂️ Easy Run — 40 mins
+DESCRIPTION:5 mins walking warm up\n\n30 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-10-13-A@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261017
+DTEND;VALUE=DATE:20261018
+SUMMARY:🏃‍♂️ Progression Run — 40 mins
+DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down
+UID:rc-run-2026-10-17-B@runcoach
 END:VEVENT
 END:VCALENDAR
