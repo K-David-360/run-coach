@@ -5,48 +5,6 @@ X-WR-CALNAME:Run Coach
 X-WR-CALDESC:Your personalised running and strength plan
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260914
-DTEND;VALUE=DATE:20260915
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
-UID:rc-strength-2026-09-14-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260916
-DTEND;VALUE=DATE:20260917
-SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.\n\n⛔️ Deload week — keep 
- the same weight as planned. Cut your sets to 50% of normal.
-UID:rc-strength-2026-09-16-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260918
-DTEND;VALUE=DATE:20260919
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
-UID:rc-strength-2026-09-18-fri@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260915
-DTEND;VALUE=DATE:20260916
-SUMMARY:⛔️ 🏃‍♂️ Recovery Only — 35 mins
-DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-09-15-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260919
-DTEND;VALUE=DATE:20260920
-SUMMARY:🏃‍♂️ Progression Run — 40 mins
-DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down
-UID:rc-run-2026-09-19-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260921
 DTEND;VALUE=DATE:20260922
 SUMMARY:⛔️ 🏋️ Full Body
@@ -201,5 +159,38 @@ SUMMARY:🏃‍♂️ Progression Run — 40 mins
 DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
  \n5 mins walking cool down
 UID:rc-run-2026-10-17-B@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261019
+DTEND;VALUE=DATE:20261020
+SUMMARY:⛔️ 🏋️ Full Body
+DESCRIPTION:Deload week: full body only\, no lower body work.\nSame weight 
+ as planned — cut your sets to 50% of normal.
+UID:rc-strength-2026-10-19-mon@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261021
+DTEND;VALUE=DATE:20261022
+SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
+DESCRIPTION:Deload week: upper body at same weight as planned — cut your 
+ sets to 50% of normal. Keep it easy.\n\nKB Swings — omitted (deload week
+ ).
+UID:rc-strength-2026-10-21-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261020
+DTEND;VALUE=DATE:20261021
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-10-20-A@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261024
+DTEND;VALUE=DATE:20261025
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
+DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-10-24-B@runcoach
 END:VEVENT
 END:VCALENDAR
