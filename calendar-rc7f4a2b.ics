@@ -5,44 +5,12 @@ X-WR-CALNAME:Run Coach
 X-WR-CALDESC:Your personalised running and strength plan
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260921
-DTEND;VALUE=DATE:20260922
-SUMMARY:⛔️ 🏋️ Full Body
-DESCRIPTION:Deload week: full body only\, no lower body work.\nSame weight 
- as planned — cut your sets to 50% of normal.
-UID:rc-strength-2026-09-21-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260923
-DTEND;VALUE=DATE:20260924
-SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Deload week: upper body at same weight as planned — cut your 
- sets to 50% of normal. Keep it easy.\n\nKB Swings — omitted (deload week
- ).
-UID:rc-strength-2026-09-23-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260922
-DTEND;VALUE=DATE:20260923
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-09-22-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260926
-DTEND;VALUE=DATE:20260927
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-09-26-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
 DTSTART;VALUE=DATE:20260928
 DTEND;VALUE=DATE:20260929
-SUMMARY:🏋️ Lower Body
+SUMMARY:⬇️ 🏋️ Lower Body
 DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
+ t or mobility tomorrow.\n\n⬇️ Back off on volume — keep the same wei
+ ght as planned. Drop to roughly 80% of your normal sets.
 UID:rc-strength-2026-09-28-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -192,5 +160,46 @@ SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
 DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-10-24-B@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261026
+DTEND;VALUE=DATE:20261027
+SUMMARY:🏋️ Lower Body
+DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
+ t or mobility tomorrow.
+UID:rc-strength-2026-10-26-mon@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261028
+DTEND;VALUE=DATE:20261029
+SUMMARY:🏋️ Upper Body + KB Ladder
+DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
+  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
+ eath per swing as rest. Fixed bell weight.
+UID:rc-strength-2026-10-28-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261030
+DTEND;VALUE=DATE:20261031
+SUMMARY:🏋️ Full Body
+DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
+ .
+UID:rc-strength-2026-10-30-fri@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261027
+DTEND;VALUE=DATE:20261028
+SUMMARY:🏃‍♂️ Easy Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-10-27-A@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261031
+DTEND;VALUE=DATE:20261101
+SUMMARY:🏃‍♂️ Progression Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down
+UID:rc-run-2026-10-31-B@runcoach
 END:VEVENT
 END:VCALENDAR
