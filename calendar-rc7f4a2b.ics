@@ -24,9 +24,9 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261002
 DTEND;VALUE=DATE:20261003
-SUMMARY:⛔️ 🏋️ Full Body
+SUMMARY:🏋️ Full Body
 DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .\n\n⛔️ Skip if feeling rough. If you lift\, keep it very easy.
+ .
 UID:rc-strength-2026-10-02-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -40,9 +40,9 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261003
 DTEND;VALUE=DATE:20261004
-SUMMARY:🏃‍♂️ Progression Run — 35 mins
-DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 27 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n\n5 mins walking c
+ ool down
 UID:rc-run-2026-10-03-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
