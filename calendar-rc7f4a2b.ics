@@ -40,8 +40,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261010
 DTEND;VALUE=DATE:20261011
-SUMMARY:🏃‍♂️ Progression Run — 37 mins
-DESCRIPTION:5 mins walking warm up\n\n19 mins in Zone 2\n8 mins in Zone 3\n
+SUMMARY:⬇️ 🏃‍♂️ Progression Run — 33 mins
+DESCRIPTION:5 mins walking warm up\n\n15 mins in Zone 2\n8 mins in Zone 3\n
  \n5 mins walking cool down
 UID:rc-run-2026-10-10-B@runcoach
 END:VEVENT
