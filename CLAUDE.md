@@ -16,6 +16,12 @@ run-coach/
 ├── calendar_generator.py         # ICS calendar — through the next deload week, anchored to current Monday
 ├── cycle.py                      # 6-week cycle math: cycle week, block week, deload, jump prescription
 ├── reset.py                      # Resets plan_state.json and history.json to defaults
+├── bodycomp/                     # Sunday body-comp weekly check (see section below)
+│   ├── config.py                 # Threshold defaults; overlaid by gitignored data/bodycomp/config.json
+│   ├── store.py                  # data/bodycomp/weekly.json, measurements.json
+│   ├── checks.py                 # Samples → metrics → rules (W/P/E/S/L/D) → report + banner
+│   ├── flags.py                  # Read-only hooks into daily output (S1 note, optional Saturday)
+│   └── review_packet.py          # Markdown packet for a Claude review
 ├── data/
 │   ├── plan_state.json           # Persistent plan state (see schema below)
 │   ├── history.json              # Log of every processed session
@@ -227,6 +233,32 @@ Every `/healthkit` response includes:
 The Shortcut reads both `decision_reason` and `notification` from the response
 and concatenates them in the banner body (e.g. "HOLD ✅ On track — follow today's
 plan as scheduled."). Generic enough to apply on any day type.
+
+---
+
+## Body-composition weekly check
+
+Sunday-morning branch of the daily Shortcut posts the previous Sun–Sat of Apple
+Health data (weight, protein, dietary energy, steps as `date=value` lines) to
+`POST /bodycomp/weekly`. Sleep comes from `history.json`. Returns a banner such as
+`Weekly: weight 150.0 (+0.2), protein 128 g OK, steps 7.1k, 1 amber (sleep).`
+
+- **Phases:** `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) in
+  `data/bodycomp/config.json`. Not run-coach's run `phase` (1/2/3). Never
+  advanced by code.
+- **Rules:** W1 hold, W2 fast loss, W3 still dropping (BC-1), W4 flat (BC-2),
+  P1/P2/P3 protein, E1 calorie floor, S1 short sleep, S2 steps, L1/L2 lifts
+  (optional inputs), D1 deload next week. Severity RED > AMBER > INFO > OK.
+- **Daily hooks (read-only):** S1 AMBER → next week's lift days get a "Weekly
+  check" note and no jumps; Saturday run gets an "optional" note when S1 is
+  active or HRV ratio < 0.90. Number-free text only.
+- **Also:** `POST /bodycomp/measurements` (monthly tape), `GET
+  /bodycomp/review-packet` (markdown for a Claude review). Optional
+  `BODYCOMP_TOKEN` env → `X-Bodycomp-Token` header required on `/bodycomp/*`.
+- **Privacy (repo is public):** `data/bodycomp/` is gitignored. Personal
+  thresholds (protein/kcal targets, baseline weight) live only in the Pi's
+  `data/bodycomp/config.json`; code defaults are generic (`None` = rule off).
+  No bodycomp values in the calendar, `plan_state.json` or `current_session.json`.
 
 ---
 
