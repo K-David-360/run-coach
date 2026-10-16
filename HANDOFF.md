@@ -18,58 +18,32 @@ to the Pi.** The Pi still runs the old 4-week / KB-ladder code.
   merge origin/main`, and on conflict take the remote calendar file (`git checkout --theirs
   calendar-rc7f4a2b.ics`). Run the tests, then push (ask David first).
 
-## 2. Pi deploy (after everything else outstanding is done)
+## 2. Pi deploy — done 2026-10-16
 
-David is OK deploying before Mon Oct 19 (2026-10-16): with the cycle start set to 10-26, the rest
-of this week reads as a deload too. The week of Oct 19 is the planned pre-block deload; block week 1
-and BC-1 week 1 start Mon Oct 26.
+- Pi `~/run-coach` is now a clean checkout of `origin/main`. **Cron runs `deploy.sh` every minute
+  (`git pull` + `sudo systemctl restart`)**; the restart fails without a password, so after a push
+  David runs `sudo systemctl restart run-coach`. Pre-deploy backup: `~/run-coach-backup-20261016005539`.
+- `plan_state.json` restored from that backup with `cycle_start_date` 2026-10-26 (the rest of
+  this week and the week of Oct 19 read as deload). Pi plan state is **phase 2**.
+- `.env` (Pi and Mac): `BODYCOMP_SECRET` (Pi only, generated on the Pi), `TELEGRAM_BOT_TOKEN`,
+  `TELEGRAM_CHAT_ID` (bot @healthbootcamp_bot). `data/bodycomp/config.json` on the Pi.
+- Smoke tests passed: calendar (deload through Oct 24, Push weekly target 60 on Oct 26, no KB);
+  synthetic `/bodycomp/weekly` → 200 + banner; test report deleted.
+- [ ] Confirm the Telegram message from the smoke test arrived.
+- [ ] **Hazard:** `data/plan_state.json` and `data/current_session.json` are tracked although
+  gitignored. A commit touching them overwrites the Pi's live copy on the next pull (happened once
+  during this deploy). Untrack them with a careful Pi-side step.
+- [ ] Optional: NOPASSWD sudoers line for `systemctl restart run-coach` so pushes deploy fully.
+- Set `baseline_weight_lb` after the week ending Sat Oct 31.
 
-Method: the Terminal SSH session described in `~/.claude/CLAUDE.md` (base64 transfer, check
-`sha256sum`, keep a timestamped `.bak`). Direct `scp`/`ssh` from the Mac usually fails.
+## 3. To-dos for David (phone)
 
-- [ ] **Copy files** to `~/run-coach/`: `cycle.py` (new), `server.py`, `rule_engine.py`,
-  `plan_generator.py`, `calendar_generator.py`, `reset.py`, and `bodycomp/` (`__init__.py`,
-  `config.py`, `store.py`, `checks.py`, `flags.py`, `telegram.py`, `review_packet.py`). The Pi's
-  `~/run-coach` is its own git repo (`master`) with local edits; don't `git pull` into it.
-- [ ] **Edit `data/plan_state.json` on the Pi:** set `"cycle_start_date": "2026-10-26"`, changing
-  only that key. The leftover `kb_*` keys are ignored, so leave them alone.
-- [ ] **Create `data/bodycomp/config.json` on the Pi** (gitignored; type the values on the Pi
-  only): `bc_phase` `"BC-1"`, `bc_phase_start_date` `"2026-10-19"`, `protein_avg_min_g`,
-  `protein_low_g`, `kcal_floor_bc1`, `kcal_floor_bc2` (targets from `health-bootcamp/01-protocol.md`),
-  and optionally `baseline_weight_lb`. W1 reports "not configured" until the baseline is set.
-  Optional `telegram_detail` (default `"trends"`).
-- [ ] **Secrets on the Pi:** add `BODYCOMP_SECRET`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` to
-  `~/run-coach/.env`. `server.py` already calls `load_dotenv()` and `.env` is gitignored. Never put
-  them in the repo or in chat. Without `BODYCOMP_SECRET`, every `/bodycomp/*` route returns 503.
-- [ ] **Restart:** David runs `sudo systemctl restart run-coach`; never type the sudo password for
-  him. Check with `systemctl show run-coach -p ActiveEnterTimestamp`.
-- [ ] **Smoke tests on the Pi:**
-  - `curl -s -X POST http://localhost:5001/calendar/push`, then check the public ICS:
-    - Before Oct 26, this week's events start with `⛔️`.
-    - Mon Oct 26 shows `🏋️ Push` with "weekly target 60".
-    - There's no "KB" text anywhere.
-  - Post one synthetic `/bodycomp/weekly` with the secret header to confirm a banner comes back
-    and a Telegram message arrives. Then delete that test report from `data/bodycomp/weekly.json`
-    and `data/bodycomp/reports/`, keeping a `.bak`.
-
-## 3. To-dos for David (phone / accounts)
-
-- [ ] **Telegram:** create a separate bot in @BotFather (not the job-search bot), run
-  `/setjoingroups` → Disable, and get the chat ID. Put both on the Pi (section 2).
-- [ ] **Choose the shared secret.** Put it in the Pi's `.env` and in the Shortcut header
-  `X-Bodycomp-Secret`.
-- [ ] **Build the Sunday branch** of the morning Shortcut, following `SHORTCUTS_GUIDE.md` Step 9b
-  (7-day arrays, Group By Day, secret header, error notification).
-- [ ] **Dry run on a weekday before Sun Oct 25:** temporarily switch the weekday condition, then
-  restore it. Oct 25 covers the intro week; the first full week ends Sat Oct 31, so the first real
-  check is **Sun Nov 1**.
-- [ ] **Check on the device:** Group By Day doesn't double-count steps (iPhone + Watch), and the
-  numbers arrive without units or separators (the server tolerates both, but confirm).
-- [ ] **Check whether "Find Workouts" exists** in Shortcuts on this phone. If not, leave
-  `lift_sessions_done` out and the server skips the session-count rule (L2).
-- [ ] **Build the "Run Coach Tape" Shortcut** (`SHORTCUTS_GUIDE.md`) and add a monthly Reminder.
-- [ ] **Change the Pi's `pi` password** (`passwd` on the Pi). The login banner says the default
-  password is still set while SSH is enabled.
+- [x] Telegram bot, secret, Pi config.
+- [ ] Sunday Shortcut branch (`SHORTCUTS_GUIDE.md` Step 9b; one Find per metric, Group By Day,
+  no `week_ending` needed). Check whether Sleep offers Group By Day. Dry run with only the branch.
+- [ ] Check "Find Workouts" exists (else leave `lift_sessions_done` out).
+- [ ] "Run Coach Tape" Shortcut + monthly Reminder.
+- [ ] Change the Pi's `pi` password (`passwd`).
 
 ## 4. Open questions — decided 2026-10-16
 
