@@ -9,13 +9,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from datetime import date, timedelta
 from calendar_generator import generate_ics
 
-# The calendar anchors to the current week's Monday, so tests must use
-# dates relative to today rather than hardcoded calendar dates.
-_MONDAY = date.today() - timedelta(days=date.today().weekday())
+# Fixed anchor Monday, passed to generate_ics as `today` so these fixtures
+# stay valid regardless of when the suite actually runs.
+_MONDAY = date(2026, 6, 8)
 
 
 def _day(weekday: int, week_offset: int = 0) -> str:
-    """ISO date for a weekday (0=Mon .. 6=Sun) in the current or a later week."""
+    """ISO date for a weekday (0=Mon .. 6=Sun) in the anchor week or a later week."""
     return (_MONDAY + timedelta(weeks=week_offset, days=weekday)).isoformat()
 
 
@@ -98,7 +98,7 @@ def test_strength_reduce_appends_set_guidance():
     """A REDUCE strength day spells out the set cut in the calendar description."""
     mon = _day(0)
     state = _base_plan_state(last_execution_date=mon, last_execution_decision="REDUCE")
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     descs = _descriptions_on(ics, _ymd(mon))
     assert any("80% of your normal sets" in d for d in descs), descs
 
@@ -107,7 +107,7 @@ def test_strength_hold_has_no_guidance_line():
     """HOLD adds no callout — the base description is unchanged."""
     mon = _day(0)
     state = _base_plan_state(last_execution_date=mon, last_execution_decision="HOLD")
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     descs = _descriptions_on(ics, _ymd(mon))
     assert descs and all("Follow planned load" not in d for d in descs), descs
 
@@ -119,7 +119,7 @@ def test_strength_deload_week_guidance_not_doubled():
         current_week=4, cycle_start_date=(_MONDAY - timedelta(weeks=3)).isoformat(),
         last_execution_date=mon, last_execution_decision="DELOAD",
     )
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     descs = _descriptions_on(ics, _ymd(mon))
     assert descs, descs
     assert descs[0].count("50% of normal") == 1, descs
@@ -132,7 +132,7 @@ def test_run_a_decision_visible_after_tuesday_execution():
         last_run_a_execution_date=tue,
         last_run_a_decision="REDUCE",
     )
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     summaries = _events_on(ics, _ymd(tue))
     assert any("⬇️" in s for s in summaries), f"Expected ⬇️ in Tue summary, got: {summaries}"
 
@@ -144,7 +144,7 @@ def test_run_b_decision_visible_after_saturday_execution():
         last_run_b_execution_date=sat,
         last_run_b_decision="BUILD",
     )
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     summaries = _events_on(ics, _ymd(sat))
     assert any("⬆️" in s for s in summaries), f"Expected ⬆️ in Sat summary, got: {summaries}"
 
@@ -158,7 +158,7 @@ def test_tuesday_decision_survives_wednesday_execution():
         last_execution_date=wed,                 # Wednesday overwrote last_execution_date
         last_execution_decision="DELOAD",
     )
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     tue_summaries = _events_on(ics, _ymd(tue))
     assert any("⬇️" in s for s in tue_summaries), (
         f"Tuesday decision lost after Wed execution. Got: {tue_summaries}"
@@ -172,7 +172,7 @@ def test_strength_event_shows_deload_decision():
         last_execution_date=wed,
         last_execution_decision="DELOAD",
     )
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     wed_summaries = _events_on(ics, _ymd(wed))
     assert any("⛔️" in s for s in wed_summaries), (
         f"Expected ⛔️ on Wednesday DELOAD, got: {wed_summaries}"
@@ -186,7 +186,7 @@ def test_strength_event_shows_reduce_decision():
         last_execution_date=mon,
         last_execution_decision="REDUCE",
     )
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     mon_summaries = _events_on(ics, _ymd(mon))
     assert any("⬇️" in s for s in mon_summaries), (
         f"Expected ⬇️ on Monday REDUCE, got: {mon_summaries}"
@@ -195,7 +195,7 @@ def test_strength_event_shows_reduce_decision():
 
 def test_phase1_run_b_is_easy_zone2():
     """Phase 1: Saturday Run B is a plain easy Zone 2 run."""
-    ics = generate_ics(_base_plan_state(phase=1))
+    ics = generate_ics(_base_plan_state(phase=1), today=_MONDAY)
     sat_summaries = _events_on(ics, _ymd(_day(5)))
     assert any("Easy Run" in s for s in sat_summaries), sat_summaries
     assert not any("Progression" in s for s in sat_summaries), sat_summaries
@@ -203,7 +203,7 @@ def test_phase1_run_b_is_easy_zone2():
 
 def test_phase2_run_b_is_progression():
     """Phase 2: Saturday Run B becomes a progression run; Run A stays easy."""
-    ics = generate_ics(_base_plan_state(phase=2))
+    ics = generate_ics(_base_plan_state(phase=2), today=_MONDAY)
     sat_summaries = _events_on(ics, _ymd(_day(5)))
     tue_summaries = _events_on(ics, _ymd(_day(1)))
     assert any("Progression Run" in s for s in sat_summaries), sat_summaries
@@ -213,5 +213,5 @@ def test_phase2_run_b_is_progression():
 def test_phase2_lthr_test_event_absent():
     """Phase 2: the LTHR field test event is no longer scheduled."""
     state = _base_plan_state(phase=2, total_runs=20, lthr_test_date=_day(5, 2))
-    ics = generate_ics(state)
+    ics = generate_ics(state, today=_MONDAY)
     assert "LTHR Field Test" not in ics
