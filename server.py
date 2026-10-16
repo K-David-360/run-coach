@@ -159,6 +159,16 @@ def _save_json(path, data):
         json.dump(data, f, indent=2)
 
 
+def _log_history(entry: dict):
+    """Add a /healthkit entry to history, keeping one per day: a post whose session.date
+    matches an existing entry replaces it (last post of the day wins). Keeps the last 30."""
+    day = entry["session"].get("date", "")
+    history = [e for e in _load_json(HISTORY_FILE, default=[])
+               if not day or e.get("session", {}).get("date") != day]
+    history.append(entry)
+    _save_json(HISTORY_FILE, history[-30:])
+
+
 def _ensure_data_files():
     """Create data/ directory and seed files if they don't exist."""
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -687,10 +697,7 @@ def post_healthkit():
             "blocks": [],
         }
         _save_json(CURRENT_SESSION_FILE, rest_session)
-        history = _load_json(HISTORY_FILE, default=[])
-        history.append({"run_data": data, "decision": decision, "session": rest_session})
-        history = history[-30:]
-        _save_json(HISTORY_FILE, history)
+        _log_history({"run_data": data, "decision": decision, "session": rest_session})
         return jsonify({
             **rest_session,
             "notification": _REST_NOTIFICATIONS.get(decision["decision"], _REST_NOTIFICATIONS["HOLD"]),
@@ -726,11 +733,8 @@ def post_healthkit():
             session["blocks"].append({"name": "Weekly check", "notes": S1_NOTE_LOW_DAY if low_day else S1_NOTE})
         _save_json(CURRENT_SESSION_FILE, session)
 
-        # Append to history (same as run days — all non-rest days count)
-        history = _load_json(HISTORY_FILE, default=[])
-        history.append({"run_data": data, "decision": decision, "session": session})
-        history = history[-30:]
-        _save_json(HISTORY_FILE, history)
+        # Log to history (same as run days — all non-rest days count)
+        _log_history({"run_data": data, "decision": decision, "session": session})
 
         plan_state["last_execution_date"]     = today_str
         plan_state["last_execution_type"]     = session["type"]
@@ -793,8 +797,7 @@ def post_healthkit():
         }), 200
 
     # ── New workout — log to history and advance plan state ───────────────────
-    history.append({"run_data": data, "decision": decision, "session": session})
-    _save_json(HISTORY_FILE, history)
+    _log_history({"run_data": data, "decision": decision, "session": session})
 
     plan_state["total_runs"] = plan_state.get("total_runs", 0) + 1
     new_total_runs = plan_state["total_runs"]

@@ -24,7 +24,7 @@ run-coach/
 │   └── review_packet.py          # Markdown packet for a Claude review
 ├── data/
 │   ├── plan_state.json           # Persistent plan state (see schema below)
-│   ├── history.json              # Log of every processed session
+│   ├── history.json              # One entry per day (last post wins), last 30 kept
 │   └── current_session.json      # Most recent session (written on every POST)
 └── SHORTCUTS_GUIDE.md            # Step-by-step iOS Shortcut build guide
 ```
@@ -103,6 +103,11 @@ with a rest-specific banner, and append the night to `history.json` (so HRV base
 short-sleep counts and the weekly sleep check see all 7 nights). Plan state and the
 calendar are not touched. Because rest days now log, a SUPPRESS on a rest day counts
 toward "≥ 2 consecutive suppresses".
+
+**History holds one entry per day.** Every `/healthkit` path (rest, strength, new
+run-day workout) logs through `server._log_history`: a POST whose `session.date`
+matches an existing entry replaces it, so re-running the Shortcut on the same morning
+(testing) leaves only the last post. History is trimmed to the last 30 entries.
 
 ### Intensity class (rule engine decisions)
 

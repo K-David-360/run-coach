@@ -133,3 +133,31 @@ def test_rest_day_low_recovery_reads_suppress(client):
     body = _post(c, hrv_last_night=30, sleep_total_hrs=4, sleep_deep_hrs=0.5)
     assert body["readiness"] == "SUPPRESS"
     assert "low" in body["notification"]
+
+
+# ── Same-day reposts: last post of the day replaces the earlier entry ──
+
+def _history():
+    return json.loads(open(server.HISTORY_FILE).read())
+
+
+@pytest.mark.parametrize("day", [
+    datetime.date(2026, 10, 26),   # Monday (strength)
+    datetime.date(2026, 10, 29),   # Thursday (rest)
+])
+def test_same_day_repost_replaces_history_entry(client, day):
+    c = client(day)
+    _post(c, sleep_total_hrs=6.1)
+    _post(c, sleep_total_hrs=7.9)
+    history = _history()
+    assert len(history) == 1
+    assert history[0]["session"]["date"] == day.isoformat()
+    assert history[0]["run_data"]["sleep"]["total_hrs"] == 7.9
+
+
+def test_repost_keeps_other_days(client):
+    _post(client(datetime.date(2026, 10, 26)))
+    _post(client(datetime.date(2026, 10, 28)), sleep_total_hrs=6.1)
+    _post(client(datetime.date(2026, 10, 28)), sleep_total_hrs=7.9)
+    assert [e["session"]["date"] for e in _history()] == ["2026-10-26", "2026-10-28"]
+    assert _history()[-1]["run_data"]["sleep"]["total_hrs"] == 7.9
