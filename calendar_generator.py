@@ -27,6 +27,8 @@ from plan_generator import (
     _blocks_for_type,
     _easy_blocks,
     _total_min,
+    deload_work_min,
+    plan_week_for,
     kb_peak_from_weeks,
 )
 
@@ -135,10 +137,10 @@ def _format_run_description(blocks: list) -> str:
 
 def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict:
     """Base-plan (HOLD) run event — shown for all future sessions."""
-    base = plan.get(plan_week, plan[1])[slot]
+    base = plan[plan_week_for(plan_week)][slot]
     if is_deload:
-        # Deload: 70% of week-4 base duration, Zone 2 easy (Galpin protocol)
-        blocks  = _easy_blocks(max(8, int((base["work_min"] or 10) * 0.70)))
+        # Deload: ~70% of the last build week, Zone 2 easy (Galpin protocol)
+        blocks  = _easy_blocks(deload_work_min(base["work_min"]))
         summary = f"⛔️ 🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:
         blocks   = _blocks_for_type(base["type"], base["work_min"] or 18)
@@ -151,7 +153,7 @@ def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict
 def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week: int, slot: str) -> dict:
     """Today's run event — uses the real rule engine decision."""
     prefix = _DECISION_EMOJI.get(decision, "")
-    base = plan.get(plan_week, plan[1])[slot]
+    base = plan[plan_week_for(plan_week)][slot]
     base_work_min = base["work_min"] or 18
 
     if decision == "SUPPRESS":
@@ -159,7 +161,7 @@ def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week:
         blocks   = _easy_blocks(work_min)
         summary  = f"{prefix}🏃‍♂️ Recovery Only — {_total_min(blocks)} mins"
     elif decision == "DELOAD":
-        work_min = max(8, int(base_work_min * 0.70))
+        work_min = deload_work_min(base["work_min"])
         blocks   = _easy_blocks(work_min)
         summary  = f"{prefix}🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:

@@ -1,16 +1,15 @@
 """
 plan_generator.py — Builds a concrete training session from a rule decision.
 
-Phase 1 (weeks 1–6, current): both runs Zone 2 easy only.
-  The plan cycles every 4 weeks with a deload on week 4.
+The plan cycles every 6 weeks: 5 build weeks + 1 deload (see cycle.py).
+Run plan tables hold build weeks 1–5 only; week 6 reuses week 5 as its base
+and the DELOAD decision cuts it to ~70% (deload_work_min).
 
-  Week 1:  Run A = easy 28 min  |  Run B = easy 30 min
-  Week 2:  Run A = easy 30 min  |  Run B = easy 33 min
-  Week 3:  Run A = easy 33 min  |  Run B = easy 35 min
-  Week 4:  Run A = deload ~70% Zone 2  |  Run B = deload ~70% Zone 2
+  Phase 1: both runs Zone 2 easy.
+  Phase 2: Run B becomes a progression run (Zone 2 → Zone 3 finish).
+  Phase 3: Run B becomes intervals; Run A holds at 33 min work for weeks 3–5.
 
-Phase 2 / Phase 3 plan tables are defined but not yet active. Phase advances
-manually in plan_state.json after the LTHR field test at week 6–8.
+Phase advances manually in plan_state.json after the LTHR field test.
 
 Rule overrides:
   SUPPRESS  → easy, duration capped below base
@@ -35,12 +34,14 @@ PLAN_STATE_FILE = os.path.join(DATA_DIR, "plan_state.json")
 _PLAN_PHASE1 = {
     1: {"A": {"type": "easy", "work_min": 18},   # 28 min total
         "B": {"type": "easy", "work_min": 20}},  # 30 min total
-    2: {"A": {"type": "easy", "work_min": 20},   # 30 min total
-        "B": {"type": "easy", "work_min": 23}},  # 33 min total
-    3: {"A": {"type": "easy", "work_min": 23},   # 33 min total
-        "B": {"type": "easy", "work_min": 25}},  # 35 min total
-    4: {"A": {"type": "easy", "work_min": 10},   # 20 min total (deload)
-        "B": {"type": "easy", "work_min": 10}},  # 20 min total (deload)
+    2: {"A": {"type": "easy", "work_min": 20},
+        "B": {"type": "easy", "work_min": 23}},
+    3: {"A": {"type": "easy", "work_min": 23},
+        "B": {"type": "easy", "work_min": 25}},
+    4: {"A": {"type": "easy", "work_min": 24},
+        "B": {"type": "easy", "work_min": 26}},
+    5: {"A": {"type": "easy", "work_min": 25},
+        "B": {"type": "easy", "work_min": 27}},
 }
 
 # ── Phase 2 plan — Run B becomes a progression run ───────────────────────────
@@ -51,11 +52,13 @@ _PLAN_PHASE2 = {
         "B": {"type": "progression", "work_min": 27}},
     3: {"A": {"type": "easy",        "work_min": 30},
         "B": {"type": "progression", "work_min": 30}},
-    4: {"A": {"type": "easy",        "work_min": 15},
-        "B": {"type": "easy",        "work_min": 15}},
+    4: {"A": {"type": "easy",        "work_min": 32},
+        "B": {"type": "progression", "work_min": 32}},
+    5: {"A": {"type": "easy",        "work_min": 33},
+        "B": {"type": "progression", "work_min": 33}},
 }
 
-# ── Phase 3 plan — Run B becomes intervals ────────────────────────────────────
+# ── Phase 3 plan — Run B becomes intervals; Run A holds (intervals every week) ─
 _PLAN_PHASE3 = {
     1: {"A": {"type": "easy",      "work_min": 28},
         "B": {"type": "intervals", "work_min": None}},
@@ -63,14 +66,25 @@ _PLAN_PHASE3 = {
         "B": {"type": "intervals", "work_min": None}},
     3: {"A": {"type": "easy",      "work_min": 33},
         "B": {"type": "intervals", "work_min": None}},
-    4: {"A": {"type": "easy",      "work_min": 15},
-        "B": {"type": "easy",      "work_min": 15}},
+    4: {"A": {"type": "easy",      "work_min": 33},
+        "B": {"type": "intervals", "work_min": None}},
+    5: {"A": {"type": "easy",      "work_min": 33},
+        "B": {"type": "intervals", "work_min": None}},
 }
 
 _PLAN_BY_PHASE = {1: _PLAN_PHASE1, 2: _PLAN_PHASE2, 3: _PLAN_PHASE3}
 
-# Expose current phase 1 plan as _PLAN for calendar_generator import
-_PLAN = _PLAN_PHASE1
+_BUILD_WEEKS = 5
+
+
+def plan_week_for(week_in_cycle: int) -> int:
+    """Plan-table row for a cycle week; the deload week uses the last build week as its base."""
+    return min(week_in_cycle, _BUILD_WEEKS)
+
+
+def deload_work_min(base_work_min) -> int:
+    """Deload work block: ~70% of the base week's work, Zone 2 (Galpin protocol)."""
+    return max(8, ceil((base_work_min or 18) * 0.70))
 
 _WARMUP_MIN = 5
 _COOLDOWN_MIN = 5
@@ -257,7 +271,7 @@ def generate_session(decision: str, data: dict) -> dict:
     slot = "A" if date.today().weekday() == 1 else "B"
 
     plan_table = _PLAN_BY_PHASE.get(phase, _PLAN_PHASE1)
-    week_plan = plan_table.get(current_week, plan_table[1])
+    week_plan = plan_table[plan_week_for(current_week)]
     base = week_plan[slot]
     base_type = base["type"]
     base_work_min = base["work_min"]  # None for intervals
@@ -280,7 +294,7 @@ def generate_session(decision: str, data: dict) -> dict:
     # ── DELOAD ───────────────────────────────────────────────────────────────
     elif decision == "DELOAD":
         session_type = "easy"
-        work_min = ceil((base_work_min or 18) * 0.70)
+        work_min = deload_work_min(base_work_min)
         blocks = _easy_blocks(work_min)
         summary = (
             f"Deload run — {_total_min(blocks)} min total (~70% of planned). "
