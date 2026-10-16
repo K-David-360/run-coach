@@ -52,6 +52,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request, make_response
 
 from calendar_generator import generate_ics
+from cycle import week_in_cycle
 from plan_generator import generate_session, generate_strength_session, kb_peak_from_weeks
 from rule_engine import rule_engine
 
@@ -126,17 +127,8 @@ def _most_recent_monday(today: date = None) -> date:
 
 
 def _week_from_cycle_start(cycle_start_str: str, today: date = None) -> int:
-    """Return training week (1–4) given the ISO date of the cycle's first Monday."""
-    if today is None:
-        today = date.today()
-    try:
-        start = date.fromisoformat(cycle_start_str)
-    except (ValueError, TypeError):
-        return 1
-    if today < start:
-        return 1
-    weeks_elapsed = (today - start).days // 7
-    return weeks_elapsed % 4 + 1
+    """Return training week (1–6) given the ISO date of the cycle's first Monday."""
+    return week_in_cycle(cycle_start_str, today)
 
 
 def _load_json(path, default=None):

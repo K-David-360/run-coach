@@ -32,15 +32,14 @@ def test_week4():
     fourth_monday = date(2026, 6, 30)
     assert _week_from_cycle_start("2026-06-09", today=fourth_monday) == 4
 
-def test_cycle_rolls_to_week1_after_four_weeks():
-    start = date(2026, 6, 9)
-    fifth_monday = date(2026, 7, 7)  # 28 days later
-    assert _week_from_cycle_start("2026-06-09", today=fifth_monday) == 1
+def test_week6_is_last_week_of_cycle():
+    assert _week_from_cycle_start("2026-06-09", today=date(2026, 7, 14)) == 6
 
-def test_cycle_rolls_correctly_week2_of_new_cycle():
-    start = date(2026, 6, 9)
-    sixth_monday = date(2026, 7, 14)  # 35 days later
-    assert _week_from_cycle_start("2026-06-09", today=sixth_monday) == 2
+def test_cycle_rolls_to_week1_after_six_weeks():
+    assert _week_from_cycle_start("2026-06-09", today=date(2026, 7, 21)) == 1
+
+def test_before_cycle_start_is_deload_week():
+    assert _week_from_cycle_start("2026-06-09", today=date(2026, 6, 8)) == 6
 
 def test_invalid_cycle_start_returns_1():
     assert _week_from_cycle_start("", today=date(2026, 6, 9)) == 1
