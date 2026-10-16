@@ -170,3 +170,32 @@ def test_weekly_bad_week_ending_is_400(env):
     resp = _post(env, _weekly(week_ending="Oct 31"))
     assert resp.status_code == 400
     assert "week_ending" in resp.get_json()["error"]
+
+
+def test_dry_run_echoes_input_and_stores_nothing(env):
+    body = _weekly()
+    body["weights_lb"] = ["180.4 lb", 181]
+    body["steps_daily"] = 7100
+    resp = env["client"].post("/bodycomp/weekly?dry_run=1", json=body, headers=SECRET)
+    assert resp.status_code == 200, resp.data
+    out = resp.get_json()
+    assert out["dry_run"] is True
+    assert out["received"]["weights_lb"] == {"count": 2, "values": ["180.4 lb", 181], "read_as": [180.4, 181.0]}
+    assert out["received"]["steps_daily"]["count"] == 1
+    assert out["summary"]["weight_days"] == 2
+    assert out["notification"].startswith("Weekly:")
+    assert not env["weekly"].exists() and not env["reports"].exists()
+    assert env["sent"] == []
+
+
+def test_dry_run_still_requires_secret(env):
+    resp = env["client"].post("/bodycomp/weekly?dry_run=1", json=_weekly(), headers={})
+    assert resp.status_code in (401, 403)
+
+
+def test_dry_run_reports_validation_error_with_counts(env):
+    body = _weekly()
+    body["steps_daily"] = [1] * 8
+    out = env["client"].post("/bodycomp/weekly?dry_run=1", json=body, headers=SECRET).get_json()
+    assert "steps_daily" in out["error"]
+    assert out["received"]["steps_daily"]["count"] == 8

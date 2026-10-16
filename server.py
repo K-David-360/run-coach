@@ -55,7 +55,8 @@ from flask import Flask, jsonify, request, make_response
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 import bodycomp.telegram as bc_telegram
-from bodycomp.checks import resolve_week_ending, validate_payload, weekly_check
+from bodycomp.checks import (ARRAY_FIELDS, coerce_value, daily_values, resolve_week_ending,
+                             summarize_week, validate_payload, weekly_check)
 from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, S1_NOTE_LOW_DAY, s1_week_dates
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
@@ -350,6 +351,18 @@ def _bodycomp_auth():
     return None
 
 
+def _received_echo(body: dict) -> dict:
+    """Per metric: how many values arrived, the raw values, and how the server reads them."""
+    return {
+        field: {
+            "count": len(daily_values(body, field)),
+            "values": daily_values(body, field),
+            "read_as": [coerce_value(v, allow_zero=(field == "steps_daily")) for v in daily_values(body, field)],
+        }
+        for field in ARRAY_FIELDS if field in body
+    }
+
+
 @app.route("/bodycomp/weekly", methods=["POST"])
 def post_bodycomp_weekly():
     """Sunday weekly check: Health samples in, banner + flags out."""
@@ -361,9 +374,12 @@ def post_bodycomp_weekly():
         body["week_ending"] = resolve_week_ending(body.get("week_ending"), date.today())
     except ValueError:
         return jsonify({"error": "week_ending must be a date (YYYY-MM-DD) or left out"}), 400
+    # ?dry_run=1: echo what arrived and the banner it would give; store and send nothing.
+    dry_run = request.args.get("dry_run", "").lower() in ("1", "true", "yes")
+    received = _received_echo(body) if dry_run else None
     error = validate_payload(body)
     if error:
-        return jsonify({"error": error}), 400
+        return jsonify({"error": error, **({"dry_run": True, "received": received} if dry_run else {})}), 400
     try:
         config = bc_config.load_config(bc_config.CONFIG_FILE)
     except ValueError as exc:
@@ -376,6 +392,11 @@ def post_bodycomp_weekly():
         config,
         plan_state.get("cycle_start_date", ""),
     )
+    if dry_run:
+        summary = {k: v for k, v in summarize_week(body).items() if k != "sleep_hrs"}
+        return jsonify({"dry_run": True, "week_ending": report["week_ending"], "received": received,
+                        "summary": summary, "notification": report["banner"],
+                        "flags": [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]}), 200
     bc_store.save_week(report, bc_store.WEEKLY_FILE)
     bc_store.save_report_file(report, bc_store.REPORTS_DIR)
     # Telegram gets only allowlisted aggregate fields; a failure never fails the route.
