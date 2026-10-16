@@ -51,6 +51,9 @@ import requests as http_requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, make_response
 
+import bodycomp.config as bc_config
+import bodycomp.store as bc_store
+from bodycomp.checks import weekly_check
 from calendar_generator import generate_ics
 from cycle import week_in_cycle
 from plan_generator import generate_session, generate_strength_session
@@ -310,6 +313,48 @@ def post_calendar_push():
 def post_note():
     """Stub — note-taking endpoint, not yet implemented."""
     return jsonify({"status": "not_implemented", "message": "POST /note is a future feature."}), 501
+
+
+# ── Body-composition weekly check ─────────────────────────────────────────────
+# Separate from /healthkit: never touches current_session.json, plan_state.json
+# or the calendar. Data lives in the gitignored data/bodycomp/.
+
+def _bodycomp_auth():
+    """401 when BODYCOMP_TOKEN is set and the request's X-Bodycomp-Token differs."""
+    token = os.environ.get("BODYCOMP_TOKEN", "")
+    if token and request.headers.get("X-Bodycomp-Token", "") != token:
+        return jsonify({"error": "unauthorized"}), 401
+    return None
+
+
+@app.route("/bodycomp/weekly", methods=["POST"])
+def post_bodycomp_weekly():
+    """Sunday weekly check: Health samples in, banner + flags out."""
+    denied = _bodycomp_auth()
+    if denied:
+        return denied
+    body = request.get_json(force=True, silent=True) or {}
+    try:
+        if date.fromisoformat(str(body.get("week_ending", ""))).weekday() != 5:
+            raise ValueError
+    except ValueError:
+        return jsonify({"error": "week_ending must be a Saturday (YYYY-MM-DD)"}), 400
+    try:
+        config = bc_config.load_config(bc_config.CONFIG_FILE)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
+    report = weekly_check(
+        body,
+        _load_json(HISTORY_FILE, default=[]),
+        bc_store.load_weeks(bc_store.WEEKLY_FILE),
+        config,
+        plan_state.get("cycle_start_date", ""),
+    )
+    bc_store.save_week(report, bc_store.WEEKLY_FILE)
+    flags = [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]
+    return jsonify({"notification": report["banner"], "highest": report["highest"], "flags": flags}), 200
 
 
 # ── HealthKit flat-payload endpoint ───────────────────────────────────────────

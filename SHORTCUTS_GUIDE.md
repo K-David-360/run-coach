@@ -198,6 +198,58 @@ e.g. `HOLD ✅ On track — follow today's plan as scheduled.`
 
 ---
 
+## Step 9b — Sunday weekly check (body composition)
+
+Runs only on Sundays, after Step 9 and before Tailscale disconnects. It reads the
+previous Sunday–Saturday from Apple Health and posts it to `/bodycomp/weekly`.
+MyFitnessPal writes protein and dietary energy into Health, so no manual food entry.
+
+1. **Format Date** → Current Date, custom format `EEEE` → **If** result **is** `Sunday`
+2. **Adjust Date** → Current Date, subtract 1 day → **Format Date** `yyyy-MM-dd`
+   → **Set Variable** `Week Ending`
+3. For each of these Health types, build one text variable:
+
+   | Health type | Variable |
+   |-------------|----------|
+   | Weight | `Weight Samples` |
+   | Dietary Protein | `Protein Samples` |
+   | Dietary Energy | `Energy Samples` |
+   | Steps | `Steps Samples` |
+
+   - **Find Health Samples** where Type is *(type)*, Start Date is in the last 8 days
+   - **Repeat with Each** → **Text**: `{Repeat Item → Start Date, format yyyy-MM-dd}={Repeat Item → Value}`
+     → **Add to Variable** `Lines`
+   - After the loop: **Combine Text** `Lines` with **New Lines** → **Set Variable** *(variable)*
+   - Clear `Lines` before the next type
+
+   The server groups lines by day (sums protein, energy and steps; averages weight)
+   and ignores days outside the week, blanks and zeros.
+4. Optional: **Find Health Samples** Waist Circumference, limit 1, newest first → `Waist In`
+5. Optional: **Ask for Input** (Number) "Lift sessions this week?" → `Lift Sessions`;
+   **Choose from Menu** "Main lift stalled 3+ weeks?" Yes / No / Skip → `Lift Stalled`
+   (`true` / `false` / empty). Leave either out and the server skips that check.
+6. **Get Contents of URL** → `{Server URL}/bodycomp/weekly`, Method POST, Request Body JSON:
+
+   | Key | Value |
+   |-----|-------|
+   | `week_ending` | `Week Ending` |
+   | `weight_samples` | `Weight Samples` |
+   | `protein_samples` | `Protein Samples` |
+   | `energy_samples` | `Energy Samples` |
+   | `steps_samples` | `Steps Samples` |
+   | `waist_in` | `Waist In` (optional) |
+   | `lift_sessions_done` | `Lift Sessions` (optional) |
+   | `lift_stalled` | `Lift Stalled` (optional) |
+
+   If the Pi has `BODYCOMP_TOKEN` set, add header `X-Bodycomp-Token` with that value.
+7. **Get Dictionary from Input** → **Get Value for Key** `notification` → **Show Notification**
+   (title "Weekly check")
+8. **End If**
+
+Re-running on the same Sunday replaces that week's report; it never double-counts.
+
+---
+
 ## Step 10 — Disconnect Tailscale
 
 - Action: **Tailscale → Disconnect**
