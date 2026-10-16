@@ -54,6 +54,7 @@ from flask import Flask, jsonify, request, make_response
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 from bodycomp.checks import weekly_check
+from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_active
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
 from cycle import week_in_cycle
@@ -320,6 +321,14 @@ def post_note():
 # Separate from /healthkit: never touches current_session.json, plan_state.json
 # or the calendar. Data lives in the gitignored data/bodycomp/.
 
+def _s1_active_today() -> bool:
+    """Weekly sleep flag for the daily output; any bodycomp error reads as False."""
+    try:
+        return s1_active(bc_store.latest_report(bc_store.WEEKLY_FILE), date.today())
+    except Exception:
+        return False
+
+
 def _bodycomp_auth():
     """401 when BODYCOMP_TOKEN is set and the request's X-Bodycomp-Token differs."""
     token = os.environ.get("BODYCOMP_TOKEN", "")
@@ -581,12 +590,15 @@ def post_healthkit():
     if today_dow in _STRENGTH_DAYS:
         day_key = _STRENGTH_DAYS[today_dow]
         # Jumps are skipped when a REDUCE came from poor recovery, kept when it came from run load.
-        skip_jumps = decision["decision"] == "REDUCE" and (
+        s1 = _s1_active_today()
+        skip_jumps = s1 or (decision["decision"] == "REDUCE" and (
             decision.get("trigger") in ("hrv", "sleep") or decision.get("recovery_low", False)
-        )
+        ))
         session = generate_strength_session(
             decision["decision"], day_key, today=date.today(), skip_jumps=skip_jumps
         )
+        if s1:
+            session["blocks"].append({"name": "Weekly check", "notes": S1_NOTE})
         _save_json(CURRENT_SESSION_FILE, session)
 
         # Append to history (same as run days — all non-rest days count)
@@ -619,6 +631,9 @@ def post_healthkit():
 
     # ── Run days (Tue / Sat) ──────────────────────────────────────────────────
     session = generate_session(decision["decision"], data)
+    # Saturday Run B stays the default but becomes optional on poor recovery.
+    if today_dow == 5 and (hrv_ratio < 0.90 or _s1_active_today()):
+        session["summary"] += OPTIONAL_RUN_NOTE
     _save_json(CURRENT_SESSION_FILE, session)
 
     if is_rest_day:
