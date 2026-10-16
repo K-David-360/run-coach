@@ -10,6 +10,8 @@
 
 **Spec:** `/Users/David/Documents/Claude/health-bootcamp/03-run-coach-handoff.md` (sections 3–5, 6 items 5–6, 7–10).
 
+**Superseded in part (2026-10-16):** `health-bootcamp/06-weekly-checkin-handoff.md` replaced this plan's payload (7-day arrays incl. sleep), dropped waist/L1, added Telegram delivery, a required shared secret, per-week report files and `/bodycomp/report/latest`. The code follows 06; see CLAUDE.md.
+
 **Depends on:** `docs/superpowers/plans/2026-10-15-training-rework.md` merged first (uses `cycle.py`, `generate_strength_session(..., skip_jumps=)`, `rule_engine` `trigger`).
 
 **Decisions this plan makes that refine the spec** (flagged to David with the plan):

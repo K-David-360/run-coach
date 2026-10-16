@@ -238,27 +238,36 @@ plan as scheduled."). Generic enough to apply on any day type.
 
 ## Body-composition weekly check
 
-Sunday-morning branch of the daily Shortcut posts the previous Sun–Sat of Apple
-Health data (weight, protein, dietary energy, steps as `date=value` lines) to
-`POST /bodycomp/weekly`. Sleep comes from `history.json`. Returns a banner such as
-`Weekly: weight 180.0 (+0.2), protein 150 g OK, steps 7.1k, 1 amber (sleep).`
+Spec: `health-bootcamp/06-weekly-checkin-handoff.md` (supersedes 03 sections 3–5, 8).
+Sunday-morning branch of the daily Shortcut posts 7 daily values (Sun–Sat ending
+yesterday) for weight, protein, dietary energy, steps and sleep to
+`POST /bodycomp/weekly`. Returns a banner such as
+`Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, 1 amber (sleep).` and sends a
+Telegram message (tier from `telegram_detail`, default `trends`).
 
 - **Phases:** `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) in
   `data/bodycomp/config.json`. Not run-coach's run `phase` (1/2/3). Never
   advanced by code.
 - **Rules:** W1 hold, W2 fast loss, W3 still dropping (BC-1), W4 flat (BC-2),
-  P1/P2/P3 protein, E1 calorie floor, S1 short sleep, S2 steps, L1/L2 lifts
-  (optional inputs), D1 deload next week. Severity RED > AMBER > INFO > OK.
-- **Daily hooks (read-only):** S1 AMBER → next week's lift days get a "Weekly
-  check" note and no jumps; Saturday run gets an "optional" note when S1 is
-  active or HRV ratio < 0.90. Number-free text only.
-- **Also:** `POST /bodycomp/measurements` (monthly tape), `GET
-  /bodycomp/review-packet` (markdown for a Claude review). Optional
-  `BODYCOMP_TOKEN` env → `X-Bodycomp-Token` header required on `/bodycomp/*`.
-- **Privacy (repo is public):** `data/bodycomp/` is gitignored. Personal
-  thresholds (protein/kcal targets, baseline weight) live only in the Pi's
-  `data/bodycomp/config.json`; code defaults are generic (`None` = rule off).
-  No bodycomp values in the calendar, `plan_state.json` or `current_session.json`.
+  P1/P2/P3 protein, E1 calorie floor, S1 short sleep, S2 steps, L2 sessions
+  (optional input), D1 deload next week. Severity RED > AMBER > INFO > OK. A
+  missing personal threshold reports "not configured".
+- **Routes:** `/bodycomp/weekly`, `/bodycomp/report/latest`, `/bodycomp/measurements`
+  (monthly tape), `/bodycomp/review-packet`. All require header `X-Bodycomp-Secret`
+  matching env `BODYCOMP_SECRET` (503 if unset). Telegram env: `TELEGRAM_BOT_TOKEN`,
+  `TELEGRAM_CHAT_ID`. A Telegram failure never fails the route.
+- **Telegram allowlist:** `bodycomp/telegram.build_message` accepts only week_ending,
+  flags, protein status, weight delta, protein/steps/sleep averages. Never absolute
+  weight, calories, baseline, height or thresholds.
+- **Daily hooks:** S1 AMBER → next week's lift days get the fixed `S1_NOTE` and no
+  jumps. **Deliberate exception (David, 2026-10-16):** that fixed, number-free S1
+  sentence may appear in the `/healthkit` response and `current_session.json`. Nothing
+  else from bodycomp goes into `current_session.json`, `plan_state.json` or the calendar
+  (the S1 reason for skipping jumps is not recorded in `plan_state`). Saturday's
+  "optional" note is HRV-driven only.
+- **Privacy (repo is public):** `data/bodycomp/` is gitignored. Personal thresholds
+  (protein/kcal floors, baseline weight) live only in the Pi's config. Tests use
+  clearly synthetic values.
 
 ---
 

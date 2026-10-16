@@ -200,53 +200,50 @@ e.g. `HOLD ✅ On track — follow today's plan as scheduled.`
 
 ## Step 9b — Sunday weekly check (body composition)
 
-Runs only on Sundays, after Step 9 and before Tailscale disconnects. It reads the
-previous Sunday–Saturday from Apple Health and posts it to `/bodycomp/weekly`.
-MyFitnessPal writes protein and dietary energy into Health, so no manual food entry.
+Runs only on Sundays, after Step 9 and before Tailscale disconnects. It sends the
+previous Sunday–Saturday as 7 daily values per metric to `/bodycomp/weekly`.
+MyFitnessPal writes protein and dietary energy into Health, so there is no manual entry.
+Action names vary by iOS version; verify on the phone.
 
 1. **Format Date** → Current Date, custom format `EEEE` → **If** result **is** `Sunday`
-2. **Adjust Date** → Current Date, subtract 1 day → **Format Date** `yyyy-MM-dd`
-   → **Set Variable** `Week Ending`
-3. For each of these Health types, build one text variable:
+   (the weekday name follows the phone's language).
+2. **Window:** start = the Sunday one week ago at 00:00, end = yesterday (Saturday) 23:59.
+   **Format Date** yesterday as `yyyy-MM-dd` → `Week Ending`.
+3. For each metric, **Find Health Samples** in the window with **Group By: Day** (Health
+   merges iPhone and Watch so steps are not double-counted), then build a list of exactly
+   7 values, Sunday first. Put `0` or empty text for a day with no sample; the server treats
+   those as missing (steps 0 counts as a real 0).
 
-   | Health type | Variable |
-   |-------------|----------|
-   | Weight | `Weight Samples` |
-   | Dietary Protein | `Protein Samples` |
-   | Dietary Energy | `Energy Samples` |
-   | Steps | `Steps Samples` |
+   | Health type | List variable | JSON key |
+   |-------------|---------------|----------|
+   | Body Mass (lb) | `Weights` | `weights_lb` |
+   | Dietary Protein (g) | `Protein` | `protein_g_daily` |
+   | Dietary Energy (kcal) | `Energy` | `energy_kcal_daily` |
+   | Steps | `Steps` | `steps_daily` |
+   | Sleep, asleep hours per night (reuse the Step 7 logic) | `Sleep` | `sleep_hrs_daily` |
 
-   - **Find Health Samples** where Type is *(type)*, Start Date is in the last 8 days
-   - **Repeat with Each** → **Text**: `{Repeat Item → Start Date, format yyyy-MM-dd}={Repeat Item → Value}`
-     → **Add to Variable** `Lines`
-   - After the loop: **Combine Text** `Lines` with **New Lines** → **Set Variable** *(variable)*
-   - Clear `Lines` before the next type
+4. Optional: **Find Workouts** (Strength Training) in the window → **Count** →
+   `lift_sessions_done`. Find Workouts is not available in Shortcuts on every device;
+   if it is missing, leave the key out and the server skips the session-count check.
+5. **Get Contents of URL** → `{Server URL}/bodycomp/weekly`, Method POST, Request Body JSON
+   with `week_ending` plus the five lists (and `lift_sessions_done` if available). Header
+   `X-Bodycomp-Secret` = the shared secret (stored only in the Shortcut; never export or
+   share the Shortcut with it inside).
+6. **If** the response has no `notification` → **Show Notification** with the response text,
+   so a bad run (for example, a list that is not 7 long) is visible.
+   **Otherwise** → **Get Dictionary Value** `notification` → **Show Notification**
+   (title "Weekly check").
+7. **End If**
 
-   The server groups lines by day (sums protein, energy and steps; averages weight)
-   and ignores days outside the week, blanks and zeros.
-4. Optional: **Find Health Samples** Waist Circumference, limit 1, newest first → `Waist In`
-5. Optional: **Ask for Input** (Number) "Lift sessions this week?" → `Lift Sessions`;
-   **Choose from Menu** "Main lift stalled 3+ weeks?" Yes / No / Skip → `Lift Stalled`
-   (`true` / `false` / empty). Leave either out and the server skips that check.
-6. **Get Contents of URL** → `{Server URL}/bodycomp/weekly`, Method POST, Request Body JSON:
+The Pi also sends a Telegram message (trends tier: weight change, average protein,
+steps and sleep, plus flags; never absolute weight or calories). Re-running on the same
+Sunday replaces that week's report.
 
-   | Key | Value |
-   |-----|-------|
-   | `week_ending` | `Week Ending` |
-   | `weight_samples` | `Weight Samples` |
-   | `protein_samples` | `Protein Samples` |
-   | `energy_samples` | `Energy Samples` |
-   | `steps_samples` | `Steps Samples` |
-   | `waist_in` | `Waist In` (optional) |
-   | `lift_sessions_done` | `Lift Sessions` (optional) |
-   | `lift_stalled` | `Lift Stalled` (optional) |
+**Dry run:** temporarily change the weekday condition to today, run once, confirm the
+banner and the Telegram message, then restore `Sunday`.
 
-   If the Pi has `BODYCOMP_TOKEN` set, add header `X-Bodycomp-Token` with that value.
-7. **Get Dictionary from Input** → **Get Value for Key** `notification` → **Show Notification**
-   (title "Weekly check")
-8. **End If**
-
-Re-running on the same Sunday replaces that week's report; it never double-counts.
+**Server environment (names only; values live on the Pi, never in the repo):**
+`BODYCOMP_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
 
 ---
 
@@ -267,11 +264,12 @@ Measure in the morning, relaxed. One small Shortcut, run once a month:
    neck, shoulders (widest), chest, waist (at navel), arm (flexed), thigh, calf
 4. **Get Contents of URL** → `{Server URL}/bodycomp/measurements`, POST JSON with keys
    `date`, `neck_in`, `shoulders_in`, `chest_in`, `waist_in`, `arm_in`, `thigh_in`, `calf_in`
-   (add header `X-Bodycomp-Token` if `BODYCOMP_TOKEN` is set on the Pi). Blank sites are skipped.
+   with header `X-Bodycomp-Secret`. Blank sites are skipped.
 5. **Tailscale → Disconnect**
 
-Add a monthly iPhone Reminder that opens this Shortcut. For a Claude review, open
-`{Server URL}/bodycomp/review-packet` in Safari (on Tailscale) and paste the page into a chat.
+Add a monthly iPhone Reminder that opens this Shortcut. For a Claude review, fetch
+`{Server URL}/bodycomp/review-packet` with the `X-Bodycomp-Secret` header (a tiny Shortcut:
+Get Contents of URL → Copy to Clipboard) and paste it into a chat.
 
 ---
 
