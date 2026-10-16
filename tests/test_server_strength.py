@@ -80,3 +80,27 @@ def test_server_no_longer_writes_kb_state(client):
     saved = json.loads(client.state_file.read_text())
     assert saved["kb_weeks_elapsed"] == 4
     assert saved["kb_peak_rung"] == 15
+
+
+def test_reduce_from_load_with_short_sleep_drops_jumps(client):
+    # load says REDUCE and short sleep also says REDUCE: the most conservative signal wins
+    c = client(datetime.date(2026, 10, 26))
+    body = _post(c, load_pct=30, sleep_total_hrs=5.5)
+    assert body["rule_fired"] == "REDUCE"
+    assert not _has_jumps(body)
+
+
+def test_unparseable_cycle_start_is_reset(client):
+    state = json.loads(client.state_file.read_text())
+    state["cycle_start_date"] = "2026-1026"  # typo
+    client.state_file.write_text(json.dumps(state))
+    _post(client(datetime.date(2026, 10, 28)))
+    saved = json.loads(client.state_file.read_text())
+    assert saved["cycle_start_date"] == "2026-10-26"
+
+
+def test_skip_jumps_flag_saved_for_calendar(client):
+    _post(client(datetime.date(2026, 10, 26)), sleep_total_hrs=5.5)
+    assert json.loads(client.state_file.read_text())["last_execution_skip_jumps"] is True
+    _post(client(datetime.date(2026, 10, 28)))
+    assert json.loads(client.state_file.read_text())["last_execution_skip_jumps"] is False

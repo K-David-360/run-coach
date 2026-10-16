@@ -261,3 +261,17 @@ def test_pre_start_week_is_deload():
     ics = generate_ics(_base_plan_state(cycle_start_date=(_MONDAY + timedelta(weeks=1)).isoformat()), today=_MONDAY)
     strength = [s for s in _events_on(ics, _ymd(_day(0))) if "🏋️" in s]
     assert strength and strength[0].startswith("⛔️"), strength
+
+
+def test_phase3_deload_saturday_is_70pct_of_week5_easy():
+    ics = generate_ics(_base_plan_state(phase=3, cycle_start_date=_weeks_back(5)), today=_MONDAY)
+    assert "⛔️ 🏃‍♂️ Deload Run — 34 mins" in _events_on(ics, _ymd(_day(5)))
+
+
+def test_today_skip_jumps_shown_on_calendar():
+    mon = _day(0)
+    state = _base_plan_state(last_execution_date=mon, last_execution_decision="REDUCE",
+                             last_execution_skip_jumps=True)
+    descs = _descriptions_on(generate_ics(state, today=_MONDAY), _ymd(mon))
+    assert any("Jumps: skip today" in d for d in descs), descs
+    assert not any("weekly target" in d for d in descs), descs

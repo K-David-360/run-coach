@@ -124,10 +124,12 @@ def _format_run_description(blocks: list) -> str:
 
 def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict:
     """Base-plan (HOLD) run event — shown for all future sessions."""
-    base = plan[plan_week_for(plan_week)][slot]
+    row  = plan[plan_week_for(plan_week)]
+    base = row[slot]
     if is_deload:
-        # Deload: ~70% of the last build week, Zone 2 easy (Galpin protocol)
-        blocks  = _easy_blocks(deload_work_min(base["work_min"]))
+        # Deload: ~70% of the last build week, Zone 2 easy (Galpin protocol);
+        # interval slots have no work_min, so use the same week's easy run.
+        blocks  = _easy_blocks(deload_work_min(base["work_min"] or row["A"]["work_min"]))
         summary = f"⛔️ 🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:
         blocks   = _blocks_for_type(base["type"], base["work_min"] or 18)
@@ -140,7 +142,8 @@ def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict
 def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week: int, slot: str) -> dict:
     """Today's run event — uses the real rule engine decision."""
     prefix = _DECISION_EMOJI.get(decision, "")
-    base = plan[plan_week_for(plan_week)][slot]
+    row  = plan[plan_week_for(plan_week)]
+    base = row[slot]
     base_work_min = base["work_min"] or 18
 
     if decision == "SUPPRESS":
@@ -148,7 +151,7 @@ def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week:
         blocks   = _easy_blocks(work_min)
         summary  = f"{prefix}🏃‍♂️ Recovery Only — {_total_min(blocks)} mins"
     elif decision == "DELOAD":
-        work_min = deload_work_min(base["work_min"])
+        work_min = deload_work_min(base["work_min"] or row["A"]["work_min"])
         blocks   = _easy_blocks(work_min)
         summary  = f"{prefix}🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
     else:
@@ -285,6 +288,8 @@ def generate_ics(plan_state: dict, today: date = None) -> str:
                     s["summary"] = prefix + s["summary"]
                 # Spell out how to adjust sets/load for today. HOLD needs no
                 # callout; scheduled deload weeks already carry the wording.
+                if plan_state.get("last_execution_skip_jumps") and rx["sets"] > 0:
+                    s["description"] = s["description"].replace(jump_line(rx), "Jumps: skip today.")
                 note = _STRENGTH_NOTES.get(last_execution_decision, "")
                 if note and last_execution_decision != "HOLD" and not is_deload:
                     guidance = f"\n\n{prefix}{note}"

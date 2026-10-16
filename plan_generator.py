@@ -159,7 +159,7 @@ _STRENGTH_PHRASE = {
     "HOLD":     "Follow the plan.",
     "REDUCE":   "Pull back — same weight, drop to ~80% of your sets.",
     "DELOAD":   "Deload week — same weight, half the sets.",
-    "SUPPRESS": "Easy load only.",
+    "SUPPRESS": "No lifting — walk only.",
 }
 
 _STRENGTH_NOTES = {
@@ -167,7 +167,7 @@ _STRENGTH_NOTES = {
     "HOLD":     "Follow planned load.",
     "REDUCE":   "Back off on volume — keep the same weight as planned. Drop to roughly 80% of your normal sets.",
     "DELOAD":   "Deload week — keep the same weight as planned. Cut your sets to 50% of normal.",
-    "SUPPRESS": "Skip if feeling rough. If you lift, keep it very easy.",
+    "SUPPRESS": "Rest day — no lifting today. Walk only.",
 }
 
 _DAY_LABEL = {
@@ -224,7 +224,7 @@ def generate_strength_session(decision: str, day: str, today: date = None, skip_
     if not skip_jumps and decision not in ("DELOAD", "SUPPRESS") and rx["sets"] > 0:
         blocks.append({"name": "Jumps", "sets": rx["sets"], "reps": rx["reps"], "notes": jump_line(rx)})
     notes = _STRENGTH_NOTES.get(decision, "Follow planned load.")
-    if day in _LIFT_MENU:
+    if day in _LIFT_MENU and decision != "SUPPRESS":
         notes += "\n" + _LIFT_MENU[day]
     blocks.append({"name": label, "notes": notes})
     return {
@@ -308,7 +308,8 @@ def generate_session(decision: str, data: dict) -> dict:
     # ── DELOAD ───────────────────────────────────────────────────────────────
     elif decision == "DELOAD":
         session_type = "easy"
-        work_min = deload_work_min(base_work_min)
+        # Interval slots have no work_min; deload them from the same week's easy run.
+        work_min = deload_work_min(base_work_min or week_plan["A"]["work_min"])
         blocks = _easy_blocks(work_min)
         summary = (
             f"Deload run — {_total_min(blocks)} min total (~70% of planned). "

@@ -401,7 +401,10 @@ def post_healthkit():
     plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
 
     # ── Calendar-week anchoring: set cycle_start_date if absent (first deploy) ──
-    if not plan_state.get("cycle_start_date"):
+    # (also repairs an unparseable value, which would otherwise disable deloads)
+    try:
+        date.fromisoformat(plan_state.get("cycle_start_date") or "")
+    except (ValueError, TypeError):
         plan_state["cycle_start_date"] = _most_recent_monday(date.today()).isoformat()
 
     # Recompute current_week from calendar date — this is now the source of truth.
@@ -486,7 +489,9 @@ def post_healthkit():
     if today_dow in _STRENGTH_DAYS:
         day_key = _STRENGTH_DAYS[today_dow]
         # Jumps are skipped when a REDUCE came from poor recovery, kept when it came from run load.
-        skip_jumps = decision["decision"] == "REDUCE" and decision.get("trigger") in ("hrv", "sleep")
+        skip_jumps = decision["decision"] == "REDUCE" and (
+            decision.get("trigger") in ("hrv", "sleep") or decision.get("recovery_low", False)
+        )
         session = generate_strength_session(
             decision["decision"], day_key, today=date.today(), skip_jumps=skip_jumps
         )
@@ -501,6 +506,7 @@ def post_healthkit():
         plan_state["last_execution_date"]     = today_str
         plan_state["last_execution_type"]     = session["type"]
         plan_state["last_execution_decision"] = decision["decision"]
+        plan_state["last_execution_skip_jumps"] = not any(b["name"] == "Jumps" for b in session["blocks"])
         _save_json(PLAN_STATE_FILE, plan_state)
         _push_calendar_to_github(plan_state)
         return jsonify({

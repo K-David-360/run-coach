@@ -138,3 +138,15 @@ def test_lift_menu_in_notes():
 def test_kb_ladder_gone():
     import plan_generator
     assert not hasattr(plan_generator, "kb_peak_from_weeks")
+
+
+def test_phase3_interval_deload_uses_week5_easy_duration():
+    # Saturday slot B is intervals (no work_min); deload falls back to the same week's slot A
+    assert _work_min(3, 6, "DELOAD", today=datetime.date(2026, 11, 7))[0] == 24
+
+
+def test_suppress_strength_is_no_lifting():
+    session = _strength("SUPPRESS")
+    notes = _lift_block(session)["notes"].lower()
+    assert "no lifting" in notes and "walk" in notes, notes
+    assert "squat" not in notes, notes

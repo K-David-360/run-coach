@@ -211,5 +211,7 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
         "decision": base,
         "reason": reason,
         "trigger": trigger,
+        # Poor recovery even when load already set REDUCE (used to skip jumps).
+        "recovery_low": hrv_ratio < 0.70 or sleep_total_hrs < 6.0,
         "action": _actions.get(base, "Follow the base plan exactly."),
     }
