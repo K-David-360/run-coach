@@ -611,9 +611,12 @@ def post_healthkit():
         day_key = _STRENGTH_DAYS[today_dow]
         # Jumps are skipped when a REDUCE came from poor recovery, kept when it came from run load.
         s1 = _s1_active_today()
-        skip_jumps = s1 or (decision["decision"] == "REDUCE" and (
-            decision.get("trigger") in ("hrv", "sleep") or decision.get("recovery_low", False)
-        ))
+        # Training reasons only; the S1 (body-comp) reason is never recorded in plan_state.
+        training_skip = decision["decision"] in ("DELOAD", "SUPPRESS") or (
+            decision["decision"] == "REDUCE"
+            and (decision.get("trigger") in ("hrv", "sleep") or decision.get("recovery_low", False))
+        )
+        skip_jumps = s1 or training_skip
         session = generate_strength_session(
             decision["decision"], day_key, today=date.today(), skip_jumps=skip_jumps
         )
@@ -630,7 +633,7 @@ def post_healthkit():
         plan_state["last_execution_date"]     = today_str
         plan_state["last_execution_type"]     = session["type"]
         plan_state["last_execution_decision"] = decision["decision"]
-        plan_state["last_execution_skip_jumps"] = not any(b["name"] == "Jumps" for b in session["blocks"])
+        plan_state["last_execution_skip_jumps"] = training_skip
         _save_json(PLAN_STATE_FILE, plan_state)
         _push_calendar_to_github(plan_state)
         return jsonify({
@@ -651,8 +654,8 @@ def post_healthkit():
 
     # ── Run days (Tue / Sat) ──────────────────────────────────────────────────
     session = generate_session(decision["decision"], data)
-    # Saturday Run B stays the default but becomes optional on poor recovery.
-    if today_dow == 5 and (hrv_ratio < 0.90 or _s1_active_today()):
+    # Saturday Run B stays the default but becomes optional on low HRV.
+    if today_dow == 5 and hrv_ratio < 0.90:
         session["summary"] += OPTIONAL_RUN_NOTE
     _save_json(CURRENT_SESSION_FILE, session)
 

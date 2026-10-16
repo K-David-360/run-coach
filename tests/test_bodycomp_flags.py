@@ -96,3 +96,28 @@ def test_no_bodycomp_numbers_in_daily_files(daily):
     assert "180.0" not in session_text and "150.0" not in session_text
     ics = generate_ics(json.loads(daily.files["state"].read_text()), today=datetime.date(2026, 11, 2))
     assert S1_NOTE not in ics and "Weekly check" not in ics
+
+
+def test_s1_note_is_spec_wording():
+    assert S1_NOTE == "Sleep was short last week: REDUCE volume (same weight, ~80% of sets), skip jumps."
+
+
+def test_saturday_optional_not_triggered_by_s1_alone(daily):
+    _store(daily, [S1_REPORT])
+    body = daily(datetime.date(2026, 11, 7)).post("/healthkit", json=GOOD).get_json()
+    assert OPTIONAL_RUN_NOTE not in body["summary"]
+
+
+def test_s1_does_not_reach_plan_state(daily):
+    _store(daily, [S1_REPORT])
+    daily(datetime.date(2026, 11, 2)).post("/healthkit", json=GOOD)
+    state = json.loads(daily.files["state"].read_text())
+    assert state["last_execution_skip_jumps"] is False   # S1-driven skip is not recorded for the calendar
+
+
+def test_written_session_has_fixed_s1_string_only(daily):
+    _store(daily, [S1_REPORT])
+    daily(datetime.date(2026, 11, 2)).post("/healthkit", json=GOOD)
+    session = json.loads(daily.files["session"].read_text())
+    assert S1_NOTE in json.dumps(session)
+    assert not any(k.startswith("bodycomp") or k in ("bc_phase", "metrics", "results") for k in session)

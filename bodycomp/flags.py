@@ -1,13 +1,14 @@
 """
 bodycomp/flags.py — Read-only hooks from the weekly check into the daily output.
 
-The sentences here are generic and number-free: they may appear in the daily
-session JSON, but no body-comp values ever do.
+S1_NOTE is the one body-comp sentence allowed in the daily session JSON (David,
+2026-10-16): fixed text, no numbers, never in plan_state.json or the calendar.
+OPTIONAL_RUN_NOTE is a training note driven by HRV only.
 """
 
 from datetime import date, timedelta
 
-S1_NOTE = "Sleep was short last week: same weight, ~80% of sets, no jumps."
+S1_NOTE = "Sleep was short last week: REDUCE volume (same weight, ~80% of sets), skip jumps."
 OPTIONAL_RUN_NOTE = " Optional today: sleep or HRV is down, an easy walk is fine."
 
 
