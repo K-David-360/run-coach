@@ -2,7 +2,7 @@
 reset.py — Reset plan state and history for a fresh start.
 
 Run this before going live on the Pi, or any time you want to
-start the 4-week plan from scratch.
+start the 6-week plan from scratch.
 
 Usage:
     python3 reset.py
@@ -42,8 +42,6 @@ def reset():
         "last_run_a_decision":       "",
         "last_run_b_execution_date": "",
         "last_run_b_decision":       "",
-        "kb_weeks_elapsed": 0,
-        "kb_peak_rung": 10,
         "lthr_test_date": "",
         "lthr_test_tier": "",
     }

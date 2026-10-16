@@ -53,7 +53,7 @@ from flask import Flask, jsonify, request, make_response
 
 from calendar_generator import generate_ics
 from cycle import week_in_cycle
-from plan_generator import generate_session, generate_strength_session, kb_peak_from_weeks
+from plan_generator import generate_session, generate_strength_session
 from rule_engine import rule_engine
 
 load_dotenv()
@@ -95,8 +95,6 @@ _DEFAULT_PLAN_STATE = {
     "last_run_a_decision": "",         # decision from last Tuesday execution
     "last_run_b_execution_date": "",   # date of last Saturday (slot B) execution
     "last_run_b_decision": "",         # decision from last Saturday execution
-    "kb_weeks_elapsed": 0,
-    "kb_peak_rung": 10,
     "lthr_test_date": "",   # ISO date, set once when total_runs crosses 10/14 — never recomputed relative to "today"
     "lthr_test_tier":  "",  # "" / "scheduled" (>=10) / "urgent" (>=14) — guards against re-bumping the date
 }
@@ -404,10 +402,10 @@ def post_healthkit():
 
     # ── Calendar-week anchoring: set cycle_start_date if absent (first deploy) ──
     if not plan_state.get("cycle_start_date"):
-        plan_state["cycle_start_date"] = _most_recent_monday().isoformat()
+        plan_state["cycle_start_date"] = _most_recent_monday(date.today()).isoformat()
 
     # Recompute current_week from calendar date — this is now the source of truth.
-    plan_state["current_week"] = _week_from_cycle_start(plan_state["cycle_start_date"])
+    plan_state["current_week"] = _week_from_cycle_start(plan_state["cycle_start_date"], date.today())
     _save_json(PLAN_STATE_FILE, plan_state)
 
     # Rest days: skip health processing entirely
@@ -486,19 +484,12 @@ def post_healthkit():
 
     # ── Strength days (Mon / Wed / Fri) ───────────────────────────────────────
     if today_dow in _STRENGTH_DAYS:
-        day_key   = _STRENGTH_DAYS[today_dow]
-        bell_reset = False
-
-        if day_key == "wed" and decision["decision"] in ("BUILD", "HOLD"):
-            if plan_state.get("last_execution_date", "") != today_str:
-                new_kb_weeks = plan_state.get("kb_weeks_elapsed", 0) + 1
-                if new_kb_weeks >= 9:
-                    new_kb_weeks = 0
-                    bell_reset   = True
-                plan_state["kb_weeks_elapsed"] = new_kb_weeks
-                plan_state["kb_peak_rung"]     = kb_peak_from_weeks(new_kb_weeks)
-
-        session = generate_strength_session(decision["decision"], day_key, bell_reset=bell_reset)
+        day_key = _STRENGTH_DAYS[today_dow]
+        # Jumps are skipped when a REDUCE came from poor recovery, kept when it came from run load.
+        skip_jumps = decision["decision"] == "REDUCE" and decision.get("trigger") in ("hrv", "sleep")
+        session = generate_strength_session(
+            decision["decision"], day_key, today=date.today(), skip_jumps=skip_jumps
+        )
         _save_json(CURRENT_SESSION_FILE, session)
 
         # Append to history (same as run days — all non-rest days count)

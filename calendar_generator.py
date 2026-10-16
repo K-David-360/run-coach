@@ -29,7 +29,6 @@ from plan_generator import (
     _total_min,
     deload_work_min,
     plan_week_for,
-    kb_peak_from_weeks,
 )
 
 # ── Decision emoji prefix ─────────────────────────────────────────────────────
@@ -241,7 +240,6 @@ def generate_ics(plan_state: dict, today: date = None) -> str:
     phase        = plan_state.get("phase", 1)
     plan         = _PLAN_BY_PHASE.get(phase, _PLAN_BY_PHASE[1])
     kb_weeks     = plan_state.get("kb_weeks_elapsed", 0)
-    kb_peak      = kb_peak_from_weeks(kb_weeks)
     # Show full KB Phase 1 arc — shrinks as the phase progresses, min 4 weeks
     weeks_to_show = max(4, 9 - kb_weeks)
 
@@ -304,14 +302,6 @@ def generate_ics(plan_state: dict, today: date = None) -> str:
                 note = _STRENGTH_NOTES.get(last_execution_decision, "")
                 if note and last_execution_decision != "HOLD" and not is_deload:
                     guidance = f"\n\n{prefix}{note}"
-            if day_key == "wed":
-                if is_deload:
-                    s["description"] += "\n\nKB Swings — omitted (deload week)."
-                else:
-                    s["description"] += (
-                        f"\n\nKB Breathing Ladder — Peak {kb_peak}\n"
-                        f"1→{kb_peak}→1 swings. 1 breath per swing as rest. Fixed bell weight."
-                    )
             s["description"] += guidance
             uid = f"rc-strength-{evt_date.isoformat()}-{day_key}@runcoach"
             for line in _vevent(evt_date, s["summary"], s["description"], uid):

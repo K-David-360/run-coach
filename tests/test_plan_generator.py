@@ -67,22 +67,74 @@ def test_deload_work_min_floor():
     assert deload_work_min(5) == 8
 
 
-@patch("plan_generator._load_json", return_value={"kb_weeks_elapsed": 0})
-def test_strength_deload_messaging(mock_load):
-    """Strength DELOAD should say 'same weight, half the sets' not 'light load'."""
+_BLOCK_STATE = {"cycle_start_date": "2026-10-26"}
+_WEEK1_MON = datetime.date(2026, 10, 26)
+
+
+def _strength(decision, day="mon", today=_WEEK1_MON, **kw):
     from plan_generator import generate_strength_session
-    session = generate_strength_session("DELOAD", "mon")
-    notes = session["blocks"][0]["notes"].lower()
+    with patch("plan_generator._load_json", return_value=dict(_BLOCK_STATE)):
+        return generate_strength_session(decision, day, today=today, **kw)
+
+
+def _lift_block(session):
+    return next(b for b in session["blocks"] if b["name"] != "Jumps")
+
+
+def _has_jumps(session):
+    return any(b["name"] == "Jumps" for b in session["blocks"])
+
+
+def test_strength_deload_messaging():
+    """Strength DELOAD should say 'same weight, half the sets' not 'light load'."""
+    notes = _lift_block(_strength("DELOAD"))["notes"].lower()
     assert "same weight" in notes, f"Expected 'same weight' in notes: {notes}"
     assert "half" in notes or "50%" in notes, f"Expected set reduction language: {notes}"
     assert "light" not in notes, f"'light' should not appear: {notes}"
 
-@patch("plan_generator._load_json", return_value={"kb_weeks_elapsed": 0})
-def test_strength_reduce_messaging(mock_load):
+
+def test_strength_reduce_messaging():
     """Strength REDUCE should say 'same weight, fewer sets' — not 'load' or 'light'."""
-    from plan_generator import generate_strength_session
-    session = generate_strength_session("REDUCE", "mon")
-    notes = session["blocks"][0]["notes"].lower()
+    notes = _lift_block(_strength("REDUCE"))["notes"].lower()
     assert "same weight" in notes, f"Expected 'same weight' in notes: {notes}"
     assert "set" in notes, f"Expected set-reduction language in notes: {notes}"
     assert "load" not in notes, f"'load' should not appear (implies weight cut): {notes}"
+
+
+def test_labels_are_push_pull_full():
+    for day, label in (("mon", "Push"), ("wed", "Pull"), ("fri", "Full")):
+        summary = _strength("HOLD", day)["summary"]
+        assert label in summary, summary
+        for old in ("Lower", "Upper", "KB"):
+            assert old not in summary, summary
+
+
+def test_jumps_block_first_with_week1_prescription():
+    first = _strength("HOLD")["blocks"][0]
+    assert (first["name"], first["sets"], first["reps"]) == ("Jumps", 2, 10)
+    assert "weekly target 60" in first["notes"]
+
+
+def test_jumps_week5_three_sets():
+    first = _strength("HOLD", today=datetime.date(2026, 11, 23))["blocks"][0]
+    assert first["sets"] == 3
+    assert "weekly target 90" in first["notes"]
+
+
+def test_no_jumps_on_deload_or_suppress():
+    assert not _has_jumps(_strength("DELOAD"))
+    assert not _has_jumps(_strength("SUPPRESS"))
+
+
+def test_no_jumps_when_skip_requested():
+    assert not _has_jumps(_strength("REDUCE", skip_jumps=True))
+
+
+def test_lift_menu_in_notes():
+    assert "squat 3 x 5–8" in _lift_block(_strength("HOLD", "mon"))["notes"].lower()
+    assert "trap-bar deadlift 3 x 5" in _lift_block(_strength("HOLD", "wed"))["notes"].lower()
+
+
+def test_kb_ladder_gone():
+    import plan_generator
+    assert not hasattr(plan_generator, "kb_peak_from_weeks")

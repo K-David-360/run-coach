@@ -25,6 +25,8 @@ import uuid
 from datetime import date
 from math import ceil
 
+from cycle import jump_prescription
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 PLAN_STATE_FILE = os.path.join(DATA_DIR, "plan_state.json")
@@ -144,32 +146,6 @@ def _intervals_blocks() -> list:
     ]
 
 
-# ── KB Breathing Ladder ───────────────────────────────────────────────────────
-
-def kb_peak_from_weeks(weeks_elapsed: int) -> int:
-    if weeks_elapsed < 3:
-        return 10
-    elif weeks_elapsed < 6:
-        return 15
-    return 20
-
-
-def _kb_ladder_blocks(peak_rung: int, decision: str, bell_reset: bool = False) -> list:
-    if decision in ("DELOAD", "SUPPRESS"):
-        return []
-    effective = max(5, peak_rung - 2) if decision == "REDUCE" else peak_rung
-    label = f"Peak {effective}"
-    if decision == "REDUCE":
-        label += f" (reduced from {peak_rung})"
-    notes = (
-        f"{label} — ladder 1→{effective}→1. "
-        f"1 breath per swing as rest. Fixed bell weight. {effective ** 2} total swings."
-    )
-    if bell_reset:
-        notes += " Time to move up a bell weight for this new cycle."
-    return [{"name": "KB Breathing Ladder", "duration_min": 15, "notes": notes}]
-
-
 _STRENGTH_PREFIX = {
     "BUILD":    "⬆️ ",
     "REDUCE":   "⬇️ ",
@@ -195,27 +171,65 @@ _STRENGTH_NOTES = {
 }
 
 _DAY_LABEL = {
-    "mon": "Lower Body",
-    "wed": "Upper Body + KB Ladder",
-    "fri": "Full Body",
+    "mon": "Push",
+    "wed": "Pull",
+    "fri": "Full",
+}
+
+# From health-bootcamp/01-protocol.md "Lift menu" (3 working sets, 1–3 reps in reserve).
+_LIFT_MENU = {
+    "mon": (
+        "Squat 3 x 5–8\n"
+        "Incline dumbbell press 3–4 x 8–10\n"
+        "Superset: chest-supported row 3 x 8–10 + lateral raise 3 x 10–15\n"
+        "Triceps pushdown 2 x 10–12"
+    ),
+    "wed": (
+        "Trap-bar deadlift 3 x 5\n"
+        "Pulldown or pull-up 3 x 8–10\n"
+        "Superset: overhead press 3 x 8–10 + face pull 3 x 12–15\n"
+        "Incline dumbbell curl 2–3 x 10–12"
+    ),
+    "fri": (
+        "Leg press or split squat 3 x 8\n"
+        "Bench 3 x 8–10\n"
+        "Superset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n"
+        "Superset: hammer curl + overhead triceps extension 2 x 10–12\n"
+        "Farmer carries 2 x 30–40 m if time allows"
+    ),
 }
 
 
-def generate_strength_session(decision: str, day: str, bell_reset: bool = False) -> dict:
+def jump_line(rx: dict) -> str:
+    """One-line jump prescription for session notes and calendar descriptions."""
+    if rx["sets"] == 0:
+        return "Jumps: none this week (deload)."
+    return (
+        f"Jumps: {rx['sets']} x {rx['reps']} countermovement jumps "
+        f"(weekly target {rx['weekly_target']}). Land softly, rest 30-60 s."
+    )
+
+
+def generate_strength_session(decision: str, day: str, today: date = None, skip_jumps: bool = False) -> dict:
+    if today is None:
+        today = date.today()
     plan_state = _load_json(PLAN_STATE_FILE, default={})
     label = _DAY_LABEL.get(day, "Strength")
     summary = (
         f"{_STRENGTH_PREFIX.get(decision, '')}\U0001f3cb️ {label} "
         f"— {_STRENGTH_PHRASE.get(decision, 'Follow the plan.')}"
     )
-    strength_name = label.split(" + ")[0]
-    blocks = [{"name": strength_name, "notes": _STRENGTH_NOTES.get(decision, "Follow planned load.")}]
-    if day == "wed":
-        peak = kb_peak_from_weeks(plan_state.get("kb_weeks_elapsed", 0))
-        blocks += _kb_ladder_blocks(peak, decision, bell_reset=bell_reset)
+    blocks = []
+    rx = jump_prescription(plan_state.get("cycle_start_date", ""), today)
+    if not skip_jumps and decision not in ("DELOAD", "SUPPRESS") and rx["sets"] > 0:
+        blocks.append({"name": "Jumps", "sets": rx["sets"], "reps": rx["reps"], "notes": jump_line(rx)})
+    notes = _STRENGTH_NOTES.get(decision, "Follow planned load.")
+    if day in _LIFT_MENU:
+        notes += "\n" + _LIFT_MENU[day]
+    blocks.append({"name": label, "notes": notes})
     return {
         "session_id": str(uuid.uuid4()),
-        "date": date.today().isoformat(),
+        "date": today.isoformat(),
         "type": f"strength_{day}",
         "rule_fired": decision,
         "flag": "none",
