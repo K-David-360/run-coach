@@ -3,3 +3,4 @@ data/plan_state.json
 .env
 __pycache__/
 *.pyc
+data/bodycomp/
