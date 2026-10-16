@@ -7,102 +7,132 @@ CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261012
 DTEND;VALUE=DATE:20261013
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
+SUMMARY:⛔️ 🏋️ Push
+DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
+ –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: none this week (deload).
+ \n\nDeload week — keep the same weight as planned. Cut your sets to 50% 
+ of normal.
 UID:rc-strength-2026-10-12-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261014
 DTEND;VALUE=DATE:20261015
-SUMMARY:⬇️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.\n\n⬇️ Back off on volume 
- — keep the same weight as planned. Drop to roughly 80% of your normal se
- ts.
+SUMMARY:⬇️ ⛔️ 🏋️ Pull
+DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
+ -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
+ 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: none this week (deload)
+ .\n\nDeload week — keep the same weight as planned. Cut your sets to 50%
+  of normal.
 UID:rc-strength-2026-10-14-wed@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261016
 DTEND;VALUE=DATE:20261017
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
+SUMMARY:⛔️ 🏋️ Full
+DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
+  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
+ Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
+ ries 2 x 30–40 m if time allows\n\nJumps: none this week (deload).\n\nDe
+ load week — keep the same weight as planned. Cut your sets to 50% of nor
+ mal.
 UID:rc-strength-2026-10-16-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261013
 DTEND;VALUE=DATE:20261014
-SUMMARY:⬇️ 🏃‍♂️ Easy Run — 36 mins
-DESCRIPTION:5 mins walking warm up\n\n26 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⬇️ 🏃‍♂️ Easy Run — 39 mins
+DESCRIPTION:5 mins walking warm up\n\n29 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-10-13-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261017
 DTEND;VALUE=DATE:20261018
-SUMMARY:🏃‍♂️ Progression Run — 40 mins
-DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 34 mins
+DESCRIPTION:5 mins walking warm up\n\n24 mins in Zone 2\n\n5 mins walking c
+ ool down
 UID:rc-run-2026-10-17-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261019
 DTEND;VALUE=DATE:20261020
-SUMMARY:⛔️ 🏋️ Full Body
-DESCRIPTION:Deload week: full body only\, no lower body work.\nSame weight 
- as planned — cut your sets to 50% of normal.
+SUMMARY:⛔️ 🏋️ Push
+DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
+ –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: none this week (deload).
+ \n\nDeload week — keep the same weight as planned. Cut your sets to 50% 
+ of normal.
 UID:rc-strength-2026-10-19-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261021
 DTEND;VALUE=DATE:20261022
-SUMMARY:⛔️ 🏋️ Upper Body + KB Ladder
-DESCRIPTION:Deload week: upper body at same weight as planned — cut your 
- sets to 50% of normal. Keep it easy.\n\nKB Swings — omitted (deload week
- ).
+SUMMARY:⛔️ 🏋️ Pull
+DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
+ -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
+ 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: none this week (deload)
+ .\n\nDeload week — keep the same weight as planned. Cut your sets to 50%
+  of normal.
 UID:rc-strength-2026-10-21-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261023
+DTEND;VALUE=DATE:20261024
+SUMMARY:⛔️ 🏋️ Full
+DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
+  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
+ Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
+ ries 2 x 30–40 m if time allows\n\nJumps: none this week (deload).\n\nDe
+ load week — keep the same weight as planned. Cut your sets to 50% of nor
+ mal.
+UID:rc-strength-2026-10-23-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261020
 DTEND;VALUE=DATE:20261021
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 34 mins
+DESCRIPTION:5 mins walking warm up\n\n24 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-10-20-A@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261024
 DTEND;VALUE=DATE:20261025
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 20 mins
-DESCRIPTION:5 mins walking warm up\n\n10 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 34 mins
+DESCRIPTION:5 mins walking warm up\n\n24 mins in Zone 2\n\n5 mins walking c
  ool down
 UID:rc-run-2026-10-24-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261026
 DTEND;VALUE=DATE:20261027
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
+SUMMARY:🏋️ Push
+DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
+ –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 2 x 10 countermovement j
+ umps (weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-10-26-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261028
 DTEND;VALUE=DATE:20261029
-SUMMARY:🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.
+SUMMARY:🏋️ Pull
+DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
+ -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
+ 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: 2 x 10 countermovement 
+ jumps (weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-10-28-wed@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261030
 DTEND;VALUE=DATE:20261031
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
+SUMMARY:🏋️ Full
+DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
+  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
+ Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
+ ries 2 x 30–40 m if time allows\n\nJumps: 2 x 10 countermovement jumps (
+ weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-10-30-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -124,26 +154,32 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261102
 DTEND;VALUE=DATE:20261103
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
+SUMMARY:🏋️ Push
+DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
+ –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 2 x 10 countermovement j
+ umps (weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-11-02-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261104
 DTEND;VALUE=DATE:20261105
-SUMMARY:🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.
+SUMMARY:🏋️ Pull
+DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
+ -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
+ 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: 2 x 10 countermovement 
+ jumps (weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-11-04-wed@runcoach
 END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261106
 DTEND;VALUE=DATE:20261107
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
+SUMMARY:🏋️ Full
+DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
+  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
+ Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
+ ries 2 x 30–40 m if time allows\n\nJumps: 2 x 10 countermovement jumps (
+ weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-11-06-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -161,46 +197,5 @@ SUMMARY:🏃‍♂️ Progression Run — 37 mins
 DESCRIPTION:5 mins walking warm up\n\n19 mins in Zone 2\n8 mins in Zone 3\n
  \n5 mins walking cool down
 UID:rc-run-2026-11-07-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261110
-SUMMARY:🏋️ Lower Body
-DESCRIPTION:Squats\, deadlifts\, lunges\, glutes.\nHeavy lower body — res
- t or mobility tomorrow.
-UID:rc-strength-2026-11-09-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261111
-DTEND;VALUE=DATE:20261112
-SUMMARY:🏋️ Upper Body + KB Ladder
-DESCRIPTION:Upper body and core only.\nNo leg work — protect running legs
-  for Saturday.\n\nKB Breathing Ladder — Peak 15\n1→15→1 swings. 1 br
- eath per swing as rest. Fixed bell weight.
-UID:rc-strength-2026-11-11-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261113
-DTEND;VALUE=DATE:20261114
-SUMMARY:🏋️ Full Body
-DESCRIPTION:Full body session.\nBalance push/pull and a lower body movement
- .
-UID:rc-strength-2026-11-13-fri@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261110
-DTEND;VALUE=DATE:20261111
-SUMMARY:🏃‍♂️ Easy Run — 40 mins
-DESCRIPTION:5 mins walking warm up\n\n30 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-11-10-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261114
-DTEND;VALUE=DATE:20261115
-SUMMARY:🏃‍♂️ Progression Run — 40 mins
-DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down
-UID:rc-run-2026-11-14-B@runcoach
 END:VEVENT
 END:VCALENDAR
