@@ -266,7 +266,7 @@ def _blocks_for_type(session_type: str, work_min: int) -> list:
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
-def generate_session(decision: str, data: dict) -> dict:
+def generate_session(decision: str, data: dict, today: date = None) -> dict:
     """
     Build a session dict from the rule decision and current plan state.
 
@@ -277,12 +277,14 @@ def generate_session(decision: str, data: dict) -> dict:
     Returns:
         Session dict with session_id, date, type, rule_fired, flag, summary, blocks.
     """
+    if today is None:
+        today = date.today()
     plan_state = _load_json(PLAN_STATE_FILE, default={})
     current_week = plan_state.get("current_week", 1)
     phase = plan_state.get("phase", 1)
 
     # Slot is fixed by calendar day: Tuesday (weekday 1) = A, Saturday (weekday 5) = B
-    slot = "A" if date.today().weekday() == 1 else "B"
+    slot = "A" if today.weekday() == 1 else "B"
 
     plan_table = _PLAN_BY_PHASE.get(phase, _PLAN_PHASE1)
     week_plan = plan_table[plan_week_for(current_week)]
@@ -385,7 +387,7 @@ def generate_session(decision: str, data: dict) -> dict:
 
     return {
         "session_id": str(uuid.uuid4()),
-        "date": date.today().isoformat(),
+        "date": today.isoformat(),
         "type": session_type,
         "rule_fired": decision,
         "flag": "none",

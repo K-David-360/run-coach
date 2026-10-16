@@ -4,6 +4,7 @@ bodycomp/store.py — Read/write the gitignored body-comp data files.
 
 import json
 import os
+import tempfile
 
 from bodycomp.config import BODYCOMP_DIR
 
@@ -20,13 +21,25 @@ def _load_list(path: str) -> list:
         return []
 
 
+def _write_json_atomic(data, path: str) -> None:
+    """Write to a temp file in the same directory, then rename over the target."""
+    directory = os.path.dirname(path)
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=directory, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
 def _save_replacing(entry: dict, key: str, path: str) -> None:
     rows = [r for r in _load_list(path) if r.get(key) != entry.get(key)]
     rows.append(entry)
     rows.sort(key=lambda r: r.get(key, ""))
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(rows, f, indent=2)
+    _write_json_atomic(rows, path)
 
 
 def load_weeks(path: str = WEEKLY_FILE) -> list:
@@ -40,8 +53,7 @@ def save_week(report: dict, path: str = WEEKLY_FILE) -> None:
 def save_report_file(report: dict, reports_dir: str = REPORTS_DIR) -> None:
     """Full per-rule report as reports/<week_ending>.json (overwritten on re-post)."""
     os.makedirs(reports_dir, exist_ok=True)
-    with open(os.path.join(reports_dir, f"{report['week_ending']}.json"), "w") as f:
-        json.dump(report, f, indent=2)
+    _write_json_atomic(report, os.path.join(reports_dir, f"{report['week_ending']}.json"))
 
 
 def latest_report(path: str = WEEKLY_FILE):

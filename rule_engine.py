@@ -52,10 +52,12 @@ def _get_consecutive_suppress() -> int:
     return count
 
 
-def _count_nights_below(threshold_hrs: float, days: int = 7) -> int:
+def _count_nights_below(threshold_hrs: float, days: int = 7, today: date = None) -> int:
     """Count history entries in the last `days` calendar days where total sleep < threshold."""
+    if today is None:
+        today = date.today()
     history = _load_json(HISTORY_FILE, default=[])
-    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    cutoff = (today - timedelta(days=days)).isoformat()
     count = 0
     for entry in history:
         entry_date = entry.get("session", {}).get("date") or entry.get("run_data", {}).get("last_workout_date", "")
@@ -92,7 +94,7 @@ def _resting_hr_elevated_days(n: int = 7) -> int:
     return count
 
 
-def rule_engine(data: dict, hrv_ratio: float) -> dict:
+def rule_engine(data: dict, hrv_ratio: float, today: date = None) -> dict:
     """
     Evaluate rules in priority order and return the first match.
 
@@ -137,7 +139,7 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
         }
 
     # ── P2 DELOAD ────────────────────────────────────────────────────────────
-    nights_below_5 = _count_nights_below(5.0, days=7)
+    nights_below_5 = _count_nights_below(5.0, days=7, today=today)
     if is_deload_week(current_week):
         return {"decision": "DELOAD", "reason": "Scheduled deload (week 6)",
                 "trigger": "deload_week", "action": _deload_action}

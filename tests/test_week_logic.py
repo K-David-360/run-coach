@@ -9,37 +9,37 @@ from server import _week_from_cycle_start, _most_recent_monday
 # ── _week_from_cycle_start ────────────────────────────────────────────────────
 
 def test_week1_on_cycle_start_day():
-    start = date(2026, 6, 9)  # Monday
-    assert _week_from_cycle_start("2026-06-09", today=start) == 1
+    start = date(2026, 6, 8)  # Monday
+    assert _week_from_cycle_start("2026-06-08", today=start) == 1
 
 def test_week1_last_day():
-    start = date(2026, 6, 9)
-    sunday = date(2026, 6, 15)  # 6 days after Monday = Sunday
-    assert _week_from_cycle_start("2026-06-09", today=sunday) == 1
+    start = date(2026, 6, 8)
+    sunday = date(2026, 6, 14)  # 6 days after Monday = Sunday
+    assert _week_from_cycle_start("2026-06-08", today=sunday) == 1
 
 def test_week2_starts_on_second_monday():
-    start = date(2026, 6, 9)
-    second_monday = date(2026, 6, 16)
-    assert _week_from_cycle_start("2026-06-09", today=second_monday) == 2
+    start = date(2026, 6, 8)
+    second_monday = date(2026, 6, 15)
+    assert _week_from_cycle_start("2026-06-08", today=second_monday) == 2
 
 def test_week3():
-    start = date(2026, 6, 9)
-    third_monday = date(2026, 6, 23)
-    assert _week_from_cycle_start("2026-06-09", today=third_monday) == 3
+    start = date(2026, 6, 8)
+    third_monday = date(2026, 6, 22)
+    assert _week_from_cycle_start("2026-06-08", today=third_monday) == 3
 
 def test_week4():
-    start = date(2026, 6, 9)
-    fourth_monday = date(2026, 6, 30)
-    assert _week_from_cycle_start("2026-06-09", today=fourth_monday) == 4
+    start = date(2026, 6, 8)
+    fourth_monday = date(2026, 6, 29)
+    assert _week_from_cycle_start("2026-06-08", today=fourth_monday) == 4
 
 def test_week6_is_last_week_of_cycle():
-    assert _week_from_cycle_start("2026-06-09", today=date(2026, 7, 14)) == 6
+    assert _week_from_cycle_start("2026-06-08", today=date(2026, 7, 13)) == 6
 
 def test_cycle_rolls_to_week1_after_six_weeks():
-    assert _week_from_cycle_start("2026-06-09", today=date(2026, 7, 21)) == 1
+    assert _week_from_cycle_start("2026-06-08", today=date(2026, 7, 20)) == 1
 
 def test_before_cycle_start_is_deload_week():
-    assert _week_from_cycle_start("2026-06-09", today=date(2026, 6, 8)) == 6
+    assert _week_from_cycle_start("2026-06-08", today=date(2026, 6, 7)) == 6
 
 def test_invalid_cycle_start_returns_1():
     assert _week_from_cycle_start("", today=date(2026, 6, 9)) == 1

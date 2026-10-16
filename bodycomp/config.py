@@ -50,7 +50,16 @@ def load_config(path: str = CONFIG_FILE) -> dict:
     except FileNotFoundError:
         text = ""
     if text.strip():
-        config.update(json.loads(text))
+        loaded = json.loads(text)
+        if not isinstance(loaded, dict):
+            raise ValueError("config.json must be a JSON object")
+        config.update(loaded)
+    for key, default in DEFAULTS.items():
+        value = config[key]
+        if default is None or isinstance(default, (int, float)):
+            numeric = isinstance(value, (int, float)) and not isinstance(value, bool)
+            if not numeric and not (default is None and value is None):
+                raise ValueError(f"{key} must be a number" + (" or null" if default is None else ""))
     if config["bc_phase"] not in _PHASES:
         raise ValueError("bc_phase must be BC-1 or BC-2")
     return config

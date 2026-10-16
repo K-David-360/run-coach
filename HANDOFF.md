@@ -79,25 +79,24 @@ Method: the Terminal SSH session described in `~/.claude/CLAUDE.md` (base64 tran
 - **`POST /bodycomp/measurements`:** kept.
 - **W1 baseline:** set `baseline_weight_lb` on the Pi after the intro week (week ending Sat Oct 31).
 
-## 5. Deferred minor issues (from the two final reviews)
+## 5. Deferred minor issues — fixed 2026-10-16 (`tests/test_handoff_fixes.py`)
 
 Training rework:
-- A `cycle_start_date` that isn't a Monday makes the calendar (evaluated at each week's Monday) and
-  the server (actual day) disagree for part of the first week.
-- `plan_generator.generate_session` and `rule_engine._count_nights_below` still call `date.today()`
-  with no injectable `today`.
-- No server-level test of the real pre-start case (e.g. Tue Oct 20 → DELOAD, 28 min).
-- The legacy `POST /run` route never recomputes `current_week`.
+- ~~Non-Monday `cycle_start_date`~~ — `cycle.py` now counts from that date's own Monday.
+- ~~`generate_session` / `_count_nights_below` call `date.today()`~~ — both (and `rule_engine`)
+  take `today`; the server passes it.
+- ~~No server test of the pre-start case~~ — added (Tue Oct 20 → DELOAD, 28 min).
+- ~~Legacy `POST /run` never recomputes `current_week`~~ — it does now.
 
 Body-comp:
-- A config of `null`, or a threshold given as a string, raises TypeError and returns a plain 500
-  instead of a clear message.
-- The S1 note says "~80% of sets" even on DELOAD/SUPPRESS days.
-- Store JSON writes aren't atomic; a crash mid-write corrupts `weekly.json` (the daily path is
-  unaffected).
-- The Shortcut's `EEEE == "Sunday"` check depends on the phone's language (noted in the guide).
-- An empty `bc_phase_start_date` means W1 never stops after week 12 and W3's early guard is
-  skipped. Set it at deploy (section 2).
+- ~~`null` config / string threshold → plain 500~~ — `load_config` raises a clear ValueError
+  naming the key (the routes return it as the error message).
+- ~~S1 note says "~80% of sets" on DELOAD/SUPPRESS~~ — those days get the fixed
+  `S1_NOTE_LOW_DAY` ("Sleep was short last week: skip jumps.").
+- ~~Store writes not atomic~~ — temp file + `os.replace`.
+- Still open (not code): the Shortcut's `EEEE == "Sunday"` check depends on the phone's language
+  (noted in the guide), and `bc_phase_start_date` must be set at deploy (section 2) or W1 never
+  stops after week 12.
 
 ## 6. Older backlog (from CLAUDE.md "Remaining tasks")
 

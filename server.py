@@ -56,7 +56,7 @@ import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 import bodycomp.telegram as bc_telegram
 from bodycomp.checks import validate_payload, weekly_check
-from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_week_dates
+from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, S1_NOTE_LOW_DAY, s1_week_dates
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
 from cycle import week_in_cycle
@@ -212,11 +212,16 @@ def post_run():
     # 2. Compute HRV ratio
     hrv_ratio = hrv_last_night / hrv_7d_avg
 
+    # Recompute current_week from the calendar, as /healthkit does.
+    plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
+    plan_state["current_week"] = _week_from_cycle_start(plan_state.get("cycle_start_date", ""), date.today())
+    _save_json(PLAN_STATE_FILE, plan_state)
+
     # 3. Rule engine → decision
-    decision = rule_engine(data, hrv_ratio)
+    decision = rule_engine(data, hrv_ratio, today=date.today())
 
     # 4. Generate session
-    session = generate_session(decision["decision"], data)
+    session = generate_session(decision["decision"], data, today=date.today())
 
     # 5. Append to history
     history = _load_json(HISTORY_FILE, default=[])
@@ -608,7 +613,7 @@ def post_healthkit():
     }
 
     # ── Rule engine ───────────────────────────────────────────────────────────
-    decision = rule_engine(data, hrv_ratio)
+    decision = rule_engine(data, hrv_ratio, today=date.today())
 
     # ── Strength days (Mon / Wed / Fri) ───────────────────────────────────────
     if today_dow in _STRENGTH_DAYS:
@@ -625,7 +630,8 @@ def post_healthkit():
             decision["decision"], day_key, today=date.today(), skip_jumps=skip_jumps
         )
         if s1:
-            session["blocks"].append({"name": "Weekly check", "notes": S1_NOTE})
+            low_day = decision["decision"] in ("DELOAD", "SUPPRESS")   # day already cuts more than ~80%
+            session["blocks"].append({"name": "Weekly check", "notes": S1_NOTE_LOW_DAY if low_day else S1_NOTE})
         _save_json(CURRENT_SESSION_FILE, session)
 
         # Append to history (same as run days — all non-rest days count)
@@ -657,7 +663,7 @@ def post_healthkit():
         }), 200
 
     # ── Run days (Tue / Sat) ──────────────────────────────────────────────────
-    session = generate_session(decision["decision"], data)
+    session = generate_session(decision["decision"], data, today=date.today())
     # Saturday Run B stays the default but becomes optional on low HRV or an S1 week.
     if today_dow == 5 and (hrv_ratio < 0.90 or _s1_active_today()):
         session["summary"] += OPTIONAL_RUN_NOTE

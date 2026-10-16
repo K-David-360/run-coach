@@ -6,7 +6,7 @@ The plan runs in 6-week cycles: 5 build weeks + 1 deload week. Everything
 plan_state["cycle_start_date"] through these functions.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 DELOAD_EVERY_N_WEEKS = 6
 
@@ -15,10 +15,12 @@ _LIFT_DAYS_PER_WEEK = 3
 
 
 def _parse(cycle_start: str):
+    """Cycle start as a Monday: a mid-week date counts from its own week's Monday."""
     try:
-        return date.fromisoformat(cycle_start)
+        start = date.fromisoformat(cycle_start)
     except (ValueError, TypeError):
         return None
+    return start - timedelta(days=start.weekday())
 
 
 def block_week(cycle_start: str, today: date = None) -> int:
