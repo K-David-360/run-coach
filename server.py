@@ -43,6 +43,7 @@ curl -X POST http://localhost:5000/run \
 """
 
 import base64
+import hmac
 import json
 import os
 from datetime import date, timedelta
@@ -53,7 +54,8 @@ from flask import Flask, jsonify, request, make_response
 
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
-from bodycomp.checks import weekly_check
+import bodycomp.telegram as bc_telegram
+from bodycomp.checks import validate_payload, weekly_check
 from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_active
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
@@ -330,9 +332,11 @@ def _s1_active_today() -> bool:
 
 
 def _bodycomp_auth():
-    """401 when BODYCOMP_TOKEN is set and the request's X-Bodycomp-Token differs."""
-    token = os.environ.get("BODYCOMP_TOKEN", "")
-    if token and request.headers.get("X-Bodycomp-Token", "") != token:
+    """Shared secret required on every /bodycomp/* route (Tailscale is the primary control)."""
+    secret = os.environ.get("BODYCOMP_SECRET", "")
+    if not secret:
+        return jsonify({"error": "BODYCOMP_SECRET is not configured on the server"}), 503
+    if not hmac.compare_digest(request.headers.get("X-Bodycomp-Secret", ""), secret):
         return jsonify({"error": "unauthorized"}), 401
     return None
 
@@ -344,11 +348,9 @@ def post_bodycomp_weekly():
     if denied:
         return denied
     body = request.get_json(force=True, silent=True) or {}
-    try:
-        if date.fromisoformat(str(body.get("week_ending", ""))).weekday() != 5:
-            raise ValueError
-    except ValueError:
-        return jsonify({"error": "week_ending must be a Saturday (YYYY-MM-DD)"}), 400
+    error = validate_payload(body)
+    if error:
+        return jsonify({"error": error}), 400
     try:
         config = bc_config.load_config(bc_config.CONFIG_FILE)
     except ValueError as exc:
@@ -357,14 +359,32 @@ def post_bodycomp_weekly():
     plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
     report = weekly_check(
         body,
-        _load_json(HISTORY_FILE, default=[]),
         bc_store.load_weeks(bc_store.WEEKLY_FILE),
         config,
         plan_state.get("cycle_start_date", ""),
     )
     bc_store.save_week(report, bc_store.WEEKLY_FILE)
+    bc_store.save_report_file(report, bc_store.REPORTS_DIR)
+    # Telegram gets only allowlisted aggregate fields; a failure never fails the route.
+    try:
+        text = bc_telegram.build_message(bc_telegram.allowed_fields(report), config.get("telegram_detail", "trends"))
+        bc_telegram.send(text, os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", ""))
+    except Exception:
+        app.logger.exception("bodycomp Telegram message failed")
     flags = [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]
     return jsonify({"notification": report["banner"], "highest": report["highest"], "flags": flags}), 200
+
+
+@app.route("/bodycomp/report/latest", methods=["GET"])
+def get_bodycomp_report_latest():
+    """Latest stored weekly report (full per-rule detail). Tailscale only."""
+    denied = _bodycomp_auth()
+    if denied:
+        return denied
+    report = bc_store.latest_report(bc_store.WEEKLY_FILE)
+    if report is None:
+        return jsonify({"error": "no weekly report yet"}), 404
+    return jsonify(report), 200
 
 
 @app.route("/bodycomp/measurements", methods=["POST"])
