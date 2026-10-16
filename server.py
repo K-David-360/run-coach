@@ -289,7 +289,7 @@ def get_test():
 
 @app.route("/calendar.ics", methods=["GET"])
 def get_calendar():
-    """Return the current rolling 4-week training calendar as an ICS file."""
+    """Return the training calendar (through the next deload week) as an ICS file."""
     plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
     ics = generate_ics(plan_state)
     resp = make_response(ics)

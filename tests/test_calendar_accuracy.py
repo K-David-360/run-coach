@@ -38,8 +38,6 @@ def _base_plan_state(**overrides):
         "last_run_a_decision":         "",
         "last_run_b_execution_date":   "",
         "last_run_b_decision":         "",
-        "kb_weeks_elapsed":            0,
-        "kb_peak_rung":                10,
     }
     state.update(overrides)
     return state
@@ -116,7 +114,7 @@ def test_strength_deload_week_guidance_not_doubled():
     """On a scheduled deload week the static wording is not duplicated by a live DELOAD."""
     mon = _day(0)
     state = _base_plan_state(
-        current_week=4, cycle_start_date=(_MONDAY - timedelta(weeks=3)).isoformat(),
+        cycle_start_date=(_MONDAY - timedelta(weeks=5)).isoformat(),
         last_execution_date=mon, last_execution_decision="DELOAD",
     )
     ics = generate_ics(state, today=_MONDAY)
@@ -215,3 +213,51 @@ def test_phase2_lthr_test_event_absent():
     state = _base_plan_state(phase=2, total_runs=20, lthr_test_date=_day(5, 2))
     ics = generate_ics(state, today=_MONDAY)
     assert "LTHR Field Test" not in ics
+
+
+def _weeks_back(n: int) -> str:
+    return (_MONDAY - timedelta(weeks=n)).isoformat()
+
+
+def test_strength_events_are_push_pull_full():
+    ics = generate_ics(_base_plan_state(), today=_MONDAY)
+    for weekday, label in ((0, "Push"), (2, "Pull"), (4, "Full")):
+        summaries = _events_on(ics, _ymd(_day(weekday)))
+        assert any(s.endswith(label) for s in summaries), summaries
+    assert "KB" not in ics
+    assert "Lower Body" not in ics
+
+
+def test_week1_events_carry_jump_target():
+    ics = generate_ics(_base_plan_state(), today=_MONDAY)
+    descs = _descriptions_on(ics, _ymd(_day(0)))
+    assert any("weekly target 60" in d for d in descs), descs
+
+
+def test_deload_week_keeps_all_three_lift_days():
+    ics = generate_ics(_base_plan_state(cycle_start_date=_weeks_back(5)), today=_MONDAY)
+    for weekday in (0, 2, 4):
+        summaries = _events_on(ics, _ymd(_day(weekday)))
+        descs = _descriptions_on(ics, _ymd(_day(weekday)))
+        strength = [s for s in summaries if "🏋️" in s]
+        assert strength and strength[0].startswith("⛔️"), summaries
+        assert any("none this week (deload)" in d and "50% of normal" in d for d in descs), descs
+
+
+def test_window_reaches_next_deload():
+    ics = generate_ics(_base_plan_state(), today=_MONDAY)
+    assert _events_on(ics, _ymd(_day(0, 5))), "week 6 (next deload) should be shown"
+    ics4 = generate_ics(_base_plan_state(cycle_start_date=_weeks_back(4)), today=_MONDAY)
+    assert _events_on(ics4, _ymd(_day(0, 3)))
+    assert not _events_on(ics4, _ymd(_day(0, 4))), "only 4 weeks shown from cycle week 5"
+
+
+def test_deload_run_is_70pct_of_week5():
+    ics = generate_ics(_base_plan_state(phase=2, cycle_start_date=_weeks_back(5)), today=_MONDAY)
+    assert "⛔️ 🏃‍♂️ Deload Run — 34 mins" in _events_on(ics, _ymd(_day(1)))
+
+
+def test_pre_start_week_is_deload():
+    ics = generate_ics(_base_plan_state(cycle_start_date=(_MONDAY + timedelta(weeks=1)).isoformat()), today=_MONDAY)
+    strength = [s for s in _events_on(ics, _ymd(_day(0))) if "🏋️" in s]
+    assert strength and strength[0].startswith("⛔️"), strength

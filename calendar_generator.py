@@ -1,16 +1,18 @@
 """
-calendar_generator.py — Builds a rolling 4-week ICS calendar.
+calendar_generator.py — Builds the rolling ICS training calendar.
 
 Fixed weekly schedule (Mon–Sun):
-  Mon  🏋️ Lower Body
+  Mon  🏋️ Push (+ jumps)
   Tue  🏃‍♂️ Run 1 (Slot A)
-  Wed  🏋️ Upper Body + Core
+  Wed  🏋️ Pull (+ jumps)
   Thu  Rest
-  Fri  🏋️ Full Body
+  Fri  🏋️ Full (+ jumps)
   Sat  🏃‍♂️ Run 2 (Slot B)
   Sun  Rest
 
-Week 4 (deload): strength labels change; no lower body, no Friday session.
+The plan runs in 6-week cycles (cycle.py): week 6 is a deload. Deload weeks
+keep all three lift days, prefixed ⛔️, at same weight / half the sets, no jumps.
+The window always reaches the next deload (minimum 4 weeks).
 Decision emoji prefixes: ⬆️ BUILD · ⬇️ REDUCE · ⛔️ SUPPRESS/DELOAD · (none) HOLD
 
 Today's strength event also gets a set/load guidance line appended to its
@@ -21,12 +23,16 @@ so the calendar spells out how to adjust volume — not just the flag emoji.
 from datetime import date, timedelta
 from math import ceil
 
+from cycle import DELOAD_EVERY_N_WEEKS, is_deload_week, jump_prescription, week_in_cycle
 from plan_generator import (
+    _DAY_LABEL,
+    _LIFT_MENU,
     _PLAN_BY_PHASE,
     _STRENGTH_NOTES,
     _blocks_for_type,
     _easy_blocks,
     _total_min,
+    jump_line,
     deload_work_min,
     plan_week_for,
 )
@@ -51,32 +57,14 @@ _SESSION_LABEL = {
 
 # ── Strength session definitions ──────────────────────────────────────────────
 
-_STRENGTH_NORMAL = {
-    "mon": {
-        "summary":     "🏋️ Lower Body",
-        "description": "Squats, deadlifts, lunges, glutes.\nHeavy lower body — rest or mobility tomorrow.",
-    },
-    "wed": {
-        "summary":     "🏋️ Upper Body + KB Ladder",
-        "description": "Upper body and core only.\nNo leg work — protect running legs for Saturday.",
-    },
-    "fri": {
-        "summary":     "🏋️ Full Body",
-        "description": "Full body session.\nBalance push/pull and a lower body movement.",
-    },
-}
-
-_STRENGTH_DELOAD = {
-    "mon": {
-        "summary":     "⛔️ 🏋️ Full Body",
-        "description": "Deload week: full body only, no lower body work.\nSame weight as planned — cut your sets to 50% of normal.",
-    },
-    "wed": {
-        "summary":     "⛔️ 🏋️ Upper Body + KB Ladder",
-        "description": "Deload week: upper body at same weight as planned — cut your sets to 50% of normal. Keep it easy.",
-    },
-    # No Friday session during deload
-}
+def _strength_event(day_key: str, rx: dict, is_deload: bool) -> dict:
+    """Base strength event for a lift day: label, lift menu, jump line, deload note."""
+    summary = f"🏋️ {_DAY_LABEL[day_key]}"
+    parts = ["About 45–55 min.", _LIFT_MENU[day_key], jump_line(rx)]
+    if is_deload:
+        summary = "⛔️ " + summary
+        parts.append(_STRENGTH_NOTES["DELOAD"])
+    return {"summary": summary, "description": "\n\n".join(parts)}
 
 
 # ── Description formatter ─────────────────────────────────────────────────────
@@ -236,12 +224,12 @@ _LTHR_DESCRIPTION = (
 def generate_ics(plan_state: dict, today: date = None) -> str:
     if today is None:
         today = date.today()
-    current_week = plan_state.get("current_week", 1)
+    cycle_start  = plan_state.get("cycle_start_date", "")
     phase        = plan_state.get("phase", 1)
     plan         = _PLAN_BY_PHASE.get(phase, _PLAN_BY_PHASE[1])
-    kb_weeks     = plan_state.get("kb_weeks_elapsed", 0)
-    # Show full KB Phase 1 arc — shrinks as the phase progresses, min 4 weeks
-    weeks_to_show = max(4, 9 - kb_weeks)
+    # Always show through the next deload week, minimum 4 weeks.
+    this_week     = week_in_cycle(cycle_start, today)
+    weeks_to_show = max(4, DELOAD_EVERY_N_WEEKS - this_week + 1)
 
     last_execution_type     = plan_state.get("last_execution_type", "")
     last_execution_date     = plan_state.get("last_execution_date", "")
@@ -275,8 +263,9 @@ def generate_ics(plan_state: dict, today: date = None) -> str:
 
     for week_offset in range(weeks_to_show):
         week_monday = monday + timedelta(weeks=week_offset)
-        plan_week   = ((current_week - 1 + week_offset) % 4) + 1
-        is_deload   = plan_week == 4
+        plan_week   = week_in_cycle(cycle_start, week_monday)
+        is_deload   = is_deload_week(plan_week)
+        rx          = jump_prescription(cycle_start, week_monday)
 
         mon_date = week_monday
         tue_date = week_monday + timedelta(days=1)
@@ -285,11 +274,8 @@ def generate_ics(plan_state: dict, today: date = None) -> str:
         sat_date = week_monday + timedelta(days=5)
 
         # ── Strength events ───────────────────────────────────────────────────
-        strength_schedule = _STRENGTH_DELOAD if is_deload else _STRENGTH_NORMAL
         for day_key, evt_date in [("mon", mon_date), ("wed", wed_date), ("fri", fri_date)]:
-            if day_key not in strength_schedule:
-                continue
-            s   = dict(strength_schedule[day_key])  # shallow copy — don't mutate module dict
+            s   = _strength_event(day_key, rx, is_deload)
             guidance = ""
             # Apply live decision emoji + set/load guidance when this event
             # matches the last execution date.
