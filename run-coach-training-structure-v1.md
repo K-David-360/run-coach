@@ -48,11 +48,11 @@ Hybrid athlete template: 2 runs + 2–3 strength sessions per week.
 
 | Day | Session | Notes |
 |-----|---------|-------|
-| Monday | Strength A — Lower Body | Squats, deadlifts, lunges, glutes |
+| Monday | Push (+ jumps) | Squat, incline press, row, lateral raise, triceps |
 | Tuesday | Easy Run (Zone 2) | 30–40 min, HR 125–140 target |
-| Wednesday | Strength B — Upper Body + Core | No leg fatigue before Thursday rest |
+| Wednesday | Pull (+ jumps) | Trap-bar deadlift, pulldown, overhead press, face pull, curl |
 | Thursday | Rest or mobility | |
-| Friday | Strength C — Full Body | Optional; skip if only doing 2x strength |
+| Friday | Full (+ jumps) | Leg press or split squat, bench, row, arms, carries |
 | Saturday | Run 2 (Zone 2, longer) | 35–45 min, same HR target |
 | Sunday | Full rest | |
 
@@ -62,7 +62,7 @@ Hybrid athlete template: 2 runs + 2–3 strength sessions per week.
 
 1. **Never schedule heavy lower body strength the day before a quality run.** Flag as conflict and propose resolution before finalizing the week.
 2. **Upper body sessions can go anywhere** — minimal interference with running legs.
-3. **Deload every 3–4 build weeks** regardless of ACWR. ACWR can trigger an earlier deload but cannot delay a scheduled one.
+3. **Deload every 6th week (5 build + 1 deload)** regardless of ACWR. ACWR can trigger an earlier deload but cannot delay a scheduled one.
 4. **Never ramp running and strength simultaneously.** Running volume increases first. Strength only increases after 3+ weeks at the same level with consistently good sleep.
 
 ---
@@ -131,8 +131,9 @@ At 2 runs/week with any intensity session, recovery between sessions matters mor
 
 | Session Type | Load Weight | Rationale |
 |-------------|-------------|-----------|
-| Lower body / full body | 1.0× | High interference with running recovery |
-| Upper body | 0.3× | Minimal leg fatigue |
+| Push (squat day) | 0.7× | Squat plus mostly upper-body work |
+| Pull (deadlift day) | 1.0× | Heavy hinge, highest leg fatigue |
+| Full | 1.0× | Leg press or split squat plus full-body work |
 | Mobility / stretching | 0× | No meaningful training stress |
 
 Apple Training Load handles running load natively. Strength weighting is applied on top when computing ACWR if strength sessions are underrepresented in Apple's output.
@@ -175,11 +176,11 @@ Modifiers can only make the recommendation **more conservative**, never more agg
 
 **DELOAD**
 - Running: cut volume ~30%, all runs Zone 2 easy, no quality sessions
-- Strength: one short full-body session max, remove all lower body work
+- Strength: same weight, half the sets on every lift day; no jumps
 
 **REDUCE**
 - Running: cut one session or drop intensity to easy on all runs
-- Strength: swap lower body sessions to upper body only
+- Strength: same weight, ~80% of sets; skip jumps if HRV or sleep triggered it
 
 **HOLD**
 - Running: repeat last week's structure exactly
@@ -198,7 +199,7 @@ Every weekly recommendation must include:
 4. Any scheduling conflicts flagged and resolved
 
 **Example:**
-> "Your training load spiked relative to your 28-day baseline (ACWR 1.4) and sleep averaged 5.9 hours this week. Recommendation: **Reduce**. Both runs stay Zone 2 easy, no intensity. Strength shifts to upper body only on Wednesday — no lower body until next week."
+> "Your training load spiked relative to your 28-day baseline (ACWR 1.4) and sleep averaged 5.9 hours this week. Recommendation: **Reduce**. Both runs stay Zone 2 easy, no intensity. Strength: same weight, ~80% of sets."
 
 ---
 

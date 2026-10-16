@@ -37,7 +37,7 @@ mild HRV dip). Not severe enough for a full deload — just a moderate pullback.
 
 ## DELOAD tier
 
-Triggered by week 4 of the 4-week cycle, chronic suppression, or well-above
+Triggered by week 6 of the 6-week cycle, chronic suppression, or well-above
 training load. One full week.
 
 **Running:** Same zone (Zone 2), ~70% of planned duration.
@@ -52,10 +52,10 @@ training load. One full week.
 
 ## Run-coach implementation
 
-| Decision | Run | Strength | KB Ladder |
-|----------|-----|----------|-----------|
-| BUILD | +10% duration, Zone 2 | Full load | Scheduled peak, advance weeks_elapsed |
-| HOLD | Planned duration, Zone 2 | Full load | Scheduled peak, advance weeks_elapsed |
-| REDUCE | ~85% duration, Zone 2 | Same weight, ~80% sets | Peak − 2 rungs |
+| Decision | Run | Strength | Jumps |
+|----------|-----|----------|-------|
+| BUILD | +10% duration, Zone 2 | Full load | As prescribed |
+| HOLD | Planned duration, Zone 2 | Full load | As prescribed |
+| REDUCE | ~85% duration, Zone 2 | Same weight, ~80% sets | Skipped if HRV/sleep triggered; kept if run load |
 | DELOAD | ~70% duration, Zone 2 | Same weight, ~50% sets | Omitted |
 | SUPPRESS | Skip or very easy | Skip or very easy | Omitted |

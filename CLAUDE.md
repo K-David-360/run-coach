@@ -13,7 +13,8 @@ run-coach/
 ├── server.py                     # Flask API — main entry point
 ├── rule_engine.py                # Decision engine: SUPPRESS / DELOAD / REDUCE / HOLD / BUILD
 ├── plan_generator.py             # Builds session blocks from decision + plan state
-├── calendar_generator.py         # ICS calendar — full KB Phase 1 arc, anchored to current Monday
+├── calendar_generator.py         # ICS calendar — through the next deload week, anchored to current Monday
+├── cycle.py                      # 6-week cycle math: cycle week, block week, deload, jump prescription
 ├── reset.py                      # Resets plan_state.json and history.json to defaults
 ├── data/
 │   ├── plan_state.json           # Persistent plan state (see schema below)
@@ -49,7 +50,7 @@ The server has zero knowledge of actual workout completion. All decisions are dr
 The Shortcut fires **every morning** (not just on run days). It pulls data
 from HealthKit and POSTs a flat JSON payload to `/healthkit`. The server
 determines the day of the week and returns the appropriate session type —
-run, strength, KB ladder, or rest.
+run, strength (Push/Pull/Full), or rest.
 
 **Shortcut collects:**
 - HRV last night (SDNN, ms) — most recent single sample (limit 1, newest first)
@@ -82,11 +83,11 @@ The `/healthkit` endpoint determines what session to generate based on
 
 | Day | Type | Rule engine |
 |-----|------|-------------|
-| Mon (0) | 🏋️ Lower Body | Runs, intensity class applied |
+| Mon (0) | 🏋️ Push | Runs, intensity class applied |
 | Tue (1) | 🏃 Run A | Runs, full run session generated |
-| Wed (2) | 🏋️ Upper Body + KB Ladder | Runs, KB advancement logic |
+| Wed (2) | 🏋️ Pull | Runs, intensity class applied |
 | Thu (3) | Rest | Skipped — returns rest response immediately |
-| Fri (4) | 🏋️ Full Body | Runs, intensity class applied |
+| Fri (4) | 🏋️ Full | Runs, intensity class applied |
 | Sat (5) | 🏃 Run B | Runs, full run session generated |
 | Sun (6) | Rest | Skipped — returns rest response immediately |
 
@@ -103,7 +104,8 @@ applies to every session type:
 - **Runs**: affects duration, zone, session type
 - **Strength**: applied as a header flag in the summary (⬆️/⬇️/⛔️); the
   user self-regulates actual load based on the flag
-- **KB Ladder**: affects peak rung (see KB section below)
+- **Jumps**: skipped on DELOAD/SUPPRESS, and on a REDUCE triggered by HRV or
+  sleep (kept when the REDUCE came from run load; see `rule_engine` `trigger`)
 
 Modifiers only make decisions **more conservative**, never less aggressive.
 The most conservative signal wins.
@@ -112,7 +114,7 @@ The most conservative signal wins.
 
 1. **SUPPRESS** — HRV ratio < 0.70 AND (total sleep < 5 h OR deep sleep < 0.75 h).
    Body needs full rest. Skip or walk only.
-2. **DELOAD** — week 4 of the 4-week cycle, OR ≥ 2 consecutive suppresses,
+2. **DELOAD** — week 6 of the 6-week cycle, OR ≥ 2 consecutive suppresses,
    OR ≥ 2 nights below 5 h in the last 7 history entries,
    OR load is `well_above` (ACWR > 1.5 equivalent).
 3. **Base signal from load** (proxy for ACWR):
@@ -140,38 +142,46 @@ the LTHR field test.
 | 2 | Weeks 7–12 | Easy Zone 2 | Progression run (Zone 2 → Zone 3 finish) |
 | 3 | Weeks 13–20 | Easy Zone 2 | Intervals (400–800 m) |
 
-### 4-week plan cycle (repeats within each phase)
+### 6-week plan cycle (repeats within each phase)
 
-| Week | Slot A (Tuesday) | Slot B (Saturday) |
-|------|-----------------|-------------------|
-| 1 | Easy 28 min | Easy 30 min |
-| 2 | Easy 30 min | Easy 33 min |
-| 3 | Easy 33 min | Easy 35 min |
-| 4 | Deload ~70% duration, Zone 2 | Deload ~70% duration, Zone 2 |
+5 build weeks + 1 deload. `cycle.py` is the single source of truth
+(`DELOAD_EVERY_N_WEEKS = 6`); everything derives from
+`plan_state["cycle_start_date"]` (a Monday). Before that date the week reads
+as a deload. Run work-block minutes (add 10 for warm-up/cool-down):
 
-Week 4 is always a deload regardless of rule engine decision.
-`run_in_week` tracks slot (0 = A next, 1 = B next), resets after 2 runs
-and increments `current_week` (cycles 1→2→3→4→1).
+| Phase | Slot | Wk 1 | Wk 2 | Wk 3 | Wk 4 | Wk 5 | Wk 6 (deload) |
+|---|---|---|---|---|---|---|---|
+| 1 | A easy | 18 | 20 | 23 | 24 | 25 | 18 |
+| 1 | B easy | 20 | 23 | 25 | 26 | 27 | 19 |
+| 2 | A easy | 25 | 27 | 30 | 32 | 33 | 24 |
+| 2 | B progression | 25 | 27 | 30 | 32 | 33 | 24 easy |
+| 3 | A easy | 28 | 30 | 33 | 33 | 33 | 24 |
+| 3 | B intervals | 2x800 | 2x800 | 2x800 | 2x800 | 2x800 | 24 easy |
+
+Week 6 is always a deload regardless of rule engine decision. The deload run
+is `deload_work_min(week 5) = ceil(work_min * 0.70)`, computed once. An early
+DELOAD in a build week cuts that week's own duration the same way.
 
 ### Weekly schedule (fixed days)
 
 | Day | Session |
 |-----|---------|
-| Mon | 🏋️ Lower Body strength |
-| Tue | 🏃‍♂️ Run 1 (Slot A) |
-| Wed | 🏋️ Upper Body + KB Ladder |
+| Mon | 🏋️ Push (+ jumps) |
+| Tue | 🏃‍♂️ Run 1 (Slot A) — always easy Zone 2 |
+| Wed | 🏋️ Pull (+ jumps) |
 | Thu | Rest |
-| Fri | 🏋️ Full Body |
+| Fri | 🏋️ Full (+ jumps) |
 | Sat | 🏃‍♂️ Run 2 (Slot B) |
 | Sun | Rest |
 
-Week 4 deload: Mon → Full Body (no lower), Wed → Upper (lighter), Fri dropped.
+Deload week: all three lift days stay, prefixed ⛔️, same weight, half the
+sets, no jumps.
 
 ### Strength session intensity class flags
 
 Strength sessions get a summary flag based on the day's intensity class.
-No specific exercise splits are generated — the user applies load based on
-the flag.
+The session notes and calendar list the day's lift menu (`_LIFT_MENU`, from
+the health-bootcamp protocol); the user applies the flag to it.
 
 | Decision | Summary prefix | Implied action |
 |----------|---------------|----------------|
@@ -183,43 +193,19 @@ the flag.
 
 ---
 
-## KB Breathing Ladder (Wednesday finisher)
+## Jump block (Push/Pull/Full)
 
-### Format
+Countermovement jumps right after the warm-up on every lift day. Not logged;
+the prescription in the session and calendar is the benchmark.
 
-Breathing ladder as a finisher after upper body + core. Structure:
-1 swing → 1 breath → 2 swings → 2 breaths → ... → peak → ... → 1 swing.
-Breaths are the rest protocol (autoregulated). Bell weight fixed within a cycle.
+| Jump-progression week | Per lift day | Weekly target |
+|---|---|---|
+| 1–4 | 2 x 10 | 60 |
+| 5+ | 3 x 10 | 90 |
+| Deload / pre-block week | none | 0 |
 
-### Phase 1 progression
-
-| kb_weeks_elapsed | Peak rung | Total swings |
-|-----------------|-----------|--------------|
-| 0–2 | 10 | 100 |
-| 3–5 | 15 | 225 |
-| 6–8 | 20 | 400 |
-| 9+ | resets to 0 | heavier bell flagged in session notes |
-
-`kb_peak_from_weeks(weeks_elapsed)` in `plan_generator.py` computes the peak.
-
-### Intensity class modulation
-
-| Decision | kb_weeks_elapsed | Swings |
-|----------|-----------------|--------|
-| BUILD | +1 | Scheduled peak |
-| HOLD | +1 | Scheduled peak |
-| REDUCE | no change | Peak − 2 rungs (min 5) |
-| DELOAD | no change | Omitted entirely |
-| SUPPRESS | no change | Omitted entirely |
-
-`kb_weeks_elapsed` only advances on BUILD or HOLD, and only once per Wednesday
-(guarded by `last_session_date != today`).
-
-### State tracking
-
-`kb_weeks_elapsed` and `kb_peak_rung` are persisted in `plan_state.json`.
-The calendar description for Wednesday always shows the current scheduled peak.
-`current_session.json` on Wednesday shows the intensity-adjusted peak.
+The progression week advances only in build weeks
+(`cycle.jump_prescription`), so deload weeks pause it.
 
 ---
 
@@ -288,8 +274,7 @@ server. Falls back to `load_classification` label if `load_pct` not present.
   "last_run_a_decision":         "",
   "last_run_b_execution_date":   "",
   "last_run_b_decision":         "",
-  "kb_weeks_elapsed":            0,
-  "kb_peak_rung":                10
+  "cycle_start_date":            "2026-10-26"
 }
 ```
 
@@ -302,7 +287,7 @@ execution decision per run slot independently.
 
 ## Calendar integration
 
-The server generates a KB-phase-anchored ICS calendar and pushes it to
+The server generates a cycle-anchored ICS calendar and pushes it to
 GitHub Pages after every `/healthkit` POST.
 
 | Item | Value |
@@ -312,14 +297,14 @@ GitHub Pages after every `/healthkit` POST.
 | Subscribe URL | `https://k-david-360.github.io/run-coach/calendar-rc7f4a2b.ics` |
 | Local endpoint | `GET http://localhost:5001/calendar.ics` |
 
-**Calendar window:** `max(4, 9 - kb_weeks_elapsed)` weeks, anchored to the
-current week's Monday. Shows the full KB Phase 1 arc at the start; shrinks
-as the phase progresses. Minimum 4 weeks always shown.
+**Calendar window:** `max(4, 6 - this_cycle_week + 1)` weeks, anchored to the
+current week's Monday, so it always reaches the next deload week. Minimum 4
+weeks always shown.
 
 **What the calendar contains:**
 - Run events on Tue/Sat — base plan (HOLD) for future, actual decision for today
-- Strength events on Mon/Wed/Fri — labelled by type, intensity flag on today's event
-- Wednesday events include KB Breathing Ladder description with current peak
+- Strength events on Mon/Wed/Fri — Push/Pull/Full with lift menu, ~45–55 min,
+  and the jump line (sets and weekly target); intensity flag on today's event
 - All deload week events prefixed with ⛔️
 - Decision emoji prefixes: ⬆️ BUILD · ⬇️ REDUCE · ⛔️ SUPPRESS/DELOAD
 
@@ -364,7 +349,7 @@ runs feel genuinely easy at current pace.
    switches Run B to progression runs
 
 No code changes required — phases 2 and 3 plan tables are already defined
-in `plan_generator.py`. KB ladder continues unaffected through the phase change.
+in `plan_generator.py`. The 6-week cycle and jumps continue unaffected through the phase change.
 
 ---
 
@@ -394,13 +379,13 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 
 - **Server**: running on Pi, systemd service, auto-starts on boot
 - **iOS Shortcut**: fires daily (not just on run days); notification fires correctly
-- **Calendar**: live, pushes to GitHub after every POST; KB-anchored window
+- **Calendar**: live, pushes to GitHub after every POST; window reaches the next deload
 - **Rule engine**: fires every non-rest day; SUPPRESS/DELOAD/REDUCE/HOLD/BUILD
 - **Phase**: 1 (both runs Zone 2 easy). Advance to 2 after LTHR field test.
-- **KB Ladder**: Phase 1 active — peak 10 (weeks 1–3), 15 (weeks 4–6), 20 (weeks 7–9)
+- **Strength**: Push/Pull/Full with jump block; 6-week cycle from `cycle_start_date` 2026-10-26
 - **HRV baseline**: builds from history — accurate after 7 real sessions
 - **Resting HR baseline**: builds from history — modifier active after 3+ sessions
-- **Plan state**: reset — week 1, run 0, 0 total runs, kb_weeks_elapsed 0 (May 2026)
+- **Plan state**: Pi `cycle_start_date` set to 2026-10-26 at deploy (week of Oct 19 = pre-block deload)
 
 ---
 
@@ -437,6 +422,8 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 - ~~Strength session intensity class~~ — Done
 - ~~Calendar anchored to current Monday (not next)~~ — Done
 - ~~KB-phase-anchored calendar window~~ — Done
+- ~~Training rework (2026-10)~~ — 6-week cycle (`cycle.py`), Push/Pull/Full with
+  jump block, KB ladder removed, deload run computed once from week 5.
 - ~~Calendar accuracy test fixtures anchored to stale dates~~ — `generate_ics()`
   now accepts an optional `today` param (same `today=None` convention as
   `_most_recent_monday`/`_week_from_cycle_start`); tests in
@@ -463,19 +450,17 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
   easy (no intensity). Phases 2 and 3 tables already defined, activated by
   setting `"phase"` in `plan_state.json` after LTHR field test.
 - **Rule engine fires every non-rest day** — the intensity class applies to
-  all session types (runs, strength, KB ladder), not just runs. Rest days
+  all session types (runs, strength, jumps), not just runs. Rest days
   short-circuit before health data processing.
-- **Strength sessions have no prescribed splits** — only the intensity class
-  flag is generated. The user applies it to their own program.
-- **KB state advances on BUILD and HOLD** — HOLD means steady training
-  continues and the ladder can progress. REDUCE and DELOAD/SUPPRESS pause
-  advancement without resetting it.
-- **KB peak is independent of run phase** — the KB 9-week progression runs
-  through phase transitions. LTHR test and phase change don't affect it.
+- **Strength sessions carry the lift menu** — Push/Pull/Full from the
+  health-bootcamp protocol, plus the intensity flag and jump line.
+- **One counter** — deload cycle, run plan week and jump progression all derive
+  from `cycle_start_date` via `cycle.py`; `DELOAD_EVERY_N_WEEKS` is one line.
+- **KB ladder removed (2026-10)** — legacy `kb_*` keys in an existing
+  `plan_state.json` are ignored.
 - **Calendar anchored to current Monday** — restarting mid-week shows the
   current week, not next week.
-- **Calendar window = KB phase arc** — `max(4, 9 - kb_weeks_elapsed)` weeks.
-  Shows the full remaining KB Phase 1 at a glance.
+- **Calendar window reaches the next deload** — `max(4, 6 - cycle_week + 1)` weeks.
 - **Future calendar events show HOLD** — rule engine needs live recovery data.
   Only today's event is updated with the actual decision via `last_session_*`.
 - **LTHR field test auto-scheduled** — appears in calendar at run 10, urgent
@@ -485,7 +470,7 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
   but accept an explicit `today` override. Tests pass a fixed date instead of
   hardcoding absolute date strings, so fixtures don't go stale as real time
   passes relative to rolling windows (e.g. the calendar's Monday-anchored
-  KB-phase window).
+  window that reaches the next deload).
 - **Port 5001** — macOS AirPlay Receiver occupies 5000.
 - **`_safe_float()` helper** — Shortcuts sends empty strings for missing
   health values; bare `float()` crashes on `""`.
