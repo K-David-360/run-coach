@@ -10,7 +10,7 @@ import bodycomp.store as bc_store
 import plan_generator
 import rule_engine
 import server
-from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_active
+from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_active, s1_week_dates
 from calendar_generator import generate_ics
 
 S1_REPORT = {"week_ending": "2026-10-31", "bc_phase": "BC-1",
@@ -102,10 +102,43 @@ def test_s1_note_is_spec_wording():
     assert S1_NOTE == "Sleep was short last week: REDUCE volume (same weight, ~80% of sets), skip jumps."
 
 
-def test_saturday_optional_not_triggered_by_s1_alone(daily):
+def test_saturday_optional_on_s1_week(daily):
+    # David, 2026-10-16: an S1 week also makes Saturday's run optional (spec 03 §6.5).
     _store(daily, [S1_REPORT])
     body = daily(datetime.date(2026, 11, 7)).post("/healthkit", json=GOOD).get_json()
+    assert body["summary"].endswith(OPTIONAL_RUN_NOTE)
+
+
+def test_saturday_not_optional_without_s1_or_low_hrv(daily):
+    body = daily(datetime.date(2026, 11, 7)).post("/healthkit", json=GOOD).get_json()
     assert OPTIONAL_RUN_NOTE not in body["summary"]
+
+
+def test_s1_week_dates_cover_sunday_to_saturday():
+    dates = s1_week_dates(S1_REPORT)
+    assert min(dates) == datetime.date(2026, 11, 1) and max(dates) == datetime.date(2026, 11, 7)
+    assert len(dates) == 7
+    assert s1_week_dates(dict(S1_REPORT, results=[])) == set()
+
+
+def test_calendar_skips_jumps_on_s1_week_without_reason():
+    # David, 2026-10-16: generic skip line on the calendar, same as a recovery skip; no reason given.
+    state = {"cycle_start_date": "2026-10-26", "phase": 1}
+    ics = generate_ics(state, today=datetime.date(2026, 11, 2), skip_jumps_dates=s1_week_dates(S1_REPORT))
+    ics = ics.replace("\r\n ", "").replace("\\n", " ")
+    events = ics.split("BEGIN:VEVENT")
+    for day in ("20261102", "20261104", "20261106"):
+        ev = next(e for e in events if f"DTSTART;VALUE=DATE:{day}" in e and "Jumps" in e)
+        assert "Jumps: skip this week." in ev and "weekly target" not in ev
+    nxt = next(e for e in events if "DTSTART;VALUE=DATE:20261109" in e)
+    assert "weekly target" in nxt
+    assert "Sleep" not in ics and "Weekly check" not in ics
+
+
+def test_served_calendar_reads_s1_week(daily, tmp_path):
+    _store(daily, [S1_REPORT])
+    ics = daily(datetime.date(2026, 11, 2)).get("/calendar.ics").get_data(as_text=True).replace("\r\n ", "")
+    assert "Jumps: skip this week." in ics
 
 
 def test_s1_does_not_reach_plan_state(daily):

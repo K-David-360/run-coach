@@ -56,7 +56,7 @@ import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 import bodycomp.telegram as bc_telegram
 from bodycomp.checks import validate_payload, weekly_check
-from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_active
+from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_week_dates
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
 from cycle import week_in_cycle
@@ -167,7 +167,7 @@ def _push_calendar_to_github(plan_state: dict):
     if not GITHUB_TOKEN:
         return
 
-    ics_content = generate_ics(plan_state)
+    ics_content = generate_ics(plan_state, skip_jumps_dates=_s1_week_dates())
     encoded = base64.b64encode(ics_content.encode()).decode()
 
     url = f"{GITHUB_API_BASE}/repos/{GITHUB_REPO}/contents/{CALENDAR_FILE}"
@@ -298,7 +298,7 @@ def get_test():
 def get_calendar():
     """Return the training calendar (through the next deload week) as an ICS file."""
     plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
-    ics = generate_ics(plan_state)
+    ics = generate_ics(plan_state, skip_jumps_dates=_s1_week_dates())
     resp = make_response(ics)
     resp.headers["Content-Type"] = "text/calendar; charset=utf-8"
     resp.headers["Content-Disposition"] = f'attachment; filename="{CALENDAR_FILE}"'
@@ -323,12 +323,16 @@ def post_note():
 # Separate from /healthkit: never touches current_session.json, plan_state.json
 # or the calendar. Data lives in the gitignored data/bodycomp/.
 
-def _s1_active_today() -> bool:
-    """Weekly sleep flag for the daily output; any bodycomp error reads as False."""
+def _s1_week_dates() -> set:
+    """Dates of the current weekly sleep flag; any bodycomp error reads as none."""
     try:
-        return s1_active(bc_store.latest_report(bc_store.WEEKLY_FILE), date.today())
+        return s1_week_dates(bc_store.latest_report(bc_store.WEEKLY_FILE))
     except Exception:
-        return False
+        return set()
+
+
+def _s1_active_today() -> bool:
+    return date.today() in _s1_week_dates()
 
 
 def _bodycomp_auth():
@@ -654,8 +658,8 @@ def post_healthkit():
 
     # ── Run days (Tue / Sat) ──────────────────────────────────────────────────
     session = generate_session(decision["decision"], data)
-    # Saturday Run B stays the default but becomes optional on low HRV.
-    if today_dow == 5 and hrv_ratio < 0.90:
+    # Saturday Run B stays the default but becomes optional on low HRV or an S1 week.
+    if today_dow == 5 and (hrv_ratio < 0.90 or _s1_active_today()):
         session["summary"] += OPTIONAL_RUN_NOTE
     _save_json(CURRENT_SESSION_FILE, session)
 

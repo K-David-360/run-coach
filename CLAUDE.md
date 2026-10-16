@@ -260,11 +260,16 @@ Telegram message (tier from `telegram_detail`, default `trends`).
   flags, protein status, weight delta, protein/steps/sleep averages. Never absolute
   weight, calories, baseline, height or thresholds.
 - **Daily hooks:** S1 AMBER → next week's lift days get the fixed `S1_NOTE` and no
-  jumps. **Deliberate exception (David, 2026-10-16):** that fixed, number-free S1
-  sentence may appear in the `/healthkit` response and `current_session.json`. Nothing
-  else from bodycomp goes into `current_session.json`, `plan_state.json` or the calendar
-  (the S1 reason for skipping jumps is not recorded in `plan_state`). Saturday's
-  "optional" note is HRV-driven only.
+  jumps, and Saturday's run gets the "optional" note (also given on HRV ratio < 0.90).
+  **Deliberate exceptions (David, 2026-10-16):** that fixed, number-free S1 sentence may
+  appear in the `/healthkit` response and `current_session.json`, and on an S1 week the
+  calendar's lift events read the generic `Jumps: skip this week.` (no reason given, so it
+  reveals no more than a recovery skip). The calendar learns the S1 week by reading the
+  latest report at generation time; nothing from bodycomp is stored in
+  `current_session.json` beyond `S1_NOTE`, or in `plan_state.json`.
+- **Open-question decisions (2026-10-16):** `lift_sessions_done` stays optional (L2
+  skipped without it); `/bodycomp/measurements` kept; `baseline_weight_lb` set on the Pi
+  after the intro week (average for the week ending Sat Oct 31), W1 "not configured" until then.
 - **Privacy (repo is public):** `data/bodycomp/` is gitignored. Personal thresholds
   (protein/kcal floors, baseline weight) live only in the Pi's config. Tests use
   clearly synthetic values.
@@ -351,7 +356,7 @@ weeks always shown.
 
 **Triggering a calendar push manually:**
 ```bash
-curl -X POST http://192.168.1.136:5001/healthkit \
+curl -X POST http://raspberrypi.local:5001/healthkit \
   -H "Content-Type: application/json" \
   -d '{"hrv_last_night":55,"sleep_total_hrs":7.5,"sleep_deep_hrs":1.5,"load_pct":0}'
 ```
@@ -396,21 +401,17 @@ in `plan_generator.py`. The 6-week cycle and jumps continue unaffected through t
 
 ## Infrastructure
 
-- **Pi address**: `192.168.1.136` (local) / Tailscale IP (remote)
+- **Pi address**: `raspberrypi.local` (mDNS; LAN IP changes) / Tailscale `100.109.212.86`
 - **Service**: `sudo systemctl restart run-coach` / `systemctl status run-coach`
 - **Service file**: `/etc/systemd/system/run-coach.service`
 - **Run-coach path on Pi**: `/home/pi/run-coach/`
 
 ### Deploying changes to Pi
 
-```bash
-scp /Users/David/Documents/Claude/run-coach/plan_generator.py pi@192.168.1.136:~/run-coach/
-scp /Users/David/Documents/Claude/run-coach/server.py pi@192.168.1.136:~/run-coach/
-scp /Users/David/Documents/Claude/run-coach/calendar_generator.py pi@192.168.1.136:~/run-coach/
-scp /Users/David/Documents/Claude/run-coach/data/plan_state.json pi@192.168.1.136:~/run-coach/data/
-
-ssh pi@192.168.1.136 'sudo systemctl restart run-coach && systemctl status run-coach'
-```
+Direct `scp`/`ssh` from the Mac usually fails. Use the Terminal SSH session method in
+`~/.claude/CLAUDE.md` (`pi@raspberrypi.local`; base64 transfer, `sha256sum` check,
+timestamped `.bak`). David runs `sudo systemctl restart run-coach`; check it with
+`systemctl show run-coach -p ActiveEnterTimestamp`.
 
 Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 
@@ -439,11 +440,9 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
    stub already exists; could accept `{"stress": "high"}` to set a flag for
    7 days.
 
-2. **`POST /calendar/push`** — dedicated endpoint to regenerate and push the
-   calendar without submitting health data. Useful after deploying code changes.
-
 ### Completed
 
+- ~~`POST /calendar/push`~~ — exists in `server.py`.
 - ~~Galpin deload protocol alignment~~ — Deload/reduce tiers now cut volume only,
   never intensity, per Huberman Lab/Galpin guest series (`docs/deload_protocol.md`).
   Runs: DELOAD = same zone, 70% duration; REDUCE = same zone, 85% duration

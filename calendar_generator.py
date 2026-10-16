@@ -224,7 +224,9 @@ _LTHR_DESCRIPTION = (
 )
 
 
-def generate_ics(plan_state: dict, today: date = None) -> str:
+def generate_ics(plan_state: dict, today: date = None, skip_jumps_dates=None) -> str:
+    """skip_jumps_dates: lift days whose jump line reads "skip this week" (S1 week; no reason shown)."""
+    skip_jumps_dates = skip_jumps_dates or set()
     if today is None:
         today = date.today()
     cycle_start  = plan_state.get("cycle_start_date", "")
@@ -279,6 +281,8 @@ def generate_ics(plan_state: dict, today: date = None) -> str:
         # ── Strength events ───────────────────────────────────────────────────
         for day_key, evt_date in [("mon", mon_date), ("wed", wed_date), ("fri", fri_date)]:
             s   = _strength_event(day_key, rx, is_deload)
+            if evt_date in skip_jumps_dates and rx["sets"] > 0:
+                s["description"] = s["description"].replace(jump_line(rx), "Jumps: skip this week.")
             guidance = ""
             # Apply live decision emoji + set/load guidance when this event
             # matches the last execution date.

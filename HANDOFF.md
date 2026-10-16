@@ -12,22 +12,17 @@ to the Pi.** The Pi still runs the old 4-week / KB-ladder code.
 
 ## 1. Blocking before `git push`
 
-- [ ] **Git history contains near-real values.** The current files are clean, but older unpushed
-  commits on `main` still have them: the bodycomp plan doc in `65834bd` (exact protein/calorie
-  targets, the Pi config line) and the early bodycomp test commits (`f04faed`..`d24f3f5`: test weights
-  near David's real weight, his goal weight, thresholds equal to his targets). Fixed going forward
-  in `c9a078b`. **Decision needed (David):** rewrite or squash those commits before pushing (for
-  example, squash everything since `origin/main` into a few clean commits), or accept them going
-  public. History rewriting needs David's explicit go-ahead.
+- [x] **Git history:** David accepted the older commits going public as-is (2026-10-16). No rewrite.
 - [ ] **Sync with GitHub.** Local `main` is 39 commits ahead of `origin/main` and 101 behind. The
   101 are all the Pi's automatic "Update run coach calendar" commits. Run `git fetch origin && git
   merge origin/main`, and on conflict take the remote calendar file (`git checkout --theirs
   calendar-rc7f4a2b.ics`). Run the tests, then push (ask David first).
 
-## 2. Pi deploy (on or after Mon 2026-10-19, not before)
+## 2. Pi deploy (after everything else outstanding is done)
 
-Deploying earlier, with the cycle start set to 10-26, turns the current week into a deload too.
-The week of Oct 19 is the planned pre-block deload; block week 1 and BC-1 week 1 start Mon Oct 26.
+David is OK deploying before Mon Oct 19 (2026-10-16): with the cycle start set to 10-26, the rest
+of this week reads as a deload too. The week of Oct 19 is the planned pre-block deload; block week 1
+and BC-1 week 1 start Mon Oct 26.
 
 Method: the Terminal SSH session described in `~/.claude/CLAUDE.md` (base64 transfer, check
 `sha256sum`, keep a timestamped `.bak`). Direct `scp`/`ssh` from the Mac usually fails.
@@ -76,19 +71,13 @@ Method: the Terminal SSH session described in `~/.claude/CLAUDE.md` (base64 tran
 - [ ] **Change the Pi's `pi` password** (`passwd` on the Pi). The login banner says the default
   password is still set while SSH is enabled.
 
-## 4. Open questions
+## 4. Open questions — decided 2026-10-16
 
-- **Calendar on short-sleep (S1) weeks:** spec 06 forbids body-comp-derived state in
-  `plan_state.json`/the calendar. So on an S1 week the session skips jumps, but the calendar still
-  shows the normal jump line. Accept, or allow a generic "skip jumps" calendar line?
-- **Saturday "optional run" note:** now driven by low HRV only, because spec 06 allows only the
-  fixed S1 sentence in session text. Spec 03 §6.5 wanted S1 to trigger it too. OK as is?
-- **`lift_sessions_done`:** kept optional, though spec 06 lists it as required, because of the
-  Find Workouts question above.
-- **`POST /bodycomp/measurements`:** kept, though spec 06's route list leaves it out (the review
-  packet uses tape data).
-- **W1 baseline:** set `baseline_weight_lb` in the Pi config, maybe after the intro week, or leave
-  W1 "not configured"?
+- **S1 calendar:** generic `Jumps: skip this week.` on S1-week lift events, no reason. Done.
+- **Saturday optional run:** low HRV **or** S1 week. Done (note reworded to "recovery is down").
+- **`lift_sessions_done`:** stays optional.
+- **`POST /bodycomp/measurements`:** kept.
+- **W1 baseline:** set `baseline_weight_lb` on the Pi after the intro week (week ending Sat Oct 31).
 
 ## 5. Deferred minor issues (from the two final reviews)
 
@@ -113,10 +102,7 @@ Body-comp:
 ## 6. Older backlog (from CLAUDE.md "Remaining tasks")
 
 - Manual "rough week" override via the `/note` stub (e.g. `{"stress": "high"}` for 7 days).
-- `POST /calendar/push` is listed as remaining in CLAUDE.md but already exists in `server.py`.
-  Update that list.
-- The CLAUDE.md "Deploying changes to Pi" section still shows `scp` to an old IP. The Terminal-SSH
-  method in `~/.claude/CLAUDE.md` is the one that works.
+- ~~CLAUDE.md `/calendar/push` and deploy-section tidy~~ — done 2026-10-16.
 - `docs/superpowers/plans/2026-10-15-bodycomp-module.md` is partly superseded by spec 06 (noted at
   its top).
 
