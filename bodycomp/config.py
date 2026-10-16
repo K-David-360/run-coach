@@ -3,7 +3,7 @@ bodycomp/config.py — Weekly-check thresholds.
 
 Code defaults are generic. Personal values (absolute protein/calorie targets,
 baseline weight) live only in the gitignored data/bodycomp/config.json.
-A threshold of None means the rule is not evaluated.
+A missing personal threshold (None) makes its rule report "not configured".
 """
 
 import json
@@ -16,7 +16,7 @@ CONFIG_FILE = os.path.join(BODYCOMP_DIR, "config.json")
 DEFAULTS = {
     "bc_phase": "BC-1",            # "BC-1" maintenance build / "BC-2" deficit; never advanced by code
     "bc_phase_start_date": "",
-    "baseline_weight_lb": None,    # None → first stored BC-1 week's average
+    "baseline_weight_lb": None,    # personal; None → W1 reports "not configured"
     "w1_hold_band_lb": 1.0,
     "w1_max_bc_week": 12,
     "w2_fast_loss_lb": 1.0,
@@ -36,6 +36,7 @@ DEFAULTS = {
     "lift_sessions_min": 3,
     "min_weight_days": 4,
     "min_nutrition_days": 5,
+    "telegram_detail": "trends",   # "flags" | "trends" | "full" (not built; falls back to trends)
 }
 
 _PHASES = {"BC-1", "BC-2"}
