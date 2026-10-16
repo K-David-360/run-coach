@@ -30,9 +30,9 @@ to the Pi.** The Pi still runs the old 4-week / KB-ladder code.
 - Smoke tests passed: calendar (deload through Oct 24, Push weekly target 60 on Oct 26, no KB);
   synthetic `/bodycomp/weekly` → 200 + banner; test report deleted.
 - [ ] Confirm the Telegram message from the smoke test arrived.
-- [ ] **Hazard:** `data/plan_state.json` and `data/current_session.json` are tracked although
-  gitignored. A commit touching them overwrites the Pi's live copy on the next pull (happened once
-  during this deploy). Untrack them with a careful Pi-side step.
+- [x] **Hazard:** `data/plan_state.json` and `data/current_session.json` are now untracked and
+  gitignored (commit 4b2f827). The Pi's live copies were restored after the pull and are identical to the backup
+  `~/run-coach-data-backup-20261016020329`.
 - [ ] Optional: NOPASSWD sudoers line for `systemctl restart run-coach` so pushes deploy fully.
 - Set `baseline_weight_lb` after the week ending Sat Oct 31.
 
