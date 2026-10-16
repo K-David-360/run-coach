@@ -16,7 +16,7 @@ import json
 import os
 from datetime import date, timedelta
 
-from cycle import is_deload_week
+from cycle import is_deload_week, is_intro_week
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -133,13 +133,16 @@ def rule_engine(data: dict, hrv_ratio: float, today: date = None) -> dict:
             "reason": " + ".join(parts),
             "trigger": "suppress",
             "action": (
-                "Skip today's run — HRV and sleep are both in poor shape. "
+                "Skip today's session — HRV and sleep are both in poor shape. "
                 "Rest is the workout. Light walk only if you want to move."
             ),
         }
 
     # ── P2 DELOAD ────────────────────────────────────────────────────────────
     nights_below_5 = _count_nights_below(5.0, days=7, today=today)
+    if is_intro_week(plan_state.get("cycle_start_date", ""), today):
+        return {"decision": "DELOAD", "reason": "Intro week (deload volume)",
+                "trigger": "intro_week", "action": _deload_action.replace("Deload week.", "Intro week.")}
     if is_deload_week(current_week):
         return {"decision": "DELOAD", "reason": "Scheduled deload (week 6)",
                 "trigger": "deload_week", "action": _deload_action}

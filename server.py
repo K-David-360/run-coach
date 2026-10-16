@@ -60,7 +60,7 @@ from bodycomp.checks import (ARRAY_FIELDS, coerce_value, daily_values, resolve_w
 from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, S1_NOTE_LOW_DAY, s1_week_dates
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
-from cycle import week_in_cycle
+from cycle import is_intro_week, week_in_cycle
 from plan_generator import generate_session, generate_strength_session
 from rule_engine import rule_engine
 
@@ -81,13 +81,32 @@ HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
 PLAN_STATE_FILE = os.path.join(DATA_DIR, "plan_state.json")
 CURRENT_SESSION_FILE = os.path.join(DATA_DIR, "current_session.json")
 
-_NOTIFICATIONS = {
-    "SUPPRESS": "⛔️ Rest day — your body needs recovery. Skip training today.",
-    "DELOAD":   "⛔️ Deload week — reduced load across all sessions. Keep it easy.",
-    "REDUCE":   "⬇️ Pull back today — do a shorter, easier version of your session.",
-    "HOLD":     "✅ On track — follow today's plan as scheduled.",
-    "BUILD":    "⬆️ Good recovery — you can push a little harder today.",
+# Banner text per session kind, worded to match the session (volume cuts keep
+# the same weight / same zone; BUILD lifts at full planned load, runs ~10% longer).
+_LIFT_NOTIFICATIONS = {
+    "SUPPRESS": "⛔️ Recovery is low — no lifting today. Walk only.",
+    "DELOAD":   "⛔️ Deload week — same weight, half the sets, no jumps.",
+    "REDUCE":   "⬇️ Pull back today — same weight, about 80% of your sets.",
+    "HOLD":     "✅ On track — follow today's lift plan.",
+    "BUILD":    "⬆️ Good recovery — full planned session today.",
 }
+_RUN_NOTIFICATIONS = {
+    "SUPPRESS": "⛔️ Recovery is low — no running today. Easy walk or skip.",
+    "DELOAD":   "⛔️ Deload week — easy Zone 2, about 70% of the usual time.",
+    "REDUCE":   "⬇️ Pull back today — same easy effort, about 15% shorter.",
+    "HOLD":     "✅ On track — run as planned.",
+    "BUILD":    "⬆️ Good recovery — run about 10% longer today.",
+}
+
+
+def _notification(table: dict, decision: str, intro: bool = False, skip_jumps: bool = False) -> str:
+    text = table.get(decision, table["HOLD"])
+    if intro and decision == "DELOAD":
+        text = text.replace("Deload week", "Intro week").replace("deload week", "intro week")
+    if skip_jumps and decision in ("REDUCE", "HOLD", "BUILD"):
+        text += " Skip jumps."
+    return text
+
 
 # Rest days (Thu / Sun): readiness only, never a prompt to train.
 _REST_NOTIFICATIONS = {
@@ -621,6 +640,7 @@ def post_healthkit():
     # Recompute current_week from calendar date — this is now the source of truth.
     plan_state["current_week"] = _week_from_cycle_start(plan_state["cycle_start_date"], date.today())
     _save_json(PLAN_STATE_FILE, plan_state)
+    intro_week = is_intro_week(plan_state["cycle_start_date"], date.today())
 
     # ── Deduplication check (run days only) ───────────────────────────────────
     last_workout_date = body.get("last_workout_date", "")
@@ -693,14 +713,14 @@ def post_healthkit():
             "type": "rest",
             "rule_fired": "REST",
             "readiness": decision["decision"],
-            "summary": "Rest Day — No Session",
+            "summary": "Rest Day — walk and mobility" if today_dow == 3 else "Rest Day — meal prep",
             "blocks": [],
         }
         _save_json(CURRENT_SESSION_FILE, rest_session)
         _log_history({"run_data": data, "decision": decision, "session": rest_session})
         return jsonify({
             **rest_session,
-            "notification": _REST_NOTIFICATIONS.get(decision["decision"], _REST_NOTIFICATIONS["HOLD"]),
+            "notification": _notification(_REST_NOTIFICATIONS, decision["decision"], intro_week),
             "decision_reason": decision["reason"],
             "debug": {
                 "rest_day":            True,
@@ -744,7 +764,7 @@ def post_healthkit():
         _push_calendar_to_github(plan_state)
         return jsonify({
             **session,
-            "notification": _NOTIFICATIONS.get(decision["decision"], "✅ On track — follow today's plan as scheduled."),
+            "notification": _notification(_LIFT_NOTIFICATIONS, decision["decision"], intro_week, training_skip),
             "decision_reason": decision["reason"],
             "debug": {
                 "rest_day":            False,
@@ -781,7 +801,7 @@ def post_healthkit():
         _push_calendar_to_github(plan_state)
         return jsonify({
             **session,
-            "notification": _NOTIFICATIONS.get(decision["decision"], "✅ On track — follow today's plan as scheduled."),
+            "notification": _notification(_RUN_NOTIFICATIONS, decision["decision"], intro_week),
             "decision_reason": decision["reason"],
             "debug": {
                 "rest_day":            True,
@@ -838,7 +858,7 @@ def post_healthkit():
 
     return jsonify({
         **session,
-        "notification": _NOTIFICATIONS.get(decision["decision"], "✅ On track — follow today's plan as scheduled."),
+        "notification": _notification(_RUN_NOTIFICATIONS, decision["decision"], intro_week),
         "decision_reason": decision["reason"],
         "debug": {
             "rest_day":            False,

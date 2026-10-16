@@ -12,7 +12,7 @@ and the DELOAD decision cuts it to ~70% (deload_work_min).
 Phase advances manually in plan_state.json after the LTHR field test.
 
 Rule overrides:
-  SUPPRESS  → easy, duration capped below base
+  SUPPRESS  → walk only (or skip), duration capped below base
   DELOAD    → zone 2 easy blocks, ~70% duration (Galpin protocol)
   REDUCE    → keep type, work block trimmed ~15%
   HOLD      → base plan as-is
@@ -25,7 +25,7 @@ import uuid
 from datetime import date
 from math import ceil
 
-from cycle import jump_prescription
+from cycle import is_intro_week, jump_prescription
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -105,6 +105,18 @@ def _easy_blocks(work_min: int) -> list:
     ]
 
 
+def _walk_blocks(work_min: int) -> list:
+    """SUPPRESS: walk only (or skip), no running effort."""
+    return [
+        {"name": "Warmup",   "duration_min": _WARMUP_MIN,  "zone": "zone1",
+         "notes": "Easy walk."},
+        {"name": "Work",     "duration_min": work_min,      "zone": "zone1",
+         "notes": "Easy walk, fully conversational. No surges. Skip it if you feel rough."},
+        {"name": "Cooldown", "duration_min": _COOLDOWN_MIN, "zone": "zone1",
+         "notes": "Slow down and let heart rate settle."},
+    ]
+
+
 def _progression_blocks(work_min: int) -> list:
     easy_min = max(8, work_min - 8)
     quality_min = work_min - easy_min
@@ -155,7 +167,7 @@ _STRENGTH_PREFIX = {
 }
 
 _STRENGTH_PHRASE = {
-    "BUILD":    "Push it today.",
+    "BUILD":    "Full planned session.",
     "HOLD":     "Follow the plan.",
     "REDUCE":   "Pull back — same weight, drop to ~80% of your sets.",
     "DELOAD":   "Deload week — same weight, half the sets.",
@@ -169,6 +181,10 @@ _STRENGTH_NOTES = {
     "DELOAD":   "Deload week — keep the same weight as planned. Cut your sets to 50% of normal.",
     "SUPPRESS": "Rest day — no lifting today. Walk only.",
 }
+
+# Intro week (the week before block week 1): deload volume, worded as the intro.
+_STRENGTH_PHRASE_INTRO = "Intro week — same weight, half the sets."
+_STRENGTH_NOTES_INTRO = "Intro week — keep the same weight as planned. Cut your sets to 50% of normal. No jumps."
 
 _DAY_LABEL = {
     "mon": "Push",
@@ -200,10 +216,10 @@ _LIFT_MENU = {
 }
 
 
-def jump_line(rx: dict) -> str:
+def jump_line(rx: dict, intro: bool = False) -> str:
     """One-line jump prescription for session notes and calendar descriptions."""
     if rx["sets"] == 0:
-        return "Jumps: none this week (deload)."
+        return "Jumps: none this week (intro week)." if intro else "Jumps: none this week (deload)."
     return (
         f"Jumps: {rx['sets']} x {rx['reps']} countermovement jumps "
         f"(weekly target {rx['weekly_target']}). Land softly, rest 30-60 s."
@@ -215,15 +231,14 @@ def generate_strength_session(decision: str, day: str, today: date = None, skip_
         today = date.today()
     plan_state = _load_json(PLAN_STATE_FILE, default={})
     label = _DAY_LABEL.get(day, "Strength")
-    summary = (
-        f"{_STRENGTH_PREFIX.get(decision, '')}\U0001f3cb️ {label} "
-        f"— {_STRENGTH_PHRASE.get(decision, 'Follow the plan.')}"
-    )
+    intro = decision == "DELOAD" and is_intro_week(plan_state.get("cycle_start_date", ""), today)
+    phrase = _STRENGTH_PHRASE_INTRO if intro else _STRENGTH_PHRASE.get(decision, "Follow the plan.")
+    summary = f"{_STRENGTH_PREFIX.get(decision, '')}\U0001f3cb️ {label} — {phrase}"
     blocks = []
     rx = jump_prescription(plan_state.get("cycle_start_date", ""), today)
     if not skip_jumps and decision not in ("DELOAD", "SUPPRESS") and rx["sets"] > 0:
         blocks.append({"name": "Jumps", "sets": rx["sets"], "reps": rx["reps"], "notes": jump_line(rx)})
-    notes = _STRENGTH_NOTES.get(decision, "Follow planned load.")
+    notes = _STRENGTH_NOTES_INTRO if intro else _STRENGTH_NOTES.get(decision, "Follow planned load.")
     if day in _LIFT_MENU and decision != "SUPPRESS":
         notes += "\n" + _LIFT_MENU[day]
     blocks.append({"name": label, "notes": notes})
@@ -298,13 +313,13 @@ def generate_session(decision: str, data: dict, today: date = None) -> dict:
 
     # ── SUPPRESS ─────────────────────────────────────────────────────────────
     if decision == "SUPPRESS":
-        session_type = "easy"
+        session_type = "walk"
         work_min = max(8, (base_work_min or 18) - 5)
-        blocks = _easy_blocks(work_min)
+        blocks = _walk_blocks(work_min)
         summary = (
-            f"Easy run — {_total_min(blocks)} min total. "
-            "Recovery is genuinely poor — stay in Zone 1 only, no surges. "
-            "Consider skipping entirely if you feel rough."
+            f"Recovery walk — {_total_min(blocks)} min total. "
+            "Recovery is genuinely poor — no running today. "
+            "Walk easy, or skip entirely if you feel rough."
         )
 
     # ── DELOAD ───────────────────────────────────────────────────────────────
@@ -313,8 +328,9 @@ def generate_session(decision: str, data: dict, today: date = None) -> dict:
         # Interval slots have no work_min; deload them from the same week's easy run.
         work_min = deload_work_min(base_work_min or week_plan["A"]["work_min"])
         blocks = _easy_blocks(work_min)
+        label = "Intro week run" if is_intro_week(plan_state.get("cycle_start_date", ""), today) else "Deload run"
         summary = (
-            f"Deload run — {_total_min(blocks)} min total (~70% of planned). "
+            f"{label} — {_total_min(blocks)} min total (~70% of planned). "
             "Zone 2 at your normal easy pace — same effort, less time."
         )
 

@@ -23,14 +23,16 @@ so the calendar spells out how to adjust volume — not just the flag emoji.
 from datetime import date, timedelta
 from math import ceil
 
-from cycle import DELOAD_EVERY_N_WEEKS, is_deload_week, jump_prescription, week_in_cycle
+from cycle import DELOAD_EVERY_N_WEEKS, is_deload_week, is_intro_week, jump_prescription, week_in_cycle
 from plan_generator import (
     _DAY_LABEL,
     _LIFT_MENU,
     _PLAN_BY_PHASE,
     _STRENGTH_NOTES,
+    _STRENGTH_NOTES_INTRO,
     _blocks_for_type,
     _easy_blocks,
+    _walk_blocks,
     _total_min,
     jump_line,
     deload_work_min,
@@ -57,13 +59,14 @@ _SESSION_LABEL = {
 
 # ── Strength session definitions ──────────────────────────────────────────────
 
-def _strength_event(day_key: str, rx: dict, is_deload: bool) -> dict:
+def _strength_event(day_key: str, rx: dict, is_deload: bool, intro: bool = False) -> dict:
     """Base strength event for a lift day: label, lift menu, jump line, deload note."""
     summary = f"🏋️ {_DAY_LABEL[day_key]}"
-    parts = ["About 45–55 min.", _LIFT_MENU[day_key], jump_line(rx)]
+    length = "Shorter session: half the sets." if is_deload else "About 45–55 min."
+    parts = [length, _LIFT_MENU[day_key], jump_line(rx, intro=intro)]
     if is_deload:
         summary = "⛔️ " + summary
-        parts.append(_STRENGTH_NOTES["DELOAD"])
+        parts.append(_STRENGTH_NOTES_INTRO if intro else _STRENGTH_NOTES["DELOAD"])
     return {"summary": summary, "description": "\n\n".join(parts)}
 
 
@@ -122,7 +125,11 @@ def _format_run_description(blocks: list) -> str:
 
 # ── Run session builders ──────────────────────────────────────────────────────
 
-def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict:
+# Saturday Run B (health-bootcamp protocol): optional, an incline walk is fine instead.
+_RUN_B_NOTE = "Optional: an easy Zone 2 run or a 30–45 min incline walk. Skip it if sleep or HRV is down."
+
+
+def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool, intro: bool = False) -> dict:
     """Base-plan (HOLD) run event — shown for all future sessions."""
     row  = plan[plan_week_for(plan_week)]
     base = row[slot]
@@ -130,7 +137,8 @@ def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict
         # Deload: ~70% of the last build week, Zone 2 easy (Galpin protocol);
         # interval slots have no work_min, so use the same week's easy run.
         blocks  = _easy_blocks(deload_work_min(base["work_min"] or row["A"]["work_min"]))
-        summary = f"⛔️ 🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
+        label   = "Intro Week Run" if intro else "Deload Run"
+        summary = f"⛔️ 🏃‍♂️ {label} — {_total_min(blocks)} mins"
     else:
         blocks   = _blocks_for_type(base["type"], base["work_min"] or 18)
         label    = _SESSION_LABEL.get(base["type"], "Easy Run")
@@ -139,7 +147,8 @@ def _run_session(plan: dict, plan_week: int, slot: str, is_deload: bool) -> dict
     return {"summary": summary, "description": _format_run_description(blocks)}
 
 
-def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week: int, slot: str) -> dict:
+def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week: int, slot: str,
+                        intro: bool = False) -> dict:
     """Today's run event — uses the real rule engine decision."""
     prefix = _DECISION_EMOJI.get(decision, "")
     row  = plan[plan_week_for(plan_week)]
@@ -148,12 +157,17 @@ def _run_session_actual(plan: dict, session_type: str, decision: str, plan_week:
 
     if decision == "SUPPRESS":
         work_min = max(8, base_work_min - 5)
-        blocks   = _easy_blocks(work_min)
-        summary  = f"{prefix}🏃‍♂️ Recovery Only — {_total_min(blocks)} mins"
+        blocks   = _walk_blocks(work_min)
+        summary  = f"{prefix}🚶 Recovery Walk — {_total_min(blocks)} mins"
     elif decision == "DELOAD":
         work_min = deload_work_min(base["work_min"] or row["A"]["work_min"])
         blocks   = _easy_blocks(work_min)
-        summary  = f"{prefix}🏃‍♂️ Deload Run — {_total_min(blocks)} mins"
+        label    = "Intro Week Run" if intro else "Deload Run"
+        summary  = f"{prefix}🏃‍♂️ {label} — {_total_min(blocks)} mins"
+    elif decision == "REDUCE" and base["type"] == "intervals":
+        # Mirrors generate_session: intervals can't be trimmed, so swap to easy.
+        blocks   = _easy_blocks(max(10, round(20 * 0.85)))
+        summary  = f"{prefix}🏃‍♂️ Easy Run — {_total_min(blocks)} mins"
     else:
         if decision == "REDUCE":
             work_min = max(8, ceil(base_work_min * 0.85))
@@ -270,6 +284,7 @@ def generate_ics(plan_state: dict, today: date = None, skip_jumps_dates=None) ->
         week_monday = monday + timedelta(weeks=week_offset)
         plan_week   = week_in_cycle(cycle_start, week_monday)
         is_deload   = is_deload_week(plan_week)
+        intro       = is_intro_week(cycle_start, week_monday)
         rx          = jump_prescription(cycle_start, week_monday)
 
         mon_date = week_monday
@@ -280,7 +295,7 @@ def generate_ics(plan_state: dict, today: date = None, skip_jumps_dates=None) ->
 
         # ── Strength events ───────────────────────────────────────────────────
         for day_key, evt_date in [("mon", mon_date), ("wed", wed_date), ("fri", fri_date)]:
-            s   = _strength_event(day_key, rx, is_deload)
+            s   = _strength_event(day_key, rx, is_deload, intro)
             if evt_date in skip_jumps_dates and rx["sets"] > 0:
                 s["description"] = s["description"].replace(jump_line(rx), "Jumps: skip this week.")
             guidance = ""
@@ -295,7 +310,10 @@ def generate_ics(plan_state: dict, today: date = None, skip_jumps_dates=None) ->
                 if plan_state.get("last_execution_skip_jumps") and rx["sets"] > 0:
                     s["description"] = s["description"].replace(jump_line(rx), "Jumps: skip today.")
                 note = _STRENGTH_NOTES.get(last_execution_decision, "")
-                if note and last_execution_decision != "HOLD" and not is_deload:
+                if last_execution_decision == "SUPPRESS":
+                    # Matches the session: no lifting, so no lift menu or jumps.
+                    s["description"] = f"{prefix}{note}"
+                elif note and last_execution_decision != "HOLD" and not is_deload:
                     guidance = f"\n\n{prefix}{note}"
             s["description"] += guidance
             uid = f"rc-strength-{evt_date.isoformat()}-{day_key}@runcoach"
@@ -321,10 +339,12 @@ def generate_ics(plan_state: dict, today: date = None, skip_jumps_dates=None) ->
 
                 if run_date.isoformat() == slot_exec_date and slot_decision:
                     session = _run_session_actual(
-                        plan, last_execution_type, slot_decision, plan_week, slot
+                        plan, last_execution_type, slot_decision, plan_week, slot, intro
                     )
                 else:
-                    session = _run_session(plan, plan_week, slot, is_deload)
+                    session = _run_session(plan, plan_week, slot, is_deload, intro)
+                if slot == "B":
+                    session["description"] += "\n\n" + _RUN_B_NOTE
                 for line in _vevent(run_date, session["summary"], session["description"], uid):
                     raw_lines.append(_fold(line))
 

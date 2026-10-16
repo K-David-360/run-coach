@@ -193,8 +193,9 @@ these categories don't overlap, so no double-counting.
   - Title: *(empty)*
   - Body: `[decision_reason] [notification]`
 
-The banner shows the rule engine decision label followed by the notification text,
-e.g. `HOLD ✅ On track — follow today's plan as scheduled.`
+The banner shows the rule engine's reason followed by the notification text, which is
+worded for the day's session (lift, run or rest), e.g.
+`Training load steady ✅ On track — run as planned.`
 
 ---
 

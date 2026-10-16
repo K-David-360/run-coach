@@ -47,6 +47,11 @@ def is_deload_week(week: int) -> bool:
     return week == DELOAD_EVERY_N_WEEKS
 
 
+def is_intro_week(cycle_start: str, today: date = None) -> bool:
+    """The week before block week 1 (intro week): deload volume, no jumps, but not a 'week 6'."""
+    return block_week(cycle_start, today) == 0
+
+
 def jump_prescription(cycle_start: str, today: date = None) -> dict:
     """Jump sets per lift day and weekly contact target; none in deload/pre-block weeks."""
     bw = block_week(cycle_start, today)

@@ -98,7 +98,8 @@ The `/healthkit` endpoint determines what session to generate based on
 | Sun (6) | Rest | Runs for readiness only; night logged to history |
 
 Rest days have no session but still run the rule engine. They return
-`{"type": "rest", "readiness": "<decision>", "summary": "Rest Day — No Session", "blocks": []}`
+`{"type": "rest", "readiness": "<decision>", "summary": "Rest Day — walk and mobility", "blocks": []}`
+(Sunday: `"Rest Day — meal prep"`)
 with a rest-specific banner, and append the night to `history.json` (so HRV baseline,
 short-sleep counts and the weekly sleep check see all 7 nights). Plan state and the
 calendar are not touched. Because rest days now log, a SUPPRESS on a rest day counts
@@ -198,7 +199,7 @@ the health-bootcamp protocol); the user applies the flag to it.
 
 | Decision | Summary prefix | Implied action |
 |----------|---------------|----------------|
-| BUILD | ⬆️ | Full planned load |
+| BUILD | ⬆️ | Full planned load ("Full planned session." — not heavier) |
 | HOLD | (none) | Follow planned load |
 | REDUCE | ⬇️ | Same weight, ~80% of sets |
 | DELOAD | ⛔️ | Same weight, half the sets |
@@ -228,18 +229,26 @@ Every `/healthkit` response includes:
 - The session JSON (type, summary, blocks)
 - A top-level `notification` field for the iOS Shortcut banner
 
-| Decision | Notification text |
-|----------|------------------|
-| SUPPRESS | ⛔️ Rest day — your body needs recovery. Skip training today. |
-| DELOAD | ⛔️ Deload week — reduced load across all sessions. Keep it easy. |
-| REDUCE | ⬇️ Pull back today — do a shorter, easier version of your session. |
-| HOLD | ✅ On track — follow today's plan as scheduled. |
-| BUILD | ⬆️ Good recovery — you can push a little harder today. |
-| Rest days | 🛌 Rest day — recovery on track. / good recovery. / a bit low, take it easy. / low, keep today fully easy. / deload week, keep recovering. (by decision) |
+Text is worded per session kind (`server._LIFT_NOTIFICATIONS` / `_RUN_NOTIFICATIONS` /
+`_REST_NOTIFICATIONS`, built by `server._notification`):
+
+| Decision | Lift day (Mon/Wed/Fri) | Run day (Tue/Sat) |
+|----------|------------------------|-------------------|
+| SUPPRESS | ⛔️ Recovery is low — no lifting today. Walk only. | ⛔️ Recovery is low — no running today. Easy walk or skip. |
+| DELOAD | ⛔️ Deload week — same weight, half the sets, no jumps. | ⛔️ Deload week — easy Zone 2, about 70% of the usual time. |
+| REDUCE | ⬇️ Pull back today — same weight, about 80% of your sets. | ⬇️ Pull back today — same easy effort, about 15% shorter. |
+| HOLD | ✅ On track — follow today's lift plan. | ✅ On track — run as planned. |
+| BUILD | ⬆️ Good recovery — full planned session today. | ⬆️ Good recovery — run about 10% longer today. |
+
+- Intro week (before block week 1, e.g. Oct 19): "Deload week" reads "Intro week", and the
+  rule engine reason is `Intro week (deload volume)` (trigger `intro_week`), not week 6.
+- Lift day where jumps were skipped for recovery (REDUCE from HRV/sleep): ` Skip jumps.` appended.
+- Rest days: 🛌 Rest day — recovery on track. / good recovery. / a bit low, take it easy. /
+  low, keep today fully easy. / deload (or intro) week, keep recovering. (by decision)
 
 The Shortcut reads both `decision_reason` and `notification` from the response
-and concatenates them in the banner body (e.g. "HOLD ✅ On track — follow today's
-plan as scheduled."). Generic enough to apply on any day type.
+and concatenates them in the banner body (e.g. "Training load steady ✅ On track — run
+as planned.").
 
 ---
 
@@ -362,7 +371,12 @@ weeks always shown.
 - Run events on Tue/Sat — base plan (HOLD) for future, actual decision for today
 - Strength events on Mon/Wed/Fri — Push/Pull/Full with lift menu, ~45–55 min,
   and the jump line (sets and weekly target); intensity flag on today's event
-- All deload week events prefixed with ⛔️
+- All deload week events prefixed with ⛔️ (the intro week reads "Intro Week Run" /
+  "none this week (intro week)"; deload lift days say "Shorter session: half the sets.")
+- Saturday run events end with the protocol's optional line (easy Zone 2 or a 30–45 min
+  incline walk; skip if sleep or HRV is down)
+- SUPPRESS today: run event is "🚶 Recovery Walk" (Zone 1 walk blocks, as in the session);
+  lift event shows only the no-lifting note
 - Decision emoji prefixes: ⬆️ BUILD · ⬇️ REDUCE · ⛔️ SUPPRESS/DELOAD
 
 **Triggering a calendar push manually:**
