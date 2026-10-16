@@ -54,6 +54,7 @@ from flask import Flask, jsonify, request, make_response
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 from bodycomp.checks import weekly_check
+from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
 from cycle import week_in_cycle
 from plan_generator import generate_session, generate_strength_session
@@ -355,6 +356,52 @@ def post_bodycomp_weekly():
     bc_store.save_week(report, bc_store.WEEKLY_FILE)
     flags = [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]
     return jsonify({"notification": report["banner"], "highest": report["highest"], "flags": flags}), 200
+
+
+@app.route("/bodycomp/measurements", methods=["POST"])
+def post_bodycomp_measurements():
+    """Monthly tape measurements (inches)."""
+    denied = _bodycomp_auth()
+    if denied:
+        return denied
+    body = request.get_json(force=True, silent=True) or {}
+    try:
+        day = date.fromisoformat(str(body.get("date", ""))).isoformat()
+    except ValueError:
+        return jsonify({"error": "date must be YYYY-MM-DD"}), 400
+    entry = {"date": day}
+    for site in TAPE_SITES:
+        value = _safe_float(body.get(site), 0.0)
+        if value > 0:
+            entry[site] = value
+    if len(entry) == 1:
+        return jsonify({"error": "at least one measurement is required"}), 400
+    if "shoulders_in" in entry and "waist_in" in entry:
+        entry["shoulder_waist_ratio"] = round(entry["shoulders_in"] / entry["waist_in"], 2)
+    bc_store.append_measurement(entry, bc_store.MEASUREMENTS_FILE)
+    return jsonify({"status": "ok"}), 200
+
+
+@app.route("/bodycomp/review-packet", methods=["GET"])
+def get_bodycomp_review_packet():
+    """Markdown summary for pasting into a Claude review. Tailscale only."""
+    denied = _bodycomp_auth()
+    if denied:
+        return denied
+    try:
+        config = bc_config.load_config(bc_config.CONFIG_FILE)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 500
+    plan_state = _load_json(PLAN_STATE_FILE, default=dict(_DEFAULT_PLAN_STATE))
+    packet = build_packet(
+        bc_store.load_weeks(bc_store.WEEKLY_FILE),
+        bc_store.load_measurements(bc_store.MEASUREMENTS_FILE),
+        config,
+        plan_state.get("phase", 1),
+    )
+    resp = make_response(packet)
+    resp.headers["Content-Type"] = "text/markdown; charset=utf-8"
+    return resp
 
 
 # ── HealthKit flat-payload endpoint ───────────────────────────────────────────

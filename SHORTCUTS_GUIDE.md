@@ -257,6 +257,24 @@ Re-running on the same Sunday replaces that week's report; it never double-count
 
 ---
 
+## Monthly tape measurements (separate "Run Coach Tape" Shortcut)
+
+Measure in the morning, relaxed. One small Shortcut, run once a month:
+
+1. **Tailscale → Connect**
+2. **Format Date** → Current Date, `yyyy-MM-dd` → `Tape Date`
+3. One **Ask for Input** (Number, inches) per site, each into its own variable:
+   neck, shoulders (widest), chest, waist (at navel), arm (flexed), thigh, calf
+4. **Get Contents of URL** → `{Server URL}/bodycomp/measurements`, POST JSON with keys
+   `date`, `neck_in`, `shoulders_in`, `chest_in`, `waist_in`, `arm_in`, `thigh_in`, `calf_in`
+   (add header `X-Bodycomp-Token` if `BODYCOMP_TOKEN` is set on the Pi). Blank sites are skipped.
+5. **Tailscale → Disconnect**
+
+Add a monthly iPhone Reminder that opens this Shortcut. For a Claude review, open
+`{Server URL}/bodycomp/review-packet` in Safari (on Tailscale) and paste the page into a chat.
+
+---
+
 ## Verifying what the server received (debug)
 
 Every non-rest-day response includes a `debug` field. Add these steps after Step 9

@@ -91,3 +91,24 @@ def test_weekly_bad_config_returns_500(env):
     resp = env["client"].post("/bodycomp/weekly", json=_weekly())
     assert resp.status_code == 500
     assert "bc_phase must be BC-1 or BC-2" in resp.get_json()["error"]
+
+
+def test_measurements_route_stores_ratio(env):
+    resp = env["client"].post("/bodycomp/measurements",
+                              json={"date": "2026-11-01", "shoulders_in": 46.0, "waist_in": 32.0})
+    assert resp.status_code == 200
+    stored = json.loads(env["measurements"].read_text())
+    assert stored[0]["shoulder_waist_ratio"] == 1.44
+
+
+def test_measurements_route_rejects_empty(env):
+    assert env["client"].post("/bodycomp/measurements", json={"date": "2026-11-01"}).status_code == 400
+
+
+def test_packet_route_markdown_and_auth(env, monkeypatch):
+    c = env["client"]
+    resp = c.get("/bodycomp/review-packet")
+    assert resp.status_code == 200
+    assert resp.headers["Content-Type"].startswith("text/markdown")
+    monkeypatch.setenv("BODYCOMP_TOKEN", "abc")
+    assert c.get("/bodycomp/review-packet").status_code == 401
