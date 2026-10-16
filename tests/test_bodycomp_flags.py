@@ -14,7 +14,7 @@ from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, s1_active
 from calendar_generator import generate_ics
 
 S1_REPORT = {"week_ending": "2026-10-31", "bc_phase": "BC-1",
-             "metrics": {"avg_weight_lb": 150.0, "avg_protein_g": 128.0},
+             "metrics": {"avg_weight_lb": 180.0, "avg_protein_g": 150.0},
              "results": [{"id": "S1", "severity": "AMBER", "message": "Sleep short"}]}
 
 GOOD = {"hrv_last_night": 60, "sleep_total_hrs": 8, "sleep_deep_hrs": 1.5, "resting_hr": 50, "load_pct": 0}
@@ -93,6 +93,6 @@ def test_no_bodycomp_numbers_in_daily_files(daily):
     daily(datetime.date(2026, 11, 2)).post("/healthkit", json=GOOD)
     session_text = daily.files["session"].read_text()
     assert "bodycomp" not in json.loads(session_text)
-    assert "150.0" not in session_text and "128.0" not in session_text
+    assert "180.0" not in session_text and "150.0" not in session_text
     ics = generate_ics(json.loads(daily.files["state"].read_text()), today=datetime.date(2026, 11, 2))
     assert S1_NOTE not in ics and "Weekly check" not in ics

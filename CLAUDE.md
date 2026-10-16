@@ -241,7 +241,7 @@ plan as scheduled."). Generic enough to apply on any day type.
 Sunday-morning branch of the daily Shortcut posts the previous Sun–Sat of Apple
 Health data (weight, protein, dietary energy, steps as `date=value` lines) to
 `POST /bodycomp/weekly`. Sleep comes from `history.json`. Returns a banner such as
-`Weekly: weight 150.0 (+0.2), protein 128 g OK, steps 7.1k, 1 amber (sleep).`
+`Weekly: weight 180.0 (+0.2), protein 150 g OK, steps 7.1k, 1 amber (sleep).`
 
 - **Phases:** `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) in
   `data/bodycomp/config.json`. Not run-coach's run `phase` (1/2/3). Never

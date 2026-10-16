@@ -8,9 +8,9 @@ from bodycomp.config import DEFAULTS
 from bodycomp.review_packet import FOOTER, build_packet
 
 
-def _report(week_ending, avg=150.0, results=()):
+def _report(week_ending, avg=180.0, results=()):
     return {"week_ending": week_ending, "bc_phase": "BC-1", "bc_week": 1,
-            "metrics": {"avg_weight_lb": avg, "delta_lb": 0.1, "avg_protein_g": 128.0, "avg_kcal": 2100.0,
+            "metrics": {"avg_weight_lb": avg, "delta_lb": 0.1, "avg_protein_g": 150.0, "avg_kcal": 2100.0,
                         "avg_steps": 7100, "short_sleep_nights": 1},
             "results": list(results)}
 

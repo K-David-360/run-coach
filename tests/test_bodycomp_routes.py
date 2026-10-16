@@ -16,9 +16,9 @@ def _samples(value, days=DAYS):
     return "\n".join(f"{d}={value}" for d in days)
 
 
-def _weekly(week_ending="2026-10-31", weight=150, days=DAYS):
+def _weekly(week_ending="2026-10-31", weight=180, days=DAYS):
     return {"week_ending": week_ending, "weight_samples": _samples(weight, days),
-            "protein_samples": _samples(128, days), "energy_samples": _samples(2100, days),
+            "protein_samples": _samples(150, days), "energy_samples": _samples(2100, days),
             "steps_samples": _samples(7100, days)}
 
 
@@ -56,9 +56,9 @@ def test_weekly_returns_banner_and_stores_report(env):
 def test_weekly_rerun_same_week_replaces(env):
     prior_days = ["2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24"]
     c = env["client"]
-    c.post("/bodycomp/weekly", json=_weekly("2026-10-24", 149.0, prior_days))
-    c.post("/bodycomp/weekly", json=_weekly(weight=150.0))
-    c.post("/bodycomp/weekly", json=_weekly(weight=150.5))
+    c.post("/bodycomp/weekly", json=_weekly("2026-10-24", 179.0, prior_days))
+    c.post("/bodycomp/weekly", json=_weekly(weight=180.0))
+    c.post("/bodycomp/weekly", json=_weekly(weight=180.5))
     weeks = json.loads(env["weekly"].read_text())
     assert [w["week_ending"] for w in weeks] == ["2026-10-24", "2026-10-31"]
     assert weeks[-1]["metrics"]["delta_lb"] == 1.5   # vs the prior week, not vs the first post

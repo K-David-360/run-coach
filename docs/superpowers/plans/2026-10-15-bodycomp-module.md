@@ -22,7 +22,7 @@
 
 - Body-comp phases are `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) and `bc_phase_start_date`, stored in `data/bodycomp/config.json`. Never a bare `phase` key; bodycomp code never reads or writes run-coach's `phase`. `bc_phase` is never advanced by code.
 - `data/bodycomp/` is gitignored before any file is written there. Tests use `tmp_path` and synthetic numbers only; no real weight, height, lab or DEXA values in code, tests, comments or commits.
-- Code defaults for absolute protein and calorie thresholds are `None` (rule not evaluated). The protocol numbers (P1 125 g, P2 110 g, E1 1,900 kcal in BC-1, 1,800 kcal in BC-2) go only into the Pi's gitignored config. P3's g/kg rule (1.6) is the only protein default in code.
+- Code defaults for absolute protein and calorie thresholds are `None` (rule not evaluated). The real protocol targets (P1, P2, E1 per phase, from `health-bootcamp/01-protocol.md`) go only into the Pi's gitignored config, never into code, tests or docs in this public repo. P3's g/kg rule (1.6) is the only protein default in code. Test fixtures use clearly synthetic values (weights around 180 lb, thresholds unlike the real ones).
 - Bodycomp values, flags and flag text never go into the ICS calendar, `_push_calendar_to_github`, `data/plan_state.json` or `data/current_session.json`. The only exception is the generic, number-free S1/optional-run sentences defined in Task 6.
 - Severity order: `["RED", "AMBER", "INFO", "OK"]`; banner lists the highest severity first.
 - Missing-data rule: weight rules need ≥ 4 of 7 weight days; protein/energy rules need ≥ 5 of 7 days; otherwise the metric reports `INFO` "insufficient data" and recommends nothing.
@@ -33,7 +33,7 @@
 ## Review Focus
 
 - The Shortcut re-runs on the same Sunday (or posts twice): the second report replaces the first for that `week_ending`, and deltas are computed against the previous week, never against itself: test in Task 4.
-- First-ever week (no history): no delta, W2/W3/W4 skipped, banner shows `weight 150.0 (new)`: test in Task 3.
+- First-ever week (no history): no delta, W2/W3/W4 skipped, banner shows `weight 180.0 (new)`: test in Task 3.
 - Samples with `""`, `0`, junk lines, or dates outside the Sun–Sat window: ignored, not averaged in as 0: test in Task 2.
 - A protein value logged as several samples on one day (one per meal): summed per day, not averaged: test in Task 2.
 - `config.json` missing, empty, or holding an invalid `bc_phase`: defaults load for missing/empty; invalid `bc_phase` raises a clear `ValueError` and the route returns 500 with that message rather than silently checking the wrong phase: test in Task 1.
@@ -112,9 +112,9 @@ DAYS = week_days("2026-10-31")
 def test_week_days_sun_to_sat():           # ["2026-10-25", ..., "2026-10-31"]
 def test_week_days_rejects_non_saturday(): # week_days("2026-10-30") raises ValueError
 def test_parse_mean_ignores_blanks_zero_junk_and_out_of_window():
-    text = "2026-10-25=150.0\n2026-10-25=151.0\n2026-10-26=\n2026-10-27=0\nbad line\n2026-11-01=149\n2026-10-28=149.5"
-    assert parse_samples(text, DAYS, "mean") == [150.5, None, None, 149.5, None, None, None]
-def test_parse_sum_adds_meals_per_day():   # "2026-10-25=40\n2026-10-25=50\n2026-10-25=38" -> first day 128.0
+    text = "2026-10-25=180.0\n2026-10-25=181.0\n2026-10-26=\n2026-10-27=0\nbad line\n2026-11-01=179\n2026-10-28=179.5"
+    assert parse_samples(text, DAYS, "mean") == [180.5, None, None, 179.5, None, None, None]
+def test_parse_sum_adds_meals_per_day():   # "2026-10-25=40\n2026-10-25=60\n2026-10-25=50" -> first day 150.0
 def test_sleep_nights_from_history():       # 3 entries in window (6.0, 7.2, 0) + 1 outside -> [6.0, 7.2]
 def test_summarize_counts_present_days():   # 3 weights present -> weight_days 3, avg over those 3
 def test_summarize_optional_fields_blank(): # waist_in "", lift_sessions_done "", lift_stalled "" -> all None
@@ -180,21 +180,21 @@ Build payload helpers that produce sample text from 7-value lists. Use `cycle_st
 
 ```python
 def test_banner_matches_spec_example():
-    # weights 150.0 x7, previous report avg 149.8, protein 128 x7, kcal 2100 x7, steps 7100 x7,
+    # weights 180.0 x7, previous report avg 179.8, protein 150 x7, kcal 2100 x7, steps 7100 x7,
     # history sleep 6.0, 6.2, 6.1, 7.5, 7.5 in window, config defaults (absolute thresholds None)
-    assert report["banner"] == "Weekly: weight 150.0 (+0.2), protein 128 g OK, steps 7.1k, 1 amber (sleep)."
+    assert report["banner"] == "Weekly: weight 180.0 (+0.2), protein 150 g OK, steps 7.1k, 1 amber (sleep)."
     assert report["highest"] == "AMBER"
-def test_first_week_no_delta():          # no past reports -> delta_lb None, banner starts "Weekly: weight 150.0 (new)", no W2/W3/W4 results
+def test_first_week_no_delta():          # no past reports -> delta_lb None, banner starts "Weekly: weight 180.0 (new)", no W2/W3/W4 results
 def test_insufficient_weight_days():     # 3 weights -> one W INFO "insufficient data", banner "weight n/a"
 def test_insufficient_nutrition_days():  # 4 protein days -> P INFO "insufficient data", no P1/P2/P3
 def test_w2_needs_two_consecutive_fast_weeks(): # deltas -1.1 then -1.2 -> W2 AMBER; -1.1 then -0.5 -> no W2; exactly -1.0 -> no W2
 def test_w3_only_after_early_window_in_bc1(): # bc_week 2 delta -0.5 -> no W3; bc_week 3 -> W3 AMBER; BC-2 -> no W3
 def test_w4_bc2_only_three_flat_weeks():  # BC-2 deltas 0.1, -0.1, 0.0 -> W4 INFO; same deltas in BC-1 -> no W4; one 0.2 -> no W4
-def test_w1_uses_config_or_first_bc1_week(): # baseline None, first past BC-1 report avg 150.0, this avg 151.2 -> W1 INFO; config baseline 151.0 -> OK
-def test_p2_red_supersedes_p1():          # config protein_low_g 110, protein_avg_min_g 125, avg 105 -> P2 RED, no P1; avg 120 -> P1 AMBER; avg 110 -> P1 AMBER (not P2)
+def test_w1_uses_config_or_first_bc1_week(): # baseline None, first past BC-1 report avg 180.0, this avg 181.2 -> W1 INFO; config baseline 181.0 -> OK
+def test_p2_red_supersedes_p1():          # config protein_low_g 100, protein_avg_min_g 120, avg 95 -> P2 RED, no P1; avg 110 -> P1 AMBER; avg 100 -> P1 AMBER (not P2)
 def test_protein_rules_skipped_without_thresholds(): # defaults -> no P1/P2, P3 evaluated
 def test_p3_g_per_kg():                   # avg weight 154.32 lb (70 kg), protein 105 -> 1.5 g/kg -> P3 INFO "Protein 1.50 g/kg"
-def test_e1_floor_by_phase():             # kcal 1850, floors bc1 1900 / bc2 1800 -> AMBER in BC-1, none in BC-2
+def test_e1_floor_by_phase():             # kcal 1950, floors bc1 2000 / bc2 1900 -> AMBER in BC-1, none in BC-2
 def test_s1_threshold_boundary():         # sleep 6.5 counts as not short; three nights 6.4 -> S1
 def test_l1_l2_optional():                # lift fields None -> no L1/L2; stalled True, sessions 2 -> both INFO
 def test_d1_when_next_week_is_deload():   # cycle_start "2026-09-28", week_ending "2026-10-31" -> Mon 11-02 is cycle week 6 -> D1 INFO; cycle_start "2026-10-26" -> no D1
@@ -382,6 +382,6 @@ git commit -m "docs: body-comp weekly check"
 Run: `git ls-files data/bodycomp; git log -p origin/main..HEAD | grep -nE '[0-9]{3}\.[0-9] ?lb|DEXA|lab result' || true`
 Expected: no files listed; any grep hits are synthetic test values only (inspect each). Ask David before `git push`.
 
-- [ ] **Step 3: Deploy** `bodycomp/` (four files) and `server.py` to `~/run-coach/` on the Pi via the Terminal SSH method in `~/.claude/CLAUDE.md` (base64, verify `sha256sum`, `.bak`). Create `~/run-coach/data/bodycomp/config.json` on the Pi with `{"bc_phase": "BC-1", "bc_phase_start_date": "2026-10-19", "protein_avg_min_g": 125, "protein_low_g": 110, "kcal_floor_bc1": 1900, "kcal_floor_bc2": 1800}` (protocol values; leave `baseline_weight_lb` out so W1 uses the first BC-1 week). Ask David to restart the service; verify `ActiveEnterTimestamp`.
+- [ ] **Step 3: Deploy** `bodycomp/` (four files) and `server.py` to `~/run-coach/` on the Pi via the Terminal SSH method in `~/.claude/CLAUDE.md` (base64, verify `sha256sum`, `.bak`). Create `~/run-coach/data/bodycomp/config.json` on the Pi with `{"bc_phase": "BC-1", "bc_phase_start_date": "2026-10-19", "protein_avg_min_g": <P1>, "protein_low_g": <P2>, "kcal_floor_bc1": <E1 BC-1>, "kcal_floor_bc2": <E1 BC-2>}` with the targets from `health-bootcamp/01-protocol.md` (typed on the Pi only) (protocol values; leave `baseline_weight_lb` out so W1 uses the first BC-1 week). Ask David to restart the service; verify `ActiveEnterTimestamp`.
 
 - [ ] **Step 4: Smoke test on the Pi**: `curl -s -X POST http://localhost:5001/bodycomp/weekly -H 'Content-Type: application/json' -d '{"week_ending":"2026-10-24","weight_samples":"2026-10-20=150"}'` → 200 with a banner containing `weight n/a`; then remove that test report from `data/bodycomp/weekly.json` (keep a `.bak`). David builds the Sunday Shortcut branch from `SHORTCUTS_GUIDE.md`; watch the first real Sunday (Nov 1) output before trusting it.
