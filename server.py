@@ -351,6 +351,9 @@ def _bodycomp_auth():
     return None
 
 
+BODYCOMP_DRY_RUN_FILE = os.path.join(bc_config.BODYCOMP_DIR, "last_dry_run.json")
+
+
 def _received_echo(body: dict) -> dict:
     """Per metric: how many values arrived, the raw values, and how the server reads them."""
     return {
@@ -394,9 +397,15 @@ def post_bodycomp_weekly():
     )
     if dry_run:
         summary = {k: v for k, v in summarize_week(body).items() if k != "sleep_hrs"}
-        return jsonify({"dry_run": True, "week_ending": report["week_ending"], "received": received,
-                        "summary": summary, "notification": report["banner"],
-                        "flags": [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]}), 200
+        reply = {"dry_run": True, "week_ending": report["week_ending"], "received": received,
+                 "summary": summary, "notification": report["banner"],
+                 "flags": [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]}
+        try:   # last reply kept in the gitignored data/bodycomp/ for debugging the Shortcut
+            os.makedirs(os.path.dirname(BODYCOMP_DRY_RUN_FILE), exist_ok=True)
+            _save_json(BODYCOMP_DRY_RUN_FILE, reply)
+        except OSError:
+            app.logger.exception("could not save dry-run reply")
+        return jsonify(reply), 200
     bc_store.save_week(report, bc_store.WEEKLY_FILE)
     bc_store.save_report_file(report, bc_store.REPORTS_DIR)
     # Telegram gets only allowlisted aggregate fields; a failure never fails the route.

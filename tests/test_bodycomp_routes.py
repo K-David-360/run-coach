@@ -42,6 +42,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(server, "PLAN_STATE_FILE", str(files["state"]))
     monkeypatch.setattr(server, "HISTORY_FILE", str(files["history"]))
     monkeypatch.setattr(server, "CURRENT_SESSION_FILE", str(files["session"]))
+    monkeypatch.setattr(server, "BODYCOMP_DRY_RUN_FILE", str(tmp_path / "bodycomp" / "last_dry_run.json"))
     sent = []
     monkeypatch.setattr(bc_telegram, "send", lambda text, token, chat_id, **k: sent.append((text, token, chat_id)) or True)
     files["sent"] = sent
@@ -199,3 +200,11 @@ def test_dry_run_reports_validation_error_with_counts(env):
     out = env["client"].post("/bodycomp/weekly?dry_run=1", json=body, headers=SECRET).get_json()
     assert "steps_daily" in out["error"]
     assert out["received"]["steps_daily"]["count"] == 8
+
+
+def test_dry_run_reply_is_saved_for_debugging(env, monkeypatch, tmp_path):
+    path = tmp_path / "bodycomp" / "last_dry_run.json"
+    monkeypatch.setattr(server, "BODYCOMP_DRY_RUN_FILE", str(path))
+    env["client"].post("/bodycomp/weekly?dry_run=1", json=_weekly(), headers=SECRET)
+    saved = json.loads(path.read_text())
+    assert saved["dry_run"] is True and saved["received"]["steps_daily"]["count"] == 7
