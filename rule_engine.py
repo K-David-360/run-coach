@@ -3,7 +3,7 @@ rule_engine.py — Priority-based decision engine for the running coach.
 
 Decisions (in priority order):
   SUPPRESS — HRV crashed hard AND sleep bombed: skip the run entirely
-  DELOAD   — Scheduled week 4, repeated suppresses, or repeated terrible sleep
+  DELOAD   — Scheduled week 6, repeated suppresses, or repeated terrible sleep
   REDUCE   — HRV trending down, sleep short, or load elevated: pull back volume
   BUILD    — HRV elevated, good sleep, low load: push a little further
   HOLD     — Default: follow the base plan exactly
@@ -15,6 +15,8 @@ conservative signal wins. This matches the training structure doc.
 import json
 import os
 from datetime import date, timedelta
+
+from cycle import is_deload_week
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -99,7 +101,7 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
         hrv_ratio: hrv_last_night / hrv_7d_avg
 
     Returns:
-        {"decision": str, "reason": str, "action": str}
+        {"decision": str, "reason": str, "trigger": str, "action": str}
     """
     plan_state = _load_json(PLAN_STATE_FILE, default=_DEFAULT_PLAN_STATE)
     current_week = plan_state.get("current_week", 1)
@@ -113,8 +115,8 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
     load_classification = load.get("classification", "steady")
 
     _deload_action = (
-        "Deload week. Both runs easy Zone 1–2, reduced volume. "
-        "Strength: one short full-body session, remove all lower body work."
+        "Deload week. Runs: same zone, ~70% duration. "
+        "Strength: same weight, half the sets. No jumps."
     )
 
     # ── P1 SUPPRESS ──────────────────────────────────────────────────────────
@@ -127,6 +129,7 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
         return {
             "decision": "SUPPRESS",
             "reason": " + ".join(parts),
+            "trigger": "suppress",
             "action": (
                 "Skip today's run — HRV and sleep are both in poor shape. "
                 "Rest is the workout. Light walk only if you want to move."
@@ -135,14 +138,18 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
 
     # ── P2 DELOAD ────────────────────────────────────────────────────────────
     nights_below_5 = _count_nights_below(5.0, days=7)
-    if current_week % 4 == 0:
-        return {"decision": "DELOAD", "reason": "Week 4 deload", "action": _deload_action}
+    if is_deload_week(current_week):
+        return {"decision": "DELOAD", "reason": "Scheduled deload (week 6)",
+                "trigger": "deload_week", "action": _deload_action}
     if consecutive_suppress >= 2:
-        return {"decision": "DELOAD", "reason": "2+ consecutive suppress days", "action": _deload_action}
+        return {"decision": "DELOAD", "reason": "2+ consecutive suppress days",
+                "trigger": "suppress_streak", "action": _deload_action}
     if nights_below_5 >= 2:
-        return {"decision": "DELOAD", "reason": "2+ nights < 5h sleep (last 7)", "action": _deload_action}
+        return {"decision": "DELOAD", "reason": "2+ nights < 5h sleep (last 7)",
+                "trigger": "short_sleep_nights", "action": _deload_action}
     if load_classification == "well_above":
-        return {"decision": "DELOAD", "reason": "Training load well above baseline", "action": _deload_action}
+        return {"decision": "DELOAD", "reason": "Training load well above baseline",
+                "trigger": "load", "action": _deload_action}
 
     # ── Base signal from load (proxy for ACWR) ────────────────────────────
     _load_base = {
@@ -152,15 +159,18 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
         "well_below": ("BUILD",  "Training load below baseline"),
     }
     base, reason = _load_base.get(load_classification, ("HOLD", "Training load steady"))
+    trigger = "load"
 
     # ── HRV modifier (caps only — never upgrades) ─────────────────────────
     if hrv_ratio < 0.70:
         if base in ("BUILD", "HOLD"):
             base = "REDUCE"
             reason = f"HRV ratio {round(hrv_ratio, 2)}"
+            trigger = "hrv"
     elif hrv_ratio < 0.90 and base == "BUILD":
         base = "HOLD"
         reason = f"HRV ratio {round(hrv_ratio, 2)} (suppressed BUILD)"
+        trigger = "hrv"
 
     # ── Sleep modifiers ───────────────────────────────────────────────────
     if sleep_total_hrs < 6.0:
@@ -171,22 +181,25 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
             base = "REDUCE"
         if base != before:
             reason = f"Sleep {sleep_total_hrs:.1f}h < 6h"
+            trigger = "sleep"
     elif sleep_total_hrs < 7.5:
         if base == "BUILD":
             base = "HOLD"
             reason = f"Sleep {sleep_total_hrs:.1f}h < 7.5h (capped BUILD)"
+            trigger = "sleep"
 
     # ── Resting HR modifier ───────────────────────────────────────────────
     if _resting_hr_elevated_days() >= 2 and base == "BUILD":
         resting_hr_val = data.get("recovery", {}).get("resting_hr", 0)
         base = "HOLD"
         reason = f"Resting HR elevated ({int(resting_hr_val)} bpm)"
+        trigger = "rhr"
 
     # ── Return final decision ─────────────────────────────────────────────
     _actions = {
         "REDUCE": (
             "Keep session type, reduce duration ~15%. "
-            "Strength: swap any lower-body work to upper body only."
+            "Strength: same weight, ~80% of sets."
         ),
         "BUILD": (
             "Extend easy run duration by 10%, or upgrade session type if Phase 2+. "
@@ -197,5 +210,6 @@ def rule_engine(data: dict, hrv_ratio: float) -> dict:
     return {
         "decision": base,
         "reason": reason,
+        "trigger": trigger,
         "action": _actions.get(base, "Follow the base plan exactly."),
     }
