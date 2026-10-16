@@ -1,5 +1,6 @@
 data/history.json
 data/plan_state.json
+data/current_session.json
 .env
 __pycache__/
 *.pyc
