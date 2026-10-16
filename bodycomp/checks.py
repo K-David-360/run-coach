@@ -53,10 +53,21 @@ def validate_payload(payload: dict):
     except ValueError:
         return "week_ending must be a Saturday (YYYY-MM-DD)"
     for field in ARRAY_FIELDS:
-        values = payload.get(field)
-        if not isinstance(values, list) or len(values) != 7:
-            return f"{field} must be a list of 7 daily values (Sunday to Saturday)"
+        if field not in payload:
+            return f"{field} is missing"
+        if len(daily_values(payload, field)) > 7:
+            return (f"{field} has more than 7 daily values; use Start Date between last "
+                    f"Sunday 00:00 and Saturday 23:59, not 'in the last 7 days'")
     return None
+
+
+def daily_values(payload: dict, field: str) -> list:
+    """Up to 7 per-day values. Group By Day skips empty days and day order is never used,
+    so a short list is fine; a bare value is one day and ""/null is none."""
+    values = payload.get(field)
+    if values is None or values == "":
+        return []
+    return values if isinstance(values, list) else [values]
 
 
 def _avg(values: list, digits: int = 1):
@@ -67,11 +78,11 @@ def _avg(values: list, digits: int = 1):
 
 
 def summarize_week(payload: dict) -> dict:
-    weights = [coerce_value(v) for v in payload["weights_lb"]]
-    protein = [coerce_value(v) for v in payload["protein_g_daily"]]
-    kcal = [coerce_value(v) for v in payload["energy_kcal_daily"]]
-    steps = [coerce_value(v, allow_zero=True) for v in payload["steps_daily"]]
-    sleep = [coerce_value(v) for v in payload["sleep_hrs_daily"]]
+    weights = [coerce_value(v) for v in daily_values(payload, "weights_lb")]
+    protein = [coerce_value(v) for v in daily_values(payload, "protein_g_daily")]
+    kcal = [coerce_value(v) for v in daily_values(payload, "energy_kcal_daily")]
+    steps = [coerce_value(v, allow_zero=True) for v in daily_values(payload, "steps_daily")]
+    sleep = [coerce_value(v) for v in daily_values(payload, "sleep_hrs_daily")]
     avg_weight, weight_days = _avg(weights)
     avg_protein, protein_days = _avg(protein)
     avg_kcal, kcal_days = _avg(kcal)

@@ -207,20 +207,34 @@ Action names vary by iOS version; verify on the phone.
 
 1. **Format Date** → Current Date, custom format `EEEE` → **If** result **is** `Sunday`
    (the weekday name follows the phone's language).
-2. **Window:** start = the Sunday one week ago at 00:00, end = yesterday (Saturday) 23:59.
-   **Format Date** yesterday as `yyyy-MM-dd` → `Week Ending`.
-3. For each metric, **Find Health Samples** in the window with **Group By: Day** (Health
-   merges iPhone and Watch so steps are not double-counted), then build a list of exactly
-   7 values, Sunday first. Put `0` or empty text for a day with no sample; the server treats
-   those as missing (steps 0 counts as a real 0).
+2. **Dates:**
+   - **Adjust Date** → Current Date, subtract 1 day → **Format Date** custom `yyyy-MM-dd` →
+     **Set Variable** `Week Ending` (yesterday, the Saturday).
+   - **Adjust Date** → Current Date, subtract 7 days → start of that day → `Week Start`
+     (last Sunday 00:00). **Get Start of Day** of Current Date → `Week End` (today 00:00).
+3. **One Find per metric, each into its own variable.** Filter **Start Date is between
+   `Week Start` and `Week End`**, not "in the last 7 days": on a Sunday morning that also
+   catches today and can return 8 days, which the server rejects. Then **Get Details of
+   Health Sample** → *Value* to get the list of numbers.
 
-   | Health type | List variable | JSON key |
-   |-------------|---------------|----------|
-   | Body Mass (lb) | `Weights` | `weights_lb` |
-   | Dietary Protein (g) | `Protein` | `protein_g_daily` |
-   | Dietary Energy (kcal) | `Energy` | `energy_kcal_daily` |
-   | Steps | `Steps` | `steps_daily` |
-   | Sleep, asleep hours per night (reuse the Step 7 logic) | `Sleep` | `sleep_hrs_daily` |
+   | Health type | Find options | Variable | JSON key |
+   |-------------|--------------|----------|----------|
+   | Body Mass | Group By Day (lb in Health) | `Weights` | `weights_lb` |
+   | Dietary Protein | Group By Day | `Protein` | `protein_g_daily` |
+   | Dietary Energy | Group By Day | `Energy` | `energy_kcal_daily` |
+   | Steps | Group By Day (merges iPhone + Watch) | `Steps` | `steps_daily` |
+   | Sleep | see below | `Sleep` | `sleep_hrs_daily` |
+
+   **No padding needed.** Group By Day skips days with no data; the server accepts 0–7
+   values per list (day order is never used), treats the missing days as missing, and
+   rejects more than 7. A list with one value or none is fine too.
+
+   **Sleep** must be hours per night. If Find Health Samples offers Group By Day for Sleep
+   (Value is not *Awake*, not *In Bed*), use it and divide each value by 3600 if it comes in
+   seconds. If it does not, raw sleep samples are per sleep stage, not per night, so they
+   cannot be sent as-is; use a small **Repeat 7 times** loop for sleep only (Find Sleep
+   samples whose End Date falls on that day → Get Details *Duration* → Calculate Statistics
+   *Sum* → ÷ 3600 → Add to `Sleep`).
 
 4. Optional: **Find Workouts** (Strength Training) in the window → **Count** →
    `lift_sessions_done`. Find Workouts is not available in Shortcuts on every device;

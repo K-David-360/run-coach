@@ -77,9 +77,9 @@ def test_weekly_rejects_bad_week_ending(env):
     assert _post(env, body).status_code == 400
 
 
-def test_weekly_rejects_wrong_array_length(env):
+def test_weekly_rejects_more_than_7_values(env):
     body = _weekly()
-    body["steps_daily"] = [7100] * 6
+    body["steps_daily"] = [7100] * 8
     resp = _post(env, body)
     assert resp.status_code == 400
     assert "steps_daily" in resp.get_json()["error"]

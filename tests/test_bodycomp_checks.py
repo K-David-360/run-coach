@@ -50,11 +50,30 @@ def test_validate_accepts_good_payload():
     assert validate_payload(_payload()) is None
 
 
-def test_validate_rejects_wrong_length_and_missing_arrays():
-    assert "weights_lb" in validate_payload(_payload(weights=(180,) * 6))
+def test_validate_rejects_too_many_values_and_missing_arrays():
+    assert "weights_lb" in validate_payload(_payload(weights=(180,) * 8))
     bad = _payload()
     del bad["sleep_hrs_daily"]
     assert "sleep_hrs_daily" in validate_payload(bad)
+
+
+def test_validate_accepts_short_lists_from_group_by_day():
+    # The Shortcut's Group By Day skips days with no data; day order is never used.
+    assert validate_payload(_payload(weights=(180,) * 4, steps=(7000,) * 6)) is None
+
+
+def test_short_steps_list_averages_present_days_only():
+    m = summarize_week(_payload(steps=(7000, 9000)))
+    assert (m["steps_days"], m["avg_steps"]) == (2, 8000)
+
+
+def test_single_value_or_empty_is_accepted():
+    # One sample can arrive as a bare value; a week with no samples as "" or null.
+    p = _payload()
+    p.update(weights_lb=180.0, protein_g_daily="", energy_kcal_daily=None)
+    assert validate_payload(p) is None
+    m = summarize_week(p)
+    assert (m["weight_days"], m["protein_days"], m["kcal_days"]) == (1, 0, 0)
 
 
 def test_validate_rejects_non_saturday():
