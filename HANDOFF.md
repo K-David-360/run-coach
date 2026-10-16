@@ -1,89 +1,90 @@
-# Run Coach — Outstanding Items (2026-10-16)
+# Run Coach — Handoff (2026-10-16, after deploy)
 
-State at handoff: the training rework (6-week cycle, Push/Pull/Full, jumps, KB ladder removed) and the
-body-comp weekly check (spec `health-bootcamp/06-weekly-checkin-handoff.md`) are merged into local
-`main`. 146 tests pass (`python3 -m pytest -q`). **Nothing is pushed to GitHub and nothing is deployed
-to the Pi.** The Pi still runs the old 4-week / KB-ladder code.
+The training rework (6-week cycle, Push/Pull/Full, jumps) and the body-comp weekly check are
+**deployed and live on the Pi**. 178 tests pass (`python3 -m pytest -q`). What's left is mostly
+the Sunday Shortcut on the phone, plus a few small items.
 
-> This repo is public. Keep personal numbers (weight, height, protein/calorie targets, lab or DEXA
-> values, secrets) out of this file and every tracked file.
+> Repo is public. Keep personal numbers (weight, targets, lab values), secrets, tokens and chat
+> IDs out of this file and every tracked file.
+
+The previous handoff (open questions, §5 fixes, deploy steps) is in git history:
+`git show 3e1998c:HANDOFF.md`.
 
 ---
 
-## 1. Blocking before `git push`
+## 1. Finish the Sunday Shortcut (main outstanding item)
 
-- [x] **Git history:** David accepted the older commits going public as-is (2026-10-16). No rewrite.
-- [ ] **Sync with GitHub.** Local `main` is 39 commits ahead of `origin/main` and 101 behind. The
-  101 are all the Pi's automatic "Update run coach calendar" commits. Run `git fetch origin && git
-  merge origin/main`, and on conflict take the remote calendar file (`git checkout --theirs
-  calendar-rc7f4a2b.ics`). Run the tests, then push (ask David first).
+Full instructions: **`SUNDAY_SHORTCUT_GUIDE.md`**. Where it stands:
 
-## 2. Pi deploy — done 2026-10-16
+- [x] Server route, secret header, Telegram (`@healthbootcamp_bot`): tested end to end.
+- [x] Steps: Find + Group By Day works; the Shortcut sends the weekly **average**.
+- [ ] **Date window:** use *Start Date is between `Week Start` and `Week End`* (last Sunday
+  00:00 → Saturday 23:59). "In the last 7 days" includes today, which pulls the steps
+  average down (today has only a few hours of steps).
+- [ ] **Weight / protein / energy:** send as **lists** (Text fields), not averages. The server
+  needs the day counts (4 weigh-ins, 5 food days) or it always reports "n/a". Not yet verified
+  with real data; add dummy Health entries dated yesterday and dry-run.
+- [ ] **Sleep: decide** (guide, "Sleep" section). The branch currently reuses last night's
+  sleep, one value, so S1 (3+ short nights) can never fire. Recommended: server fills the week
+  from `history.json` (5 of 7 nights, since rest days don't log), or a 7-day sleep loop.
+- [ ] `Run Coach TEST` copy: delete its `/healthkit` post (each run added a history entry;
+  cleaned up three times on 2026-10-16).
+- [ ] Final: real Shortcut without `?dry_run=1`, `Sunday` restored. First real check
+  **Sun Nov 1** (week ending Sat Oct 31).
+- [ ] Check whether Find Workouts exists in Shortcuts; if not, leave `lift_sessions_done` out.
 
-- Pi `~/run-coach` is now a clean checkout of `origin/main`. **Cron runs `deploy.sh` every minute
-  (`git pull` + `sudo systemctl restart`)**; the restart fails without a password, so after a push
-  David runs `sudo systemctl restart run-coach`. Pre-deploy backup: `~/run-coach-backup-20261016005539`.
-- `plan_state.json` restored from that backup with `cycle_start_date` 2026-10-26 (the rest of
-  this week and the week of Oct 19 read as deload). Pi plan state is **phase 2**.
-- `.env` (Pi and Mac): `BODYCOMP_SECRET` (Pi only, generated on the Pi), `TELEGRAM_BOT_TOKEN`,
-  `TELEGRAM_CHAT_ID` (bot @healthbootcamp_bot). `data/bodycomp/config.json` on the Pi.
-- Smoke tests passed: calendar (deload through Oct 24, Push weekly target 60 on Oct 26, no KB);
-  synthetic `/bodycomp/weekly` → 200 + banner; test report deleted.
-- [ ] Confirm the Telegram message from the smoke test arrived.
-- [x] **Hazard:** `data/plan_state.json` and `data/current_session.json` are now untracked and
-  gitignored (commit 4b2f827). The Pi's live copies were restored after the pull and are identical to the backup
-  `~/run-coach-data-backup-20261016020329`.
-- [ ] Optional: NOPASSWD sudoers line for `systemctl restart run-coach` so pushes deploy fully.
-- Set `baseline_weight_lb` after the week ending Sat Oct 31.
+**Debugging:** `POST /bodycomp/weekly?dry_run=1` stores nothing, sends nothing, and replies
+with per-metric `count` / `values` / `read_as`. The Pi keeps the last reply in
+`~/run-coach/data/bodycomp/last_dry_run.json` (gitignored), so Claude can read it via the
+Terminal SSH session.
 
-## 3. To-dos for David (phone)
+## 2. Pi state
 
-- [x] Telegram bot, secret, Pi config.
-- [ ] Sunday Shortcut branch (`SHORTCUTS_GUIDE.md` Step 9b; one Find per metric, Group By Day,
-  no `week_ending` needed). Check whether Sleep offers Group By Day. Dry run with only the branch.
-- [ ] Check "Find Workouts" exists (else leave `lift_sessions_done` out).
-- [ ] "Run Coach Tape" Shortcut + monthly Reminder.
+- `~/run-coach` is a checkout of `origin/main` (branch `master`). Cron runs `deploy.sh` every
+  minute: `git pull` + `sudo systemctl restart run-coach`. **The restart needs a password**, so it
+  only works within about 15 min of David running sudo himself. After a push, David runs
+  `sudo systemctl restart run-coach` (check: `systemctl show run-coach -p MainPID -p ActiveEnterTimestamp`).
+- [ ] Optional: a NOPASSWD sudoers line for `/bin/systemctl restart run-coach` (one exists for
+  `canvas`), so pushes deploy with no manual step.
+- `data/plan_state.json` and `data/current_session.json` are untracked now (4b2f827); a pull
+  can no longer overwrite them.
+- Plan state: **phase 2**, `cycle_start_date` 2026-10-26. This week and the week of Oct 19 read
+  as deload (34-min runs, no jumps). Block week 1 starts Mon Oct 26.
+- `.env` on the Pi: `GITHUB_TOKEN`, `BODYCOMP_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+  The Mac `.env` has the same except `BODYCOMP_SECRET`.
+- `data/bodycomp/config.json` on the Pi: BC-1, start 2026-10-19, `telegram_detail` trends,
+  David's targets. No weekly reports stored yet.
+- Backups: `~/run-coach-backup-20261016005539` (pre-deploy code and data, `.env`, test-cleanup
+  copies) and `~/run-coach-data-backup-20261016020329` (data before the untrack pull).
+
+## 3. To-dos for David
+
+- [ ] Set `baseline_weight_lb` in the Pi config after the week ending Sat Oct 31 (W1 reports
+  "not configured" until then).
+- [ ] Build the "Run Coach Tape" Shortcut and add a monthly Reminder (`SHORTCUTS_GUIDE.md`).
 - [ ] Change the Pi's `pi` password (`passwd`).
+- [ ] Confirm the phase: the Pi is on **phase 2** but `CLAUDE.md` says phase 1. Was the LTHR
+  test done? Update `CLAUDE.md` "Current state" to match.
 
-## 4. Open questions — decided 2026-10-16
+## 4. Smaller open items
 
-- **S1 calendar:** generic `Jumps: skip this week.` on S1-week lift events, no reason. Done.
-- **Saturday optional run:** low HRV **or** S1 week. Done (note reworded to "recovery is down").
-- **`lift_sessions_done`:** stays optional.
-- **`POST /bodycomp/measurements`:** kept.
-- **W1 baseline:** set `baseline_weight_lb` on the Pi after the intro week (week ending Sat Oct 31).
-
-## 5. Deferred minor issues — fixed 2026-10-16 (`tests/test_handoff_fixes.py`)
-
-Training rework:
-- ~~Non-Monday `cycle_start_date`~~ — `cycle.py` now counts from that date's own Monday.
-- ~~`generate_session` / `_count_nights_below` call `date.today()`~~ — both (and `rule_engine`)
-  take `today`; the server passes it.
-- ~~No server test of the pre-start case~~ — added (Tue Oct 20 → DELOAD, 28 min).
-- ~~Legacy `POST /run` never recomputes `current_week`~~ — it does now.
-
-Body-comp:
-- ~~`null` config / string threshold → plain 500~~ — `load_config` raises a clear ValueError
-  naming the key (the routes return it as the error message).
-- ~~S1 note says "~80% of sets" on DELOAD/SUPPRESS~~ — those days get the fixed
-  `S1_NOTE_LOW_DAY` ("Sleep was short last week: skip jumps.").
-- ~~Store writes not atomic~~ — temp file + `os.replace`.
-- Still open (not code): the Shortcut's `EEEE == "Sunday"` check depends on the phone's language
-  (noted in the guide), and `bc_phase_start_date` must be set at deploy (section 2) or W1 never
-  stops after week 12.
-
-## 6. Older backlog (from CLAUDE.md "Remaining tasks")
-
+- The Shortcut's `EEEE == "Sunday"` check depends on the phone's language.
 - Manual "rough week" override via the `/note` stub (e.g. `{"stress": "high"}` for 7 days).
-- ~~CLAUDE.md `/calendar/push` and deploy-section tidy~~ — done 2026-10-16.
-- `docs/superpowers/plans/2026-10-15-bodycomp-module.md` is partly superseded by spec 06 (noted at
-  its top).
+- `docs/superpowers/plans/2026-10-15-bodycomp-module.md` is partly superseded by spec 06.
+
+## Decisions made 2026-10-16 (also in `CLAUDE.md`)
+
+- S1 week: the calendar shows a generic `Jumps: skip this week.`, and Saturday's run becomes
+  optional (low HRV **or** S1 week).
+- `lift_sessions_done` optional; `/bodycomp/measurements` kept; W1 baseline set after the
+  intro week.
+- Old git history with near-real values accepted as public.
+- `/bodycomp/weekly`: 0–7 values per metric (or Text, one per line), `week_ending` optional
+  (last Saturday before today; any date snaps back), `?dry_run=1` for testing.
 
 ## References
 
 - Specs: `health-bootcamp/03-run-coach-handoff.md`, `health-bootcamp/06-weekly-checkin-handoff.md`,
   protocol `health-bootcamp/01-protocol.md`
-- Plans: `docs/superpowers/plans/2026-10-15-training-rework.md`,
-  `docs/superpowers/plans/2026-10-15-bodycomp-module.md`
-- Project docs: `CLAUDE.md` (6-week cycle, jump block, body-comp section with the S1 exception),
-  `SHORTCUTS_GUIDE.md` (Step 9b Sunday branch, tape Shortcut)
+- Guides: `SUNDAY_SHORTCUT_GUIDE.md`, `SHORTCUTS_GUIDE.md`
+- Deploy technique: `~/.claude/CLAUDE.md` (Terminal SSH session)

@@ -404,7 +404,8 @@ in `plan_generator.py`. The 6-week cycle and jumps continue unaffected through t
 - **Pi address**: `raspberrypi.local` (mDNS; LAN IP changes) / Tailscale `100.109.212.86`
 - **Service**: `sudo systemctl restart run-coach` / `systemctl status run-coach`
 - **Service file**: `/etc/systemd/system/run-coach.service`
-- **Run-coach path on Pi**: `/home/pi/run-coach/`
+- **Run-coach path on Pi**: `/home/pi/run-coach/` (git checkout of `origin/main`; cron `deploy.sh`
+  pulls every minute and tries to restart. The restart needs David's sudo, so after a push he runs it.)
 
 ### Deploying changes to Pi
 
