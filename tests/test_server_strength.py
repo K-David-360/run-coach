@@ -104,3 +104,32 @@ def test_skip_jumps_flag_saved_for_calendar(client):
     assert json.loads(client.state_file.read_text())["last_execution_skip_jumps"] is True
     _post(client(datetime.date(2026, 10, 28)))
     assert json.loads(client.state_file.read_text())["last_execution_skip_jumps"] is False
+
+
+# ── Rest days (Thu / Sun): readiness reported, night logged, plan state untouched ──
+
+def test_rest_day_reports_readiness_and_logs_history(client):
+    c = client(datetime.date(2026, 10, 29))   # Thursday
+    before = client.state_file.read_text()
+    body = _post(c)
+    assert body["type"] == "rest" and body["blocks"] == []
+    assert body["readiness"] == body["debug"]["decision"]
+    assert body["notification"].startswith("🛌 Rest day")
+    assert body["decision_reason"]
+    history = json.loads(open(server.HISTORY_FILE).read())
+    assert len(history) == 1
+    assert history[0]["session"]["date"] == "2026-10-29"
+    assert history[0]["run_data"]["sleep"]["total_hrs"] == 8
+    # current_week is recomputed on every post; nothing else may change on a rest day
+    after = json.loads(client.state_file.read_text())
+    before = json.loads(before)
+    after.pop("current_week"), before.pop("current_week")
+    assert after == before
+
+
+def test_rest_day_low_recovery_reads_suppress(client):
+    c = client(datetime.date(2026, 11, 1))    # Sunday
+    _post(c)                                  # baseline night
+    body = _post(c, hrv_last_night=30, sleep_total_hrs=4, sleep_deep_hrs=0.5)
+    assert body["readiness"] == "SUPPRESS"
+    assert "low" in body["notification"]

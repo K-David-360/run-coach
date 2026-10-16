@@ -208,3 +208,42 @@ def test_dry_run_reply_is_saved_for_debugging(env, monkeypatch, tmp_path):
     env["client"].post("/bodycomp/weekly?dry_run=1", json=_weekly(), headers=SECRET)
     saved = json.loads(path.read_text())
     assert saved["dry_run"] is True and saved["received"]["steps_daily"]["count"] == 7
+
+
+# ── Sleep left out: filled from the daily /healthkit history ──
+
+def _night(day, hrs):
+    return {"run_data": {"sleep": {"total_hrs": hrs}}, "session": {"date": day}}
+
+
+def test_weekly_sleep_filled_from_history(env):
+    env["history"].write_text(json.dumps([
+        _night("2026-10-24", 3.0),                           # previous week: ignored
+        _night("2026-10-25", 6.0), _night("2026-10-26", 0),  # 0 = no reading
+        _night("2026-10-27", 5.0), _night("2026-10-27", 7.0),  # posted twice: last wins
+        _night("2026-10-29", 6.2), _night("2026-10-31", 6.4),
+        _night("2026-11-01", 4.0),                           # next week: ignored
+    ]))
+    body = _weekly()
+    del body["sleep_hrs_daily"]
+    resp = env["client"].post("/bodycomp/weekly?dry_run=1", json=body, headers=SECRET)
+    assert resp.status_code == 200, resp.data
+    reply = resp.get_json()
+    assert reply["sleep_source"] == "history"
+    assert reply["received"]["sleep_hrs_daily"]["read_as"] == [6.0, 7.0, 6.2, 6.4]
+    assert "S1 AMBER" in reply["flags"]                        # 6.0, 6.2, 6.4 < 6.5
+
+
+def test_weekly_sleep_from_shortcut_wins(env):
+    env["history"].write_text(json.dumps([_night("2026-10-27", 5.0)]))
+    resp = env["client"].post("/bodycomp/weekly?dry_run=1", json=_weekly(), headers=SECRET)
+    assert resp.get_json()["sleep_source"] == "shortcut"
+    assert resp.get_json()["received"]["sleep_hrs_daily"]["count"] == 7
+
+
+def test_rejected_dry_run_is_kept(env, tmp_path):
+    body = {**_weekly(), "steps_daily": [7000] * 8}
+    resp = env["client"].post("/bodycomp/weekly?dry_run=1", json=body, headers=SECRET)
+    assert resp.status_code == 400
+    kept = json.loads((tmp_path / "bodycomp" / "last_dry_run.json").read_text())
+    assert "steps_daily" in kept["error"] and kept["received"]["steps_daily"]["count"] == 8

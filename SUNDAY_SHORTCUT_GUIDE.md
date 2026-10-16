@@ -12,10 +12,10 @@ data to `POST /bodycomp/weekly`. It replaces Step 9b of `SHORTCUTS_GUIDE.md`.
 | Piece | State |
 |---|---|
 | Server, secret, Telegram | Done and tested. The Pi returns a banner and sends a Telegram message from `@healthbootcamp_bot`. |
-| Steps | Works. Find returns daily totals; the Shortcut sends their **average** (one number). The window still includes today, so the average is too low. **Fix the window (step 2).** |
-| Weight / protein / energy | Not yet verified with real data: Health had nothing in the window. Send them as **lists**, not averages (see "Why lists"). |
-| Sleep | **Open decision.** The branch reuses the daily Shortcut's sleep variable, which is one night only. See "Sleep". |
-| Dry-run test copy | `Run Coach TEST` exists. It still posts to `/healthkit` on every run; delete that action. |
+| Lists | Verified: a list in a Text field arrives as one value per line. |
+| Steps / weight / protein / energy | Built as filtered loops (below). Steps was adding the whole list each pass; fixed by reading the **Repeat Item**. Re-check with a dry run. |
+| Sleep | **Decided: the Shortcut sends none.** The server fills it from the daily `/healthkit` history; rest days now log too, so all 7 nights are there. |
+| Testing | Done in the real Shortcut with `?dry_run=1` (no separate TEST copy). |
 
 ---
 
@@ -29,7 +29,7 @@ data to `POST /bodycomp/weekly`. It replaces Step 9b of `SHORTCUTS_GUIDE.md`.
 | `protein_g_daily` | daily protein, g |
 | `energy_kcal_daily` | daily calories, kcal |
 | `steps_daily` | daily steps, or one weekly average |
-| `sleep_hrs_daily` | hours per night |
+| `sleep_hrs_daily` | optional; leave out and the server uses the daily posts' sleep |
 | `lift_sessions_done` | optional; leave out if Find Workouts is missing |
 
 - Each value can be a list of **0–7** numbers, a single number, or **Text** with one number
@@ -54,35 +54,43 @@ day minimum, so its average is fine.
 All inside `If [Format Date (EEEE)] is Sunday`, after the daily Step 9, before
 Tailscale Disconnect.
 
-### 1. Date variables (window = last Sunday 00:00 → Saturday 23:59)
+### 1. Today as text
 
-1. **Format Date** → Current Date, Custom `yyyy-MM-dd`.
-2. **Get Dates from Input** (Formatted Date) → **Set Variable** `Today Start`.
-3. **Adjust Date** → `Today Start`, subtract **7 days** → **Set Variable** `Week Start`.
-4. **Adjust Date** → `Today Start`, subtract **1 minute** → **Set Variable** `Week End`.
+**Format Date** → Current Date, Custom `yyyy-MM-dd` → **Set Variable** `Today Text`.
 
-### 2. One Find per metric
+Find Health Samples won't take a date variable in "is between", and If won't take one in
+"is before", so the window is "in the last 7 days" with today dropped by a text compare.
 
-For each metric: **Find Health Samples** with
-- **Start Date is between `Week Start` and `Week End`**. Not "in the last 7 days": that
-  includes today and returns 8 day-groups.
-- **Group By: Day**, Fill Missing **off**, **no Limit**.
+### 2. One filtered loop per metric
 
-Then **Get Details of Health Sample → Value** into its own variable.
+1. **Find Health Samples** → Type, **in the last 7 days**, Group By **Day**, Fill Missing
+   **off**, **no Limit**, Unit.
+2. **Repeat with Each** (Health Samples)
+   - **Get Details of Health Sample** → **Start Date** of **Repeat Item**
+   - **Format Date** → that Start Date, Custom `yyyy-MM-dd`
+   - **If** Formatted Date **is not** `Today Text`
+     - **Get Details of Health Sample** → **Value** of **Repeat Item** (not Health
+       Samples, or every pass adds the whole list)
+     - **Add to Variable** → the variable below
+   - **End If**
+3. **End Repeat**
 
-| Type | Unit | Then | Variable |
-|---|---|---|---|
-| Body Mass | lb | (list as-is) | `Weights` |
-| Dietary Protein | g | (list as-is) | `Protein` |
-| Dietary Energy | kcal | (list as-is) | `Energy` |
-| Steps | count | **Calculate Statistics → Average** | `Steps` |
-| Sleep | — | see "Sleep" | `Sleep` |
+| Type | Unit | Variable |
+|---|---|---|
+| Body Mass | lb | `Weights` |
+| Dietary Protein | g | `Protein` |
+| Dietary Energy | kcal | `Energy` |
+| Steps | count | `Steps` |
+
+The window starts at the time of day the Shortcut runs, so last Sunday is partial. Fine
+for weight (morning weigh-in); food and steps for that day may be undercounted.
 
 ### 3. Post
 
 **Get Contents of URL** → `[Server URL]/bodycomp/weekly`, Method **POST**, Header
-`X-Bodycomp-Secret` = the secret, Request Body **JSON** with the five keys above, **each
-field type Text**.
+`X-Bodycomp-Secret` = the secret, Request Body **JSON**, each field type **Text**:
+`weights_lb` = `Weights`, `protein_g_daily` = `Protein`, `energy_kcal_daily` = `Energy`,
+`steps_daily` = `Steps`. No sleep key.
 
 ### 4. Banner
 
@@ -94,41 +102,20 @@ field type Text**.
 
 ---
 
-## Sleep (decision needed)
-
-The weekly rule S1 flags 3+ nights under 6.5 h, so it needs **one value per night**. The
-daily Shortcut's sleep variable is last night only, so S1 can never trigger with it. Options:
-
-1. **Server fills it from history (recommended).** The daily `/healthkit` post already logs
-   `sleep_total_hrs` each morning. The server could use those for the week when the Shortcut
-   sends one value or none. Catch: rest days (Thu, Sun) return before logging, so that's 5
-   nights of 7, unless rest days start logging sleep too. Needs a server change.
-2. **Small sleep loop in the Shortcut.** Repeat 7 times: Find Sleep samples whose End Date
-   falls on that day, Value is not Awake / In Bed → Details Duration → Sum → ÷ 3600 → add to
-   `Sleep`.
-3. **Check Group By Day for Sleep** on the phone. If Find Health Samples offers it for
-   Sleep, use it like the others (convert seconds to hours if needed).
-
----
-
 ## Testing
 
-Use the copy `Run Coach TEST`:
+1. Add `?dry_run=1` to the URL. Dry runs store nothing and send no Telegram. The reply
+   lists, per metric, `count`, raw `values` and `read_as`, plus `sleep_source`.
+2. The Pi keeps the last dry-run reply, **including rejected ones**, in
+   `data/bodycomp/last_dry_run.json`, so Claude can read it with no copy-paste.
+3. Running the whole morning Shortcut also posts `/healthkit`, which adds a history entry.
+   Tell Claude after testing so the extra entries can be removed.
+4. For data: add dummy entries in the **Health app** (Browse → Weight / Protein / Dietary
+   Energy → Add Data) dated **yesterday**, then delete them afterwards. Change `Sunday` in
+   the If to today's weekday while testing.
 
-1. Delete its **Get Contents of URL … /healthkit** action and the daily banner after it.
-   Every run of the full morning Shortcut adds a `/healthkit` history entry, which skews the
-   HRV baseline and short-sleep counts (cleaned up three times on 2026-10-16).
-2. Change `Sunday` in the If to today's weekday.
-3. URL: `[Server URL]/bodycomp/weekly?dry_run=1`. Dry runs store nothing and send no
-   Telegram. The reply lists, per metric, `count`, raw `values` and `read_as`.
-4. Optional: **Quick Look** right after Get Contents of URL to see the reply on the phone.
-   The Pi also keeps the last reply in `data/bodycomp/last_dry_run.json`, so Claude can read
-   it with no copy-paste.
-5. For data: add dummy entries in the **Health app** (Browse → Weight / Protein / Dietary
-   Energy → Add Data) dated **yesterday**, then delete them afterwards.
+**Expected:** each `count` ≤ 7 and equal to the days with data, no today value, nothing in
+`read_as` is `null`, `sleep_source` = `history`.
 
-**Expected:** `steps_daily` one value close to the true 7-day average (no today), weight /
-protein / energy `count` = number of days with data, nothing in `read_as` is `null`.
-
-When it's right: remove `?dry_run=1` in the real morning Shortcut's branch, restore
-`Sunday`, and wait for **Sun Nov 1** (first full week, ending Sat Oct 31).
+When it's right: remove `?dry_run=1`, restore `Sunday`, and wait for **Sun Nov 1** (first
+full week, ending Sat Oct 31).

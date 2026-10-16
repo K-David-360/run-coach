@@ -92,20 +92,22 @@ The `/healthkit` endpoint determines what session to generate based on
 | Mon (0) | 🏋️ Push | Runs, intensity class applied |
 | Tue (1) | 🏃 Run A | Runs, full run session generated |
 | Wed (2) | 🏋️ Pull | Runs, intensity class applied |
-| Thu (3) | Rest | Skipped — returns rest response immediately |
+| Thu (3) | Rest | Runs for readiness only; night logged to history |
 | Fri (4) | 🏋️ Full | Runs, intensity class applied |
 | Sat (5) | 🏃 Run B | Runs, full run session generated |
-| Sun (6) | Rest | Skipped — returns rest response immediately |
+| Sun (6) | Rest | Runs for readiness only; night logged to history |
 
-Rest days skip health data processing entirely and return:
-```json
-{"type": "rest", "summary": "Rest Day — No Session", "blocks": []}
-```
+Rest days have no session but still run the rule engine. They return
+`{"type": "rest", "readiness": "<decision>", "summary": "Rest Day — No Session", "blocks": []}`
+with a rest-specific banner, and append the night to `history.json` (so HRV baseline,
+short-sleep counts and the weekly sleep check see all 7 nights). Plan state and the
+calendar are not touched. Because rest days now log, a SUPPRESS on a rest day counts
+toward "≥ 2 consecutive suppresses".
 
 ### Intensity class (rule engine decisions)
 
-The rule engine fires on all non-rest days. Its decision (intensity class)
-applies to every session type:
+The rule engine fires every day. Its decision (intensity class) applies to
+every session type (on rest days it is reported as readiness only):
 
 - **Runs**: affects duration, zone, session type
 - **Strength**: applied as a header flag in the summary (⬆️/⬇️/⛔️); the
@@ -228,7 +230,7 @@ Every `/healthkit` response includes:
 | REDUCE | ⬇️ Pull back today — do a shorter, easier version of your session. |
 | HOLD | ✅ On track — follow today's plan as scheduled. |
 | BUILD | ⬆️ Good recovery — you can push a little harder today. |
-| REST | 🛌 Rest day — no training today. |
+| Rest days | 🛌 Rest day — recovery on track. / good recovery. / a bit low, take it easy. / low, keep today fully easy. / deload week, keep recovering. (by decision) |
 
 The Shortcut reads both `decision_reason` and `notification` from the response
 and concatenates them in the banner body (e.g. "HOLD ✅ On track — follow today's
@@ -256,6 +258,10 @@ Telegram message (tier from `telegram_detail`, default `trends`).
   (monthly tape), `/bodycomp/review-packet`. All require header `X-Bodycomp-Secret`
   matching env `BODYCOMP_SECRET` (503 if unset). Telegram env: `TELEGRAM_BOT_TOKEN`,
   `TELEGRAM_CHAT_ID`. A Telegram failure never fails the route.
+- **Sleep:** if `sleep_hrs_daily` is left out or empty, the server fills it from
+  `history.json` (one `sleep.total_hrs` per `session.date` in Sun–Sat, last post of a day
+  wins, 0 skipped). The Sunday Shortcut sends no sleep. Dry runs report `sleep_source`
+  and are kept in `data/bodycomp/last_dry_run.json` even when rejected (400).
 - **Telegram allowlist:** `bodycomp/telegram.build_message` accepts only week_ending,
   flags, protein status, weight delta, protein/steps/sleep averages. Never absolute
   weight, calories, baseline, height or thresholds.
@@ -423,7 +429,7 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 - **Server**: running on Pi, systemd service, auto-starts on boot
 - **iOS Shortcut**: fires daily (not just on run days); notification fires correctly
 - **Calendar**: live, pushes to GitHub after every POST; window reaches the next deload
-- **Rule engine**: fires every non-rest day; SUPPRESS/DELOAD/REDUCE/HOLD/BUILD
+- **Rule engine**: fires every day (readiness only on rest days); SUPPRESS/DELOAD/REDUCE/HOLD/BUILD
 - **Phase**: 1 (both runs Zone 2 easy). Advance to 2 after LTHR field test.
 - **Strength**: Push/Pull/Full with jump block; 6-week cycle from `cycle_start_date` 2026-10-26
 - **HRV baseline**: builds from history — accurate after 7 real sessions
@@ -490,9 +496,9 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
 - **Phase system** — plan table is phase-aware. Phase 1 = both runs Zone 2
   easy (no intensity). Phases 2 and 3 tables already defined, activated by
   setting `"phase"` in `plan_state.json` after LTHR field test.
-- **Rule engine fires every non-rest day** — the intensity class applies to
-  all session types (runs, strength, jumps), not just runs. Rest days
-  short-circuit before health data processing.
+- **Rule engine fires every day** — the intensity class applies to all
+  session types (runs, strength, jumps). Rest days report it as readiness
+  and log the night, but generate no session and leave plan state alone.
 - **Strength sessions carry the lift menu** — Push/Pull/Full from the
   health-bootcamp protocol, plus the intensity flag and jump line.
 - **One counter** — deload cycle, run plan week and jump progression all derive

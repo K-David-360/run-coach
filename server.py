@@ -56,7 +56,7 @@ import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 import bodycomp.telegram as bc_telegram
 from bodycomp.checks import (ARRAY_FIELDS, coerce_value, daily_values, resolve_week_ending,
-                             summarize_week, validate_payload, weekly_check)
+                             summarize_week, validate_payload, week_days, weekly_check)
 from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, S1_NOTE_LOW_DAY, s1_week_dates
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
@@ -87,6 +87,15 @@ _NOTIFICATIONS = {
     "REDUCE":   "⬇️ Pull back today — do a shorter, easier version of your session.",
     "HOLD":     "✅ On track — follow today's plan as scheduled.",
     "BUILD":    "⬆️ Good recovery — you can push a little harder today.",
+}
+
+# Rest days (Thu / Sun): readiness only, never a prompt to train.
+_REST_NOTIFICATIONS = {
+    "SUPPRESS": "🛌 Rest day — recovery is low. Keep today fully easy.",
+    "DELOAD":   "🛌 Rest day — deload week, keep recovering.",
+    "REDUCE":   "🛌 Rest day — recovery is a bit low. Take it easy.",
+    "HOLD":     "🛌 Rest day — recovery on track.",
+    "BUILD":    "🛌 Rest day — good recovery.",
 }
 
 _DEFAULT_PLAN_STATE = {
@@ -366,6 +375,30 @@ def _received_echo(body: dict) -> dict:
     }
 
 
+def _history_sleep(week_ending: str) -> list:
+    """Nightly total sleep for the week, from the daily /healthkit posts (dated by the
+    morning they were sent). A day posted more than once counts once: the last post wins."""
+    days = set(week_days(week_ending))
+    by_day = {}
+    for entry in _load_json(HISTORY_FILE, default=[]):
+        day = entry.get("session", {}).get("date", "")
+        total = entry.get("run_data", {}).get("sleep", {}).get("total_hrs", 0)
+        if day in days and total:
+            by_day[day] = total
+    return [by_day[d] for d in sorted(by_day)]
+
+
+def _keep_dry_run(reply: dict) -> dict:
+    """Keep the last dry-run reply, accepted or rejected, in the gitignored data/bodycomp/
+    for debugging the Shortcut."""
+    try:
+        os.makedirs(os.path.dirname(BODYCOMP_DRY_RUN_FILE), exist_ok=True)
+        _save_json(BODYCOMP_DRY_RUN_FILE, reply)
+    except OSError:
+        app.logger.exception("could not save dry-run reply")
+    return reply
+
+
 @app.route("/bodycomp/weekly", methods=["POST"])
 def post_bodycomp_weekly():
     """Sunday weekly check: Health samples in, banner + flags out."""
@@ -377,12 +410,20 @@ def post_bodycomp_weekly():
         body["week_ending"] = resolve_week_ending(body.get("week_ending"), date.today())
     except ValueError:
         return jsonify({"error": "week_ending must be a date (YYYY-MM-DD) or left out"}), 400
+    # Sleep left out → taken from the daily posts, which already total each night.
+    sleep_source = "shortcut"
+    if not daily_values(body, "sleep_hrs_daily"):
+        body["sleep_hrs_daily"] = _history_sleep(body["week_ending"])
+        sleep_source = "history"
     # ?dry_run=1: echo what arrived and the banner it would give; store and send nothing.
     dry_run = request.args.get("dry_run", "").lower() in ("1", "true", "yes")
     received = _received_echo(body) if dry_run else None
     error = validate_payload(body)
     if error:
-        return jsonify({"error": error, **({"dry_run": True, "received": received} if dry_run else {})}), 400
+        if not dry_run:
+            return jsonify({"error": error}), 400
+        return jsonify(_keep_dry_run({"dry_run": True, "error": error, "received": received,
+                                      "sleep_source": sleep_source})), 400
     try:
         config = bc_config.load_config(bc_config.CONFIG_FILE)
     except ValueError as exc:
@@ -398,14 +439,9 @@ def post_bodycomp_weekly():
     if dry_run:
         summary = {k: v for k, v in summarize_week(body).items() if k != "sleep_hrs"}
         reply = {"dry_run": True, "week_ending": report["week_ending"], "received": received,
-                 "summary": summary, "notification": report["banner"],
+                 "sleep_source": sleep_source, "summary": summary, "notification": report["banner"],
                  "flags": [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]}
-        try:   # last reply kept in the gitignored data/bodycomp/ for debugging the Shortcut
-            os.makedirs(os.path.dirname(BODYCOMP_DRY_RUN_FILE), exist_ok=True)
-            _save_json(BODYCOMP_DRY_RUN_FILE, reply)
-        except OSError:
-            app.logger.exception("could not save dry-run reply")
-        return jsonify(reply), 200
+        return jsonify(_keep_dry_run(reply)), 200
     bc_store.save_week(report, bc_store.WEEKLY_FILE)
     bc_store.save_report_file(report, bc_store.REPORTS_DIR)
     # Telegram gets only allowlisted aggregate fields; a failure never fails the route.
@@ -576,19 +612,6 @@ def post_healthkit():
     plan_state["current_week"] = _week_from_cycle_start(plan_state["cycle_start_date"], date.today())
     _save_json(PLAN_STATE_FILE, plan_state)
 
-    # Rest days: skip health processing entirely
-    if today_dow in _REST_DAYS:
-        rest_session = {
-            "session_id": f"rest-{today_str}",
-            "date": today_str,
-            "type": "rest",
-            "rule_fired": "REST",
-            "summary": "Rest Day — No Session",
-            "blocks": [],
-        }
-        _save_json(CURRENT_SESSION_FILE, rest_session)
-        return jsonify({**rest_session, "notification": "🛌 Rest day — no training today.", "decision_reason": "Rest day"}), 200
-
     # ── Deduplication check (run days only) ───────────────────────────────────
     last_workout_date = body.get("last_workout_date", "")
     last_processed = plan_state.get("last_processed_workout_date", "")
@@ -649,6 +672,40 @@ def post_healthkit():
 
     # ── Rule engine ───────────────────────────────────────────────────────────
     decision = rule_engine(data, hrv_ratio, today=date.today())
+
+    # ── Rest days (Thu / Sun): no session, but readiness is reported and the
+    # night is logged, so sleep and HRV history cover all 7 days.
+    # Plan state and the calendar are left alone.
+    if today_dow in _REST_DAYS:
+        rest_session = {
+            "session_id": f"rest-{today_str}",
+            "date": today_str,
+            "type": "rest",
+            "rule_fired": "REST",
+            "readiness": decision["decision"],
+            "summary": "Rest Day — No Session",
+            "blocks": [],
+        }
+        _save_json(CURRENT_SESSION_FILE, rest_session)
+        history = _load_json(HISTORY_FILE, default=[])
+        history.append({"run_data": data, "decision": decision, "session": rest_session})
+        history = history[-30:]
+        _save_json(HISTORY_FILE, history)
+        return jsonify({
+            **rest_session,
+            "notification": _REST_NOTIFICATIONS.get(decision["decision"], _REST_NOTIFICATIONS["HOLD"]),
+            "decision_reason": decision["reason"],
+            "debug": {
+                "rest_day":            True,
+                "hrv_ratio":           round(hrv_ratio, 3),
+                "hrv_7d_avg":          round(hrv_7d_avg, 1),
+                "resting_hr":          resting_hr,
+                "sleep_total_hrs":     sleep_total_hrs,
+                "sleep_deep_hrs":      sleep_deep_hrs,
+                "load_classification": load_classification,
+                "decision":            decision["decision"],
+            },
+        }), 200
 
     # ── Strength days (Mon / Wed / Fri) ───────────────────────────────────────
     if today_dow in _STRENGTH_DAYS:
