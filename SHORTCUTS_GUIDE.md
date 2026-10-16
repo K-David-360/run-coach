@@ -211,8 +211,10 @@ Action names vary by iOS version; verify on the phone.
    - No `week_ending` needed: the server uses the last Saturday before today (yesterday,
      on a Sunday). Send `week_ending` (`yyyy-MM-dd`) only to re-post an older week; any date
      snaps back to the Saturday on or before it.
-   - **Adjust Date** → Current Date, subtract 7 days → start of that day → `Week Start`
-     (last Sunday 00:00). **Get Start of Day** of Current Date → `Week End` (today 00:00).
+   - **Format Date** → Current Date, custom `yyyy-MM-dd` → **Get Dates from Input** →
+     `Today Start` (today 00:00).
+   - **Adjust Date** → `Today Start`, subtract 7 days → `Week Start` (last Sunday 00:00).
+   - **Adjust Date** → `Today Start`, subtract 1 minute → `Week End` (Saturday 23:59).
 3. **One Find per metric, each into its own variable.** Filter **Start Date is between
    `Week Start` and `Week End`**, not "in the last 7 days": on a Sunday morning that also
    catches today and can return 8 days, which the server rejects. Then **Get Details of
@@ -241,7 +243,8 @@ Action names vary by iOS version; verify on the phone.
    `lift_sessions_done`. Find Workouts is not available in Shortcuts on every device;
    if it is missing, leave the key out and the server skips the session-count check.
 5. **Get Contents of URL** → `{Server URL}/bodycomp/weekly`, Method POST, Request Body JSON
-   with the five lists (and `lift_sessions_done` if available). Header
+   with the five lists, **each field of type Text** (a Number field keeps only the first
+   item; Text joins the list one value per line, which the server splits) (and `lift_sessions_done` if available). Header
    `X-Bodycomp-Secret` = the shared secret (stored only in the Shortcut; never export or
    share the Shortcut with it inside).
 6. **Get Dictionary Value** `notification` from the response. **If** it *does not have any
@@ -253,6 +256,10 @@ Action names vary by iOS version; verify on the phone.
 The Pi also sends a Telegram message (trends tier: weight change, average protein,
 steps and sleep, plus flags; never absolute weight or calories). Re-running on the same
 Sunday replaces that week's report.
+
+**Debugging:** add `?dry_run=1` to the URL and a **Quick Look** right after Get Contents of
+URL. The reply lists, per metric, the `count`, the raw `values` and how the server `read_as`
+them; nothing is stored and no Telegram message is sent.
 
 **Dry run:** run only this branch (a copy of the Shortcut with everything before Step 9b
 deleted, so no extra `/healthkit` entries), with the weekday condition changed to today.

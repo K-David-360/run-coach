@@ -76,11 +76,21 @@ def validate_payload(payload: dict):
 
 def daily_values(payload: dict, field: str) -> list:
     """Up to 7 per-day values. Group By Day skips empty days and day order is never used,
-    so a short list is fine; a bare value is one day and ""/null is none."""
-    values = payload.get(field)
-    if values is None or values == "":
+    so a short list is fine; a bare value is one day and ""/null is none. Newline-joined
+    text and nested lists are flattened."""
+    return _flatten(payload.get(field))
+
+
+def _flatten(value) -> list:
+    """Lists may be nested, and a list sent in a Shortcuts Text field arrives as one string
+    with a value per line; both become a flat list. Commas are thousands separators, not splits."""
+    if value is None:
         return []
-    return values if isinstance(values, list) else [values]
+    if isinstance(value, list):
+        return [v for item in value for v in _flatten(item)]
+    if isinstance(value, str):
+        return [line.strip() for line in value.splitlines() if line.strip()]
+    return [value]
 
 
 def _avg(values: list, digits: int = 1):

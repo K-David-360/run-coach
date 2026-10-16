@@ -260,3 +260,30 @@ def test_severity_order_in_banner():
 def test_bc_phase_never_changes():
     for phase in ("BC-1", "BC-2"):
         assert _check(bc_phase=phase)["bc_phase"] == phase
+
+
+def _with(**fields):
+    p = _payload()
+    p.update(fields)
+    return p
+
+
+def test_newline_joined_text_is_split_into_days():
+    # A Shortcuts list sent in a Text field arrives as one value per line.
+    m = summarize_week(_with(steps_daily="11576\n22032\n18337"))
+    assert (m["steps_days"], m["avg_steps"]) == (3, 17315)
+
+
+def test_nested_and_mixed_lists_are_flattened():
+    m = summarize_week(_with(protein_g_daily=[["150", "160"], "170\n180"]))
+    assert (m["protein_days"], m["avg_protein_g"]) == (4, 165.0)
+
+
+def test_thousands_comma_is_not_a_split():
+    m = summarize_week(_with(steps_daily="11,576"))
+    assert (m["steps_days"], m["avg_steps"]) == (1, 11576)
+
+
+def test_newline_text_with_more_than_7_lines_is_rejected():
+    assert "steps_daily" in validate_payload(_with(steps_daily="\n".join(["100"] * 8)))
+    assert validate_payload(_with(steps_daily="\n".join(["100"] * 7))) is None
