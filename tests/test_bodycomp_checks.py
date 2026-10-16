@@ -4,7 +4,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 
-from bodycomp.checks import coerce_value, summarize_week, validate_payload, week_days, weekly_check
+from datetime import date
+
+from bodycomp.checks import (coerce_value, resolve_week_ending, summarize_week, validate_payload,
+                             week_days, weekly_check)
 from bodycomp.config import DEFAULTS
 
 
@@ -77,8 +80,25 @@ def test_single_value_or_empty_is_accepted():
 
 
 def test_validate_rejects_non_saturday():
+    # Callers resolve week_ending first (resolve_week_ending); validation stays strict.
     assert "Saturday" in validate_payload(_payload(week_ending="2026-10-30"))
-    assert "Saturday" in validate_payload(_payload(week_ending=""))
+
+
+def test_week_ending_defaults_to_last_saturday_before_today():
+    assert resolve_week_ending(None, today=date(2026, 11, 1)) == "2026-10-31"   # Sunday
+    assert resolve_week_ending("", today=date(2026, 10, 15)) == "2026-10-10"    # Thursday dry run
+    assert resolve_week_ending(None, today=date(2026, 10, 31)) == "2026-10-24"  # Saturday: week not over
+
+
+def test_week_ending_given_date_snaps_back_to_saturday():
+    assert resolve_week_ending("2026-10-31", today=date(2026, 11, 1)) == "2026-10-31"
+    assert resolve_week_ending("2026-10-29", today=date(2026, 11, 1)) == "2026-10-24"
+    assert resolve_week_ending("2026-10-31T08:00:00-04:00", today=date(2026, 11, 1)) == "2026-10-31"
+
+
+def test_week_ending_garbage_is_rejected():
+    with pytest.raises(ValueError):
+        resolve_week_ending("Oct 31", today=date(2026, 11, 1))
 
 
 def test_summarize_counts_present_days():

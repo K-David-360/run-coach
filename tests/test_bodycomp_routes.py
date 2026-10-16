@@ -70,11 +70,10 @@ def test_weekly_rerun_same_week_replaces(env):
     assert weeks[-1]["metrics"]["delta_lb"] == 1.5   # vs the prior week, not vs the first post
 
 
-def test_weekly_rejects_bad_week_ending(env):
-    assert _post(env, _weekly("2026-10-30")).status_code == 400
-    body = _weekly()
-    del body["week_ending"]
-    assert _post(env, body).status_code == 400
+def test_weekly_non_saturday_snaps_back(env):
+    resp = _post(env, _weekly("2026-10-30"))   # Friday → that week's Saturday before it
+    assert resp.status_code == 200
+    assert resp.get_json()["week_ending"] == "2026-10-24"
 
 
 def test_weekly_rejects_more_than_7_values(env):
@@ -150,3 +149,24 @@ def test_packet_route_markdown_and_auth(env):
     assert resp.status_code == 200
     assert resp.headers["Content-Type"].startswith("text/markdown")
     assert c.get("/bodycomp/review-packet").status_code == 401
+
+
+def test_weekly_without_week_ending_uses_last_saturday(env, monkeypatch):
+    import datetime
+
+    class _Fixed(datetime.date):
+        @classmethod
+        def today(cls):
+            return datetime.date(2026, 11, 1)
+    monkeypatch.setattr(server, "date", _Fixed)
+    body = _weekly()
+    del body["week_ending"]
+    resp = _post(env, body)
+    assert resp.status_code == 200, resp.data
+    assert resp.get_json()["week_ending"] == "2026-10-31"
+
+
+def test_weekly_bad_week_ending_is_400(env):
+    resp = _post(env, _weekly(week_ending="Oct 31"))
+    assert resp.status_code == 400
+    assert "week_ending" in resp.get_json()["error"]

@@ -55,7 +55,7 @@ from flask import Flask, jsonify, request, make_response
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
 import bodycomp.telegram as bc_telegram
-from bodycomp.checks import validate_payload, weekly_check
+from bodycomp.checks import resolve_week_ending, validate_payload, weekly_check
 from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, S1_NOTE_LOW_DAY, s1_week_dates
 from bodycomp.review_packet import TAPE_SITES, build_packet
 from calendar_generator import generate_ics
@@ -357,6 +357,10 @@ def post_bodycomp_weekly():
     if denied:
         return denied
     body = request.get_json(force=True, silent=True) or {}
+    try:
+        body["week_ending"] = resolve_week_ending(body.get("week_ending"), date.today())
+    except ValueError:
+        return jsonify({"error": "week_ending must be a date (YYYY-MM-DD) or left out"}), 400
     error = validate_payload(body)
     if error:
         return jsonify({"error": error}), 400
@@ -381,7 +385,8 @@ def post_bodycomp_weekly():
     except Exception:
         app.logger.exception("bodycomp Telegram message failed")
     flags = [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]
-    return jsonify({"notification": report["banner"], "highest": report["highest"], "flags": flags}), 200
+    return jsonify({"notification": report["banner"], "highest": report["highest"], "flags": flags,
+                    "week_ending": report["week_ending"]}), 200
 
 
 @app.route("/bodycomp/report/latest", methods=["GET"])

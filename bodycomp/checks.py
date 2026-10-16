@@ -25,6 +25,19 @@ def week_days(week_ending: str) -> list:
     return [(end - timedelta(days=6 - i)).isoformat() for i in range(7)]
 
 
+def resolve_week_ending(value, today: date = None) -> str:
+    """The Saturday ending the week being checked. No value → the last Saturday before
+    today (yesterday on a Sunday); a given date (ISO, time part ignored) snaps back to the
+    Saturday on or before it. Raises ValueError for anything else."""
+    if today is None:
+        today = date.today()
+    if value is None or str(value).strip() == "":
+        day = today - timedelta(days=1)
+    else:
+        day = date.fromisoformat(str(value).strip()[:10])
+    return (day - timedelta(days=(day.weekday() - 5) % 7)).isoformat()
+
+
 def coerce_value(value, allow_zero: bool = False):
     """Float for a usable value, else None. Shortcuts may send '', null, units or separators."""
     if value is None or isinstance(value, bool):

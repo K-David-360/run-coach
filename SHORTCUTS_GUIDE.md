@@ -208,8 +208,9 @@ Action names vary by iOS version; verify on the phone.
 1. **Format Date** → Current Date, custom format `EEEE` → **If** result **is** `Sunday`
    (the weekday name follows the phone's language).
 2. **Dates:**
-   - **Adjust Date** → Current Date, subtract 1 day → **Format Date** custom `yyyy-MM-dd` →
-     **Set Variable** `Week Ending` (yesterday, the Saturday).
+   - No `week_ending` needed: the server uses the last Saturday before today (yesterday,
+     on a Sunday). Send `week_ending` (`yyyy-MM-dd`) only to re-post an older week; any date
+     snaps back to the Saturday on or before it.
    - **Adjust Date** → Current Date, subtract 7 days → start of that day → `Week Start`
      (last Sunday 00:00). **Get Start of Day** of Current Date → `Week End` (today 00:00).
 3. **One Find per metric, each into its own variable.** Filter **Start Date is between
@@ -240,21 +241,23 @@ Action names vary by iOS version; verify on the phone.
    `lift_sessions_done`. Find Workouts is not available in Shortcuts on every device;
    if it is missing, leave the key out and the server skips the session-count check.
 5. **Get Contents of URL** → `{Server URL}/bodycomp/weekly`, Method POST, Request Body JSON
-   with `week_ending` plus the five lists (and `lift_sessions_done` if available). Header
+   with the five lists (and `lift_sessions_done` if available). Header
    `X-Bodycomp-Secret` = the shared secret (stored only in the Shortcut; never export or
    share the Shortcut with it inside).
-6. **If** the response has no `notification` → **Show Notification** with the response text,
-   so a bad run (for example, a list that is not 7 long) is visible.
-   **Otherwise** → **Get Dictionary Value** `notification` → **Show Notification**
-   (title "Weekly check").
+6. **Get Dictionary Value** `notification` from the response. **If** it *does not have any
+   value* → **Get Dictionary Value** `error` → **Show Notification** "Weekly check failed:
+   [error]" (a rejected post, e.g. more than 7 values or a wrong secret, is then visible).
+   **Otherwise** → **Show Notification** with the `notification` value (title "Weekly check").
 7. **End If**
 
 The Pi also sends a Telegram message (trends tier: weight change, average protein,
 steps and sleep, plus flags; never absolute weight or calories). Re-running on the same
 Sunday replaces that week's report.
 
-**Dry run:** temporarily change the weekday condition to today, run once, confirm the
-banner and the Telegram message, then restore `Sunday`.
+**Dry run:** run only this branch (a copy of the Shortcut with everything before Step 9b
+deleted, so no extra `/healthkit` entries), with the weekday condition changed to today.
+Confirm the banner and the Telegram message, then restore `Sunday`. The dry run's report
+is filed under last Saturday's week; ask for it to be deleted afterwards.
 
 **Server environment (names only; values live on the Pi, never in the repo):**
 `BODYCOMP_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
