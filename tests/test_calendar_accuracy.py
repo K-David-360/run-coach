@@ -98,7 +98,7 @@ def test_strength_reduce_appends_set_guidance():
     state = _base_plan_state(last_execution_date=mon, last_execution_decision="REDUCE")
     ics = generate_ics(state, today=_MONDAY)
     descs = _descriptions_on(ics, _ymd(mon))
-    assert any("80% of your normal sets" in d for d in descs), descs
+    assert any("65% of your normal sets" in d for d in descs), descs
 
 
 def test_strength_hold_has_no_guidance_line():

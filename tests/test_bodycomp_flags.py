@@ -99,7 +99,7 @@ def test_no_bodycomp_numbers_in_daily_files(daily):
 
 
 def test_s1_note_is_spec_wording():
-    assert S1_NOTE == "Sleep was short last week: REDUCE volume (same weight, ~80% of sets), skip jumps."
+    assert S1_NOTE == "Sleep was short last week: REDUCE volume (same weight, ~65% of sets), skip jumps."
 
 
 def test_saturday_optional_on_s1_week(daily):

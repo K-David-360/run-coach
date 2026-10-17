@@ -10,7 +10,7 @@ Saturday's run becomes optional (OPTIONAL_RUN_NOTE), as it also does on low HRV
 
 from datetime import date, timedelta
 
-S1_NOTE = "Sleep was short last week: REDUCE volume (same weight, ~80% of sets), skip jumps."
+S1_NOTE = "Sleep was short last week: REDUCE volume (same weight, ~65% of sets), skip jumps."
 # Fixed variant for DELOAD/SUPPRESS days, whose own volume cut is already larger.
 S1_NOTE_LOW_DAY = "Sleep was short last week: skip jumps."
 OPTIONAL_RUN_NOTE = " Optional today: recovery is down, an easy walk is fine."

@@ -34,16 +34,17 @@ PLAN_STATE_FILE = os.path.join(DATA_DIR, "plan_state.json")
 # ── Phase 1 plan — all Zone 2 easy (no intensity) ────────────────────────────
 # work_min is the main work block only; warmup (5) + cooldown (5) add 10 min.
 _PLAN_PHASE1 = {
-    1: {"A": {"type": "easy", "work_min": 18},   # 28 min total
-        "B": {"type": "easy", "work_min": 20}},  # 30 min total
-    2: {"A": {"type": "easy", "work_min": 20},
-        "B": {"type": "easy", "work_min": 23}},
-    3: {"A": {"type": "easy", "work_min": 23},
-        "B": {"type": "easy", "work_min": 25}},
-    4: {"A": {"type": "easy", "work_min": 24},
+# Protocol: Tue 30–40 min, Sat 30–45 min; ~10% a week (2 min of work).
+    1: {"A": {"type": "easy", "work_min": 20},   # 30 min total
+        "B": {"type": "easy", "work_min": 22}},  # 32 min total
+    2: {"A": {"type": "easy", "work_min": 22},
+        "B": {"type": "easy", "work_min": 24}},
+    3: {"A": {"type": "easy", "work_min": 24},
         "B": {"type": "easy", "work_min": 26}},
-    5: {"A": {"type": "easy", "work_min": 25},
-        "B": {"type": "easy", "work_min": 27}},
+    4: {"A": {"type": "easy", "work_min": 26},
+        "B": {"type": "easy", "work_min": 28}},
+    5: {"A": {"type": "easy", "work_min": 28},   # 38 min total
+        "B": {"type": "easy", "work_min": 30}},  # 40 min total
 }
 
 # ── Phase 2 plan — Run B becomes a progression run ───────────────────────────
@@ -169,7 +170,7 @@ _STRENGTH_PREFIX = {
 _STRENGTH_PHRASE = {
     "BUILD":    "Full planned session.",
     "HOLD":     "Follow the plan.",
-    "REDUCE":   "Pull back — same weight, drop to ~80% of your sets.",
+    "REDUCE":   "Pull back — same weight, drop to ~65% of your sets.",
     "DELOAD":   "Deload week — same weight, half the sets.",
     "SUPPRESS": "No lifting — walk only.",
 }
@@ -177,7 +178,7 @@ _STRENGTH_PHRASE = {
 _STRENGTH_NOTES = {
     "BUILD":    "Recovery looks strong — lift at full planned load.",
     "HOLD":     "Follow planned load.",
-    "REDUCE":   "Back off on volume — keep the same weight as planned. Drop to roughly 80% of your normal sets.",
+    "REDUCE":   "Back off on volume — keep the same weight as planned. Drop to roughly 65% of your normal sets.",
     "DELOAD":   "Deload week — keep the same weight as planned. Cut your sets to 50% of normal.",
     "SUPPRESS": "Rest day — no lifting today. Walk only.",
 }

@@ -18,7 +18,7 @@ Intensity stays the same across all tiers; only the amount of work changes.
 | Tier | Running | Strength |
 |------|---------|----------|
 | HOLD | Full duration, Zone 2 | Full sets, planned weight |
-| REDUCE | Same zone, ~85% duration | Same weight, ~80% of sets |
+| REDUCE | Same zone, ~85% duration | Same weight, ~65% of sets |
 | DELOAD | Same zone, ~70% duration | Same weight, ~50% of sets |
 | SUPPRESS | Zone 1 or skip | Skip or very easy only |
 
@@ -33,7 +33,7 @@ Triggered by a single bad signal (elevated training load, one poor sleep night,
 mild HRV dip). Not severe enough for a full deload — just a moderate pullback.
 
 **Running:** Same zone (Zone 2), ~85% of planned duration.
-**Strength:** Same weight as planned. Drop to ~80% of normal sets.
+**Strength:** Same weight as planned. Drop to ~65% of normal sets (health-bootcamp protocol: cut 30–40%; was ~80% before 2026-10-16).
 
 ## DELOAD tier
 
@@ -56,6 +56,6 @@ training load. One full week.
 |----------|-----|----------|-------|
 | BUILD | +10% duration, Zone 2 | Full load | As prescribed |
 | HOLD | Planned duration, Zone 2 | Full load | As prescribed |
-| REDUCE | ~85% duration, Zone 2 | Same weight, ~80% sets | Skipped if HRV/sleep triggered; kept if run load |
+| REDUCE | ~85% duration, Zone 2 | Same weight, ~65% sets | Skipped if HRV/sleep triggered; kept if run load |
 | DELOAD | ~70% duration, Zone 2 | Same weight, ~50% sets | Omitted |
 | SUPPRESS | Skip or very easy | Skip or very easy | Omitted |

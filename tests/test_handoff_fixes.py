@@ -71,11 +71,11 @@ def daily(tmp_path, monkeypatch):
     return on
 
 
-def test_pre_start_tuesday_is_deload_28_min(daily):
-    # Tue Oct 20 is before the Oct 26 start: reads as deload, phase-1 deload run 18 + 10 = 28 min.
+def test_pre_start_tuesday_is_deload_30_min(daily):
+    # Tue Oct 20 is before the Oct 26 start: reads as deload, phase-1 deload run ceil(28*0.7) + 10 = 30 min.
     body = daily(d(2026, 10, 20)).post("/healthkit", json=GOOD).get_json()
     assert body["rule_fired"] == "DELOAD"
-    assert "28 min" in body["summary"]
+    assert "30 min" in body["summary"]
 
 
 def test_legacy_run_route_recomputes_current_week(daily):
@@ -117,7 +117,7 @@ def test_config_personal_threshold_may_be_null(tmp_path):
 def test_s1_note_on_deload_day_drops_set_wording(daily):
     daily.weekly_file.parent.mkdir(parents=True, exist_ok=True)
     daily.weekly_file.write_text(json.dumps([S1_REPORT]))
-    # Mon Nov 2 with a 'well_above' load → DELOAD; the S1 note must not say "~80% of sets".
+    # Mon Nov 2 with a 'well_above' load → DELOAD; the S1 note must not say "~65% of sets".
     body = daily(d(2026, 11, 2)).post("/healthkit", json={**GOOD, "load_pct": 80}).get_json()
     assert body["debug"]["decision"] == "DELOAD"
     notes = [b["notes"] for b in body["blocks"] if b["name"] == "Weekly check"]

@@ -86,7 +86,7 @@ CURRENT_SESSION_FILE = os.path.join(DATA_DIR, "current_session.json")
 _LIFT_NOTIFICATIONS = {
     "SUPPRESS": "⛔️ Recovery is low — no lifting today. Walk only.",
     "DELOAD":   "⛔️ Deload week — same weight, half the sets, no jumps.",
-    "REDUCE":   "⬇️ Pull back today — same weight, about 80% of your sets.",
+    "REDUCE":   "⬇️ Pull back today — same weight, about 65% of your sets.",
     "HOLD":     "✅ On track — follow today's lift plan.",
     "BUILD":    "⬆️ Good recovery — full planned session today.",
 }
@@ -749,7 +749,7 @@ def post_healthkit():
             decision["decision"], day_key, today=date.today(), skip_jumps=skip_jumps
         )
         if s1:
-            low_day = decision["decision"] in ("DELOAD", "SUPPRESS")   # day already cuts more than ~80%
+            low_day = decision["decision"] in ("DELOAD", "SUPPRESS")   # day already cuts more than ~65%
             session["blocks"].append({"name": "Weekly check", "notes": S1_NOTE_LOW_DAY if low_day else S1_NOTE})
         _save_json(CURRENT_SESSION_FILE, session)
 

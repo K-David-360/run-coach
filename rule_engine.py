@@ -3,7 +3,8 @@ rule_engine.py — Priority-based decision engine for the running coach.
 
 Decisions (in priority order):
   SUPPRESS — HRV crashed hard AND sleep bombed: skip the run entirely
-  DELOAD   — Scheduled week 6, repeated suppresses, or repeated terrible sleep
+  DELOAD   — Scheduled week 6, 2+ low-recovery days in a row
+             (SUPPRESS, or REDUCE from HRV/sleep), or repeated terrible sleep
   REDUCE   — HRV trending down, sleep short, or load elevated: pull back volume
   BUILD    — HRV elevated, good sleep, low load: push a little further
   HOLD     — Default: follow the base plan exactly
@@ -40,12 +41,21 @@ def _load_json(path, default=None):
         return default if default is not None else {}
 
 
-def _get_consecutive_suppress() -> int:
-    """Count the most recent unbroken run of SUPPRESS decisions in history."""
+def _is_low_recovery_day(decision: dict) -> bool:
+    """SUPPRESS, or a REDUCE from body signals (HRV/sleep). A load-only REDUCE doesn't count."""
+    if decision.get("decision") == "SUPPRESS":
+        return True
+    return decision.get("decision") == "REDUCE" and (
+        decision.get("trigger") in ("hrv", "sleep") or decision.get("recovery_low", False)
+    )
+
+
+def _get_low_recovery_streak() -> int:
+    """Count the most recent unbroken run of low-recovery days in history (one entry per day)."""
     history = _load_json(HISTORY_FILE, default=[])
     count = 0
     for entry in reversed(history):
-        if entry.get("decision", {}).get("decision") == "SUPPRESS":
+        if _is_low_recovery_day(entry.get("decision", {})):
             count += 1
         else:
             break
@@ -107,7 +117,7 @@ def rule_engine(data: dict, hrv_ratio: float, today: date = None) -> dict:
     """
     plan_state = _load_json(PLAN_STATE_FILE, default=_DEFAULT_PLAN_STATE)
     current_week = plan_state.get("current_week", 1)
-    consecutive_suppress = _get_consecutive_suppress()
+    low_recovery_streak = _get_low_recovery_streak()
 
     sleep = data.get("sleep", {})
     sleep_total_hrs = float(sleep.get("total_hrs", 0))
@@ -146,9 +156,9 @@ def rule_engine(data: dict, hrv_ratio: float, today: date = None) -> dict:
     if is_deload_week(current_week):
         return {"decision": "DELOAD", "reason": "Scheduled deload (week 6)",
                 "trigger": "deload_week", "action": _deload_action}
-    if consecutive_suppress >= 2:
-        return {"decision": "DELOAD", "reason": "2+ consecutive suppress days",
-                "trigger": "suppress_streak", "action": _deload_action}
+    if low_recovery_streak >= 2:
+        return {"decision": "DELOAD", "reason": "2+ low-recovery days in a row",
+                "trigger": "recovery_streak", "action": _deload_action}
     if nights_below_5 >= 2:
         return {"decision": "DELOAD", "reason": "2+ nights < 5h sleep (last 7)",
                 "trigger": "short_sleep_nights", "action": _deload_action}
@@ -204,7 +214,7 @@ def rule_engine(data: dict, hrv_ratio: float, today: date = None) -> dict:
     _actions = {
         "REDUCE": (
             "Keep session type, reduce duration ~15%. "
-            "Strength: same weight, ~80% of sets."
+            "Strength: same weight, ~65% of sets."
         ),
         "BUILD": (
             "Extend easy run duration by 10%, or upgrade session type if Phase 2+. "

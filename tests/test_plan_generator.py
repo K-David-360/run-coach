@@ -150,3 +150,16 @@ def test_suppress_strength_is_no_lifting():
     notes = _lift_block(session)["notes"].lower()
     assert "no lifting" in notes and "walk" in notes, notes
     assert "squat" not in notes, notes
+
+
+def test_phase1_runs_match_protocol_lengths():
+    # Protocol: Tue 30–40 min, Sat 30–45 min; work + 10 min warm-up/cool-down.
+    from plan_generator import _PLAN_PHASE1
+    tue = [_PLAN_PHASE1[w]["A"]["work_min"] + 10 for w in range(1, 6)]
+    sat = [_PLAN_PHASE1[w]["B"]["work_min"] + 10 for w in range(1, 6)]
+    assert tue == [30, 32, 34, 36, 38]
+    assert sat == [32, 34, 36, 38, 40]
+
+
+def test_strength_reduce_is_65pct():
+    assert "65%" in _lift_block(_strength("REDUCE"))["notes"]

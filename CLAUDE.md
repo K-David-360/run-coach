@@ -102,8 +102,8 @@ Rest days have no session but still run the rule engine. They return
 (Sunday: `"Rest Day — meal prep"`)
 with a rest-specific banner, and append the night to `history.json` (so HRV baseline,
 short-sleep counts and the weekly sleep check see all 7 nights). Plan state and the
-calendar are not touched. Because rest days now log, a SUPPRESS on a rest day counts
-toward "≥ 2 consecutive suppresses".
+calendar are not touched. Because rest days now log, a low-recovery rest day counts
+toward the "≥ 2 low-recovery days in a row" deload trigger.
 
 **History holds one entry per day.** Every `/healthkit` path (rest, strength, new
 run-day workout) logs through `server._log_history`: a POST whose `session.date`
@@ -128,7 +128,10 @@ The most conservative signal wins.
 
 1. **SUPPRESS** — HRV ratio < 0.70 AND (total sleep < 5 h OR deep sleep < 0.75 h).
    Body needs full rest. Skip or walk only.
-2. **DELOAD** — week 6 of the 6-week cycle, OR ≥ 2 consecutive suppresses,
+2. **DELOAD** — intro week (before block week 1), OR week 6 of the 6-week cycle,
+   OR ≥ 2 low-recovery days in a row (SUPPRESS, or REDUCE from HRV/sleep; a load-only
+   REDUCE doesn't count — load % already sets the base decision; `rule_engine._is_low_recovery_day`).
+   An early DELOAD covers just that day; the DELOAD itself breaks the streak.
    OR ≥ 2 nights below 5 h in the last 7 history entries,
    OR load is `well_above` (ACWR > 1.5 equivalent).
 3. **Base signal from load** (proxy for ACWR):
@@ -165,8 +168,8 @@ as a deload. Run work-block minutes (add 10 for warm-up/cool-down):
 
 | Phase | Slot | Wk 1 | Wk 2 | Wk 3 | Wk 4 | Wk 5 | Wk 6 (deload) |
 |---|---|---|---|---|---|---|---|
-| 1 | A easy | 18 | 20 | 23 | 24 | 25 | 18 |
-| 1 | B easy | 20 | 23 | 25 | 26 | 27 | 19 |
+| 1 | A easy | 20 | 22 | 24 | 26 | 28 | 20 |
+| 1 | B easy | 22 | 24 | 26 | 28 | 30 | 21 |
 | 2 | A easy | 25 | 27 | 30 | 32 | 33 | 24 |
 | 2 | B progression | 25 | 27 | 30 | 32 | 33 | 24 easy |
 | 3 | A easy | 28 | 30 | 33 | 33 | 33 | 24 |
@@ -201,7 +204,7 @@ the health-bootcamp protocol); the user applies the flag to it.
 |----------|---------------|----------------|
 | BUILD | ⬆️ | Full planned load ("Full planned session." — not heavier) |
 | HOLD | (none) | Follow planned load |
-| REDUCE | ⬇️ | Same weight, ~80% of sets |
+| REDUCE | ⬇️ | Same weight, ~65% of sets (protocol: cut 30–40%) |
 | DELOAD | ⛔️ | Same weight, half the sets |
 | SUPPRESS | ⛔️ | Skip or very easy only |
 
@@ -236,7 +239,7 @@ Text is worded per session kind (`server._LIFT_NOTIFICATIONS` / `_RUN_NOTIFICATI
 |----------|------------------------|-------------------|
 | SUPPRESS | ⛔️ Recovery is low — no lifting today. Walk only. | ⛔️ Recovery is low — no running today. Easy walk or skip. |
 | DELOAD | ⛔️ Deload week — same weight, half the sets, no jumps. | ⛔️ Deload week — easy Zone 2, about 70% of the usual time. |
-| REDUCE | ⬇️ Pull back today — same weight, about 80% of your sets. | ⬇️ Pull back today — same easy effort, about 15% shorter. |
+| REDUCE | ⬇️ Pull back today — same weight, about 65% of your sets. | ⬇️ Pull back today — same easy effort, about 15% shorter. |
 | HOLD | ✅ On track — follow today's lift plan. | ✅ On track — run as planned. |
 | BUILD | ⬆️ Good recovery — full planned session today. | ⬆️ Good recovery — run about 10% longer today. |
 
@@ -473,7 +476,7 @@ Run `python3 reset.py` any time to wipe history and restart from week 1, slot A.
   never intensity, per Huberman Lab/Galpin guest series (`docs/deload_protocol.md`).
   Runs: DELOAD = same zone, 70% duration; REDUCE = same zone, 85% duration
   (already correct, no change needed). Strength: DELOAD = same weight, 50% of
-  sets; REDUCE = same weight, ~80% of sets (both previously worded as load/weight
+  sets; REDUCE = same weight, ~80% of sets, now ~65% (2026-10-16) (both previously worded as load/weight
   cuts — fixed 2026-06-29 and 2026-07-06 respectively). Dead `_deload_blocks()`
   helper removed as part of this work.
 - ~~History window fix~~ — `_count_nights_below` now uses a 7-calendar-day lookback
