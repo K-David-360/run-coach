@@ -125,3 +125,12 @@ def test_intro_week_banner(client):  # noqa: F811
 def test_rest_day_summaries(client):  # noqa: F811
     assert _post(client(datetime.date(2026, 10, 29)))["summary"] == "Rest Day — walk and mobility"
     assert _post(client(datetime.date(2026, 11, 1)))["summary"] == "Rest Day — meal prep"
+
+
+def test_calendar_saturday_recovery_walk_has_no_optional_run_note():
+    state = _base_plan_state(last_run_b_execution_date=_day(5), last_run_b_decision="SUPPRESS")
+    ics = generate_ics(state, today=_MONDAY)
+    assert any("Recovery Walk" in s for s in _events_on(ics, _ymd(_day(5))))
+    assert not any("incline walk" in d for d in _descriptions_on(ics, _ymd(_day(5))))
+    # Next Saturday (no decision yet) still gets the note.
+    assert any("incline walk" in d for d in _descriptions_on(ics, _ymd(_day(5, 1))))

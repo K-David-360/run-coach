@@ -337,13 +337,15 @@ def generate_ics(plan_state: dict, today: date = None, skip_jumps_dates=None) ->
                     slot_exec_date = last_run_b_execution_date
                     slot_decision  = last_run_b_decision
 
-                if run_date.isoformat() == slot_exec_date and slot_decision:
+                is_today = run_date.isoformat() == slot_exec_date and bool(slot_decision)
+                if is_today:
                     session = _run_session_actual(
                         plan, last_execution_type, slot_decision, plan_week, slot, intro
                     )
                 else:
                     session = _run_session(plan, plan_week, slot, is_deload, intro)
-                if slot == "B":
+                # Not on a SUPPRESS day: that's already a walk, and the note offers a run.
+                if slot == "B" and not (is_today and slot_decision == "SUPPRESS"):
                     session["description"] += "\n\n" + _RUN_B_NOTE
                 for line in _vevent(run_date, session["summary"], session["description"], uid):
                     raw_lines.append(_fold(line))
