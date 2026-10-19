@@ -142,7 +142,7 @@ SHORT = (6.0, 6.2, 6.1, 7.5, 7.5, 7.5, 7.5)
 
 def test_banner_matches_spec_example():
     report = _check(_payload(sleep=SHORT), past=[_past(179.8, "2026-10-24")])
-    assert report["banner"] == "Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, 1 amber (sleep)."
+    assert report["banner"] == "Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, sleep 6.9 h, 1 amber (sleep)."
     assert report["highest"] == "AMBER"
 
 
@@ -150,6 +150,7 @@ def test_first_week_no_delta():
     report = _check()
     assert report["metrics"]["delta_lb"] is None
     assert report["banner"].startswith("Weekly: weight 180.0 (new)")
+    assert "steps 7.1k, sleep 7.5 h." in report["banner"]
     assert not _ids(report) & {"W2", "W3", "W4"}
 
 
@@ -169,6 +170,11 @@ def test_insufficient_weight_days():
     report = _check(_payload(weights=(180, 180, 180, None, None, None, None)))
     assert any(r["message"] == "insufficient data" and r["id"] == "W" for r in report["results"])
     assert "weight n/a" in report["banner"]
+
+
+def test_banner_sleep_na_without_sleep_data():
+    report = _check(_payload(sleep=(None,) * 7))
+    assert "steps 7.1k, sleep n/a" in report["banner"]
 
 
 def test_insufficient_nutrition_days():
@@ -252,7 +258,7 @@ def test_d1_when_next_week_is_deload():
 def test_severity_order_in_banner():
     report = _check(_payload(weights=(120,) * 7, protein=(100,) * 7, steps=(5000,) * 7,
                              sleep=(6.0, 6.0, 6.0, 8, 8, 8, 8)), protein_low_g=105)
-    assert report["banner"] == ("Weekly: weight 120.0 (new), protein red, steps 5.0k, "
+    assert report["banner"] == ("Weekly: weight 120.0 (new), protein red, steps 5.0k, sleep 7.1 h, "
                                 "1 red (protein low), 1 amber (sleep), 1 info (steps).")
     assert report["highest"] == "RED"
 

@@ -11,7 +11,7 @@ data to `POST /bodycomp/weekly`. It replaces Step 9b of `SHORTCUTS_GUIDE.md`.
 
 | Piece | State |
 |---|---|
-| Server, secret, Telegram | Done and tested. The Pi returns a banner and sends a Telegram message from `@healthbootcamp_bot`. |
+| Server, secret | Done and tested. The Pi returns the banner (including the sleep average). Telegram was removed on 2026-10-18. |
 | Lists | Verified: a list in a Text field arrives as one value per line. |
 | Steps / weight / protein / energy | Built as filtered loops (below). Steps was adding the whole list each pass; fixed by reading the **Repeat Item**. Re-check with a dry run. |
 | Sleep | **Decided: the Shortcut sends none.** The server fills it from the daily `/healthkit` history; rest days now log too, so all 7 nights are there. |
@@ -104,7 +104,7 @@ for weight (morning weigh-in); food and steps for that day may be undercounted.
 
 ## Testing
 
-1. Add `?dry_run=1` to the URL. Dry runs store nothing and send no Telegram. The reply
+1. Add `?dry_run=1` to the URL. Dry runs store nothing. The reply
    lists, per metric, `count`, raw `values` and `read_as`, plus `sleep_source`.
 2. The Pi keeps the last dry-run reply, **including rejected ones**, in
    `data/bodycomp/last_dry_run.json`, so Claude can read it with no copy-paste.

@@ -54,7 +54,6 @@ from flask import Flask, jsonify, request, make_response
 
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
-import bodycomp.telegram as bc_telegram
 from bodycomp.checks import (ARRAY_FIELDS, coerce_value, daily_values, resolve_week_ending,
                              summarize_week, validate_payload, week_days, weekly_check)
 from bodycomp.flags import OPTIONAL_RUN_NOTE, S1_NOTE, S1_NOTE_LOW_DAY, s1_week_dates
@@ -473,12 +472,6 @@ def post_bodycomp_weekly():
         return jsonify(_keep_dry_run(reply)), 200
     bc_store.save_week(report, bc_store.WEEKLY_FILE)
     bc_store.save_report_file(report, bc_store.REPORTS_DIR)
-    # Telegram gets only allowlisted aggregate fields; a failure never fails the route.
-    try:
-        text = bc_telegram.build_message(bc_telegram.allowed_fields(report), config.get("telegram_detail", "trends"))
-        bc_telegram.send(text, os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", ""))
-    except Exception:
-        app.logger.exception("bodycomp Telegram message failed")
     flags = [f"{r['id']} {r['severity']}" for r in report["results"] if r["severity"] != "OK"]
     return jsonify({"notification": report["banner"], "highest": report["highest"], "flags": flags,
                     "week_ending": report["week_ending"]}), 200

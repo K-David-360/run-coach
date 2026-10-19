@@ -36,7 +36,6 @@ DEFAULTS = {
     "lift_sessions_min": 3,
     "min_weight_days": 4,
     "min_nutrition_days": 5,
-    "telegram_detail": "trends",   # "flags" | "trends" | "full" (not built; falls back to trends)
 }
 
 _PHASES = {"BC-1", "BC-2"}

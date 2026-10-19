@@ -222,6 +222,6 @@ Every weekly recommendation must include:
 - [ ] Establish personal HRV and resting HR baselines (4+ weeks data needed)
 - [ ] Confirm Apple Training Load (`HKQuantityTypeIdentifierTrainingLoad`) is populating correctly in HealthKit
 - [ ] Confirm strength sessions are being RPE-rated in Apple Health after workouts
-- [ ] Consider adding manual "rough week" trigger via Telegram to shift recommendation one level more conservative (life stress signal Runna identifies but no app can auto-detect)
+- [ ] Consider adding manual "rough week" trigger (e.g. a `/note` POST from a Shortcut) to shift recommendation one level more conservative (life stress signal Runna identifies but no app can auto-detect)
 - [ ] Revisit zone boundaries after LTHR field test
 - [ ] Evaluate adding 3rd run/week once Phase 1 base is established

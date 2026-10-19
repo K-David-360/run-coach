@@ -16,7 +16,8 @@ The previous handoff (open questions, §5 fixes, deploy steps) is in git history
 
 Full instructions: **`SUNDAY_SHORTCUT_GUIDE.md`**. Where it stands:
 
-- [x] Server route, secret header, Telegram (`@healthbootcamp_bot`): tested end to end.
+- [x] Server route, secret header: tested end to end. (Telegram removed 2026-10-18; the banner
+  now carries the sleep average. See `health-bootcamp/07-claude-code-handoff-remove-telegram.md`.)
 - [x] Steps: Find + Group By Day works; the Shortcut sends the weekly **average**.
 - [ ] **Date window:** use *Start Date is between `Week Start` and `Week End`* (last Sunday
   00:00 → Saturday 23:59). "In the last 7 days" includes today, which pulls the steps
@@ -50,10 +51,10 @@ Terminal SSH session.
   can no longer overwrite them.
 - Plan state: **phase 2**, `cycle_start_date` 2026-10-26. This week and the week of Oct 19 read
   as deload (34-min runs, no jumps). Block week 1 starts Mon Oct 26.
-- `.env` on the Pi: `GITHUB_TOKEN`, `BODYCOMP_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
-  The Mac `.env` has the same except `BODYCOMP_SECRET`.
-- `data/bodycomp/config.json` on the Pi: BC-1, start 2026-10-19, `telegram_detail` trends,
-  David's targets. No weekly reports stored yet.
+- `.env` on the Pi: `GITHUB_TOKEN`, `BODYCOMP_SECRET`. The Mac `.env` has `GITHUB_TOKEN`.
+  (Delete any leftover `TELEGRAM_*` lines; the code no longer reads them.)
+- `data/bodycomp/config.json` on the Pi: BC-1, start 2026-10-19,
+  David's targets (a leftover `telegram_detail` key is ignored and can be deleted). No weekly reports stored yet.
 - Backups: `~/run-coach-backup-20261016005539` (pre-deploy code and data, `.env`, test-cleanup
   copies) and `~/run-coach-data-backup-20261016020329` (data before the untrack pull).
 

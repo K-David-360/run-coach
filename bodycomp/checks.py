@@ -168,7 +168,8 @@ def _banner(m: dict, results: list, weight_ok: bool, protein_ok: bool) -> str:
     pstatus = next((fired[i].lower() for i in ("P2", "P1") if i in fired), "OK")
     protein = f"protein {pstatus}" if protein_ok else "protein n/a"
     steps = f"steps {m['avg_steps'] / 1000:.1f}k" if m["avg_steps"] is not None else "steps n/a"
-    text = f"Weekly: {weight}, {protein}, {steps}"
+    sleep = f"sleep {m['avg_sleep_hrs']:.1f} h" if m["avg_sleep_hrs"] is not None else "sleep n/a"
+    text = f"Weekly: {weight}, {protein}, {steps}, {sleep}"
     counts = []
     for sev in SEVERITY_ORDER[:-1]:
         labels = [RULE_LABELS[r["id"]] for r in results if r["severity"] == sev]

@@ -7,7 +7,6 @@ import pytest
 
 import bodycomp.config as bc_config
 import bodycomp.store as bc_store
-import bodycomp.telegram as bc_telegram
 import server
 
 SECRET = {"X-Bodycomp-Secret": "s3cret"}
@@ -21,8 +20,6 @@ def _weekly(week_ending="2026-10-31", weight=180):
 @pytest.fixture
 def env(tmp_path, monkeypatch):
     monkeypatch.setenv("BODYCOMP_SECRET", "s3cret")
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "tok")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
     files = {
         "weekly": tmp_path / "bodycomp" / "weekly.json",
         "reports": tmp_path / "bodycomp" / "reports",
@@ -43,9 +40,6 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(server, "HISTORY_FILE", str(files["history"]))
     monkeypatch.setattr(server, "CURRENT_SESSION_FILE", str(files["session"]))
     monkeypatch.setattr(server, "BODYCOMP_DRY_RUN_FILE", str(tmp_path / "bodycomp" / "last_dry_run.json"))
-    sent = []
-    monkeypatch.setattr(bc_telegram, "send", lambda text, token, chat_id, **k: sent.append((text, token, chat_id)) or True)
-    files["sent"] = sent
     files["client"] = server.app.test_client()
     return files
 
@@ -104,22 +98,6 @@ def test_weekly_bad_config_returns_500(env):
     resp = _post(env, _weekly())
     assert resp.status_code == 500
     assert "bc_phase must be BC-1 or BC-2" in resp.get_json()["error"]
-
-
-def test_weekly_sends_trends_message_to_configured_chat(env):
-    _post(env, _weekly())
-    (text, token, chat_id), = env["sent"]
-    assert (token, chat_id) == ("tok", "42")
-    assert text.startswith("Weekly check (w/e Oct 31):")
-    assert "180" not in text and "2100" not in text
-
-
-def test_weekly_survives_telegram_failure(env, monkeypatch):
-    def boom(*a, **k):
-        raise RuntimeError("telegram down")
-    monkeypatch.setattr(bc_telegram, "send", boom)
-    assert _post(env, _weekly()).status_code == 200
-    assert len(json.loads(env["weekly"].read_text())) == 1
 
 
 def test_report_latest(env):
@@ -186,7 +164,6 @@ def test_dry_run_echoes_input_and_stores_nothing(env):
     assert out["summary"]["weight_days"] == 2
     assert out["notification"].startswith("Weekly:")
     assert not env["weekly"].exists() and not env["reports"].exists()
-    assert env["sent"] == []
 
 
 def test_dry_run_still_requires_secret(env):

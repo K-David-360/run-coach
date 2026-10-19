@@ -257,12 +257,14 @@ as planned.").
 
 ## Body-composition weekly check
 
-Spec: `health-bootcamp/06-weekly-checkin-handoff.md` (supersedes 03 sections 3–5, 8).
+Spec: `health-bootcamp/06-weekly-checkin-handoff.md` (supersedes 03 sections 3–5, 8),
+amended by `07-claude-code-handoff-remove-telegram.md` (Telegram removed, 2026-10-18).
 Sunday-morning branch of the daily Shortcut posts 7 daily values (Sun–Sat ending
 yesterday) for weight, protein, dietary energy, steps and sleep to
 `POST /bodycomp/weekly`. Returns a banner such as
-`Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, 1 amber (sleep).` and sends a
-Telegram message (tier from `telegram_detail`, default `trends`).
+`Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, sleep 6.8 h, 1 amber (sleep).`
+The banner shows the week's sleep average (`sleep n/a` with no sleep data). The banner
+is the only delivery; `/bodycomp/report/latest` re-reads the stored report.
 
 - **Phases:** `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) in
   `data/bodycomp/config.json`. Not run-coach's run `phase` (1/2/3). Never
@@ -273,15 +275,11 @@ Telegram message (tier from `telegram_detail`, default `trends`).
   missing personal threshold reports "not configured".
 - **Routes:** `/bodycomp/weekly`, `/bodycomp/report/latest`, `/bodycomp/measurements`
   (monthly tape), `/bodycomp/review-packet`. All require header `X-Bodycomp-Secret`
-  matching env `BODYCOMP_SECRET` (503 if unset). Telegram env: `TELEGRAM_BOT_TOKEN`,
-  `TELEGRAM_CHAT_ID`. A Telegram failure never fails the route.
+  matching env `BODYCOMP_SECRET` (503 if unset).
 - **Sleep:** if `sleep_hrs_daily` is left out or empty, the server fills it from
   `history.json` (one `sleep.total_hrs` per `session.date` in Sun–Sat, last post of a day
   wins, 0 skipped). The Sunday Shortcut sends no sleep. Dry runs report `sleep_source`
   and are kept in `data/bodycomp/last_dry_run.json` even when rejected (400).
-- **Telegram allowlist:** `bodycomp/telegram.build_message` accepts only week_ending,
-  flags, protein status, weight delta, protein/steps/sleep averages. Never absolute
-  weight, calories, baseline, height or thresholds.
 - **Daily hooks:** S1 AMBER → next week's lift days get the fixed `S1_NOTE` and no
   jumps, and Saturday's run gets the "optional" note (also given on HRV ratio < 0.90).
   **Deliberate exceptions (David, 2026-10-16):** that fixed, number-free S1 sentence may
