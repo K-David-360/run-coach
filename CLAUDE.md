@@ -280,7 +280,7 @@ Weight's second delta vs `dexa_weight_lb`; an unset target drops that part. The 
 appears only for P2, W2/W3 or W4 (protein first) and reads the floor from `protein_low_g`.
 P3, L2 and D1 still fire but are left out of the banner (stored report only). The banner
 is the only delivery; `/bodycomp/report/latest` re-reads the stored report. Built by
-`checks._banner`; plan `docs/superpowers/plans/2026-10-25-weekly-checkin-banner.md`.
+`checks._banner`; plan `health-bootcamp/08-weekly-checkin-banner-plan.md` (private, outside the repo).
 
 - **Phases:** `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) in
   `data/bodycomp/config.json`. Not run-coach's run `phase` (1/2/3). Never

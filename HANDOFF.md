@@ -19,7 +19,7 @@ Full instructions: **`SUNDAY_SHORTCUT_GUIDE.md`**. Where it stands:
 - [x] Server route, secret header: tested end to end. (Telegram removed 2026-10-18; the banner
   now carries the sleep average. See `health-bootcamp/07-claude-code-handoff-remove-telegram.md`.)
   2026-10-25: the banner is now multi-line with every metric (title line, five metric lines,
-  optional action line); see `docs/superpowers/plans/2026-10-25-weekly-checkin-banner.md`.
+  optional action line); plan in `health-bootcamp/08-weekly-checkin-banner-plan.md` (private, outside the repo).
 - [x] Steps: Find + Group By Day works; the Shortcut sends the weekly **average**.
 - [ ] **Date window:** use *Start Date is between `Week Start` and `Week End`* (last Sunday
   00:00 → Saturday 23:59). "In the last 7 days" includes today, which pulls the steps

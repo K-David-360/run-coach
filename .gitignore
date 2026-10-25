@@ -5,3 +5,4 @@ data/current_session.json
 __pycache__/
 *.pyc
 data/bodycomp/
+.DS_Store
