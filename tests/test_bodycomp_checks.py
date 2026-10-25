@@ -140,17 +140,92 @@ def _result(report, rule_id):
 SHORT = (6.0, 6.2, 6.1, 7.5, 7.5, 7.5, 7.5)
 
 
-def test_banner_matches_spec_example():
-    report = _check(_payload(sleep=SHORT), past=[_past(179.8, "2026-10-24")])
-    assert report["banner"] == "Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, sleep 6.9 h, 1 amber (sleep)."
-    assert report["highest"] == "AMBER"
+def _lines(report):
+    return report["banner"].split("\n")
+
+
+RED, AMBER, GREEN, WHITE = "\U0001F534", "\U0001F7E1", "\U0001F7E2", "\u26AA"
+TARGETS = dict(protein_avg_min_g=140, protein_low_g=120, kcal_target=2300,
+               kcal_floor_bc1=2200, kcal_floor_bc2=2100, dexa_weight_lb=184.0)
+
+
+def test_banner_all_green():
+    report = _check(_payload(weights=(180.0,) * 7, protein=(150,) * 7, kcal=(2400,) * 7,
+                             steps=(9000,) * 7, sleep=(8.0,) * 7),
+                    past=[_past(180.0, "2026-10-24")], baseline_weight_lb=180.0, **TARGETS)
+    assert _lines(report) == [
+        "Wk Oct 25-31 · logged 7/7",
+        f"{GREEN} Protein 150g (+10 vs 140)",
+        f"{GREEN} Cal 2,400 (+100 vs 2,300)",
+        f"{GREEN} Weight 180.0 · +0.0 last wk/−4.0 DEXA",
+        f"{GREEN} Steps 9.0k (8-10k)",
+        f"{GREEN} Sleep 8.0h (7-9)",
+    ]   # no action line on an all-green week
+
+
+def test_banner_mixed_severity_and_action_line():
+    report = _check(_payload(weights=(179.4,) * 7, protein=(105,) * 7, kcal=(2140,) * 7,
+                             steps=(11900,) * 7, sleep=(7.6,) * 7),
+                    past=[_past(180.0, "2026-10-24")], baseline_weight_lb=179.5, **TARGETS)
+    assert _lines(report) == [
+        f"Wk Oct 25-31 · logged 7/7 · {RED}1 {AMBER}2",
+        f"{RED} Protein 105g (−35 vs 140)",
+        f"{AMBER} Cal 2,140 (−160 vs 2,300)",
+        f"{AMBER} Weight 179.4 · −0.6 last wk/−4.6 DEXA",
+        f"{GREEN} Steps 11.9k (8-10k)",
+        f"{GREEN} Sleep 7.6h (7-9)",
+        "→ Fix protein first (<120 g rule), then +150-200 kcal if weight still falling.",
+    ]
+    assert report["highest"] == "RED"
+
+
+def test_banner_missing_data_sorted_after_green():
+    report = _check(_payload(weights=(None,) * 7, sleep=(None,) * 7), protein_avg_min_g=140)
+    lines = _lines(report)
+    assert lines[-2:] == [f"{WHITE} Weight no data", f"{WHITE} Sleep no data"]
+    assert all(l.startswith(GREEN) for l in lines[1:-2])
+
+
+def test_banner_missing_targets_omit_parenthetical_not_crash():
+    # dexa_weight_lb, kcal_target and protein targets unconfigured; no prior week either.
+    lines = _lines(_check())
+    assert f"{GREEN} Weight 180.0 · new last wk" in lines
+    assert f"{GREEN} Cal 2,100" in lines
+    assert f"{GREEN} Protein 150g" in lines
+
+
+def test_banner_logged_days_is_max_of_protein_and_kcal():
+    report = _check(_payload(protein=(150,) * 5, kcal=(2100,) * 6))
+    assert _lines(report)[0].startswith("Wk Oct 25-31 · logged 6/7")
+
+
+def test_banner_action_line_protein_and_flat_weight():
+    past = [_past(180.0, "2026-10-10", delta=0.1, bc_phase="BC-2"),
+            _past(180.1, "2026-10-17", delta=0.1, bc_phase="BC-2"),
+            _past(180.0, "2026-10-24", delta=-0.1, bc_phase="BC-2")]
+    report = _check(_payload(protein=(90,) * 7), past=past, bc_phase="BC-2",
+                    protein_low_g=120, protein_avg_min_g=140)
+    assert _lines(report)[-1] == "→ Fix protein first (<120 g rule), then cut ~150 kcal or add 2,000 steps."
+
+
+def test_banner_week_range_crosses_month():
+    assert _check(_payload(week_ending="2026-10-03"))["banner"].startswith("Wk Sep 27-Oct 3 · logged 7/7")
+
+
+def test_banner_drops_p3_l2_d1():
+    # Protein per kg (P3), low session count (L2) and deload-due (D1) fire, but must not
+    # inflate the title's counts or produce an action line.
+    report = _check(_payload(weights=(154.32,) * 7, protein=(105,) * 7, lift_sessions_done=1),
+                    cycle_start="2026-09-28")
+    assert {"P3", "L2", "D1"} <= _ids(report)
+    lines = _lines(report)
+    assert lines[0] == "Wk Oct 25-31 · logged 7/7"
+    assert len(lines) == 6 and all(l.startswith(GREEN) for l in lines[1:])
 
 
 def test_first_week_no_delta():
     report = _check()
     assert report["metrics"]["delta_lb"] is None
-    assert report["banner"].startswith("Weekly: weight 180.0 (new)")
-    assert "steps 7.1k, sleep 7.5 h." in report["banner"]
     assert not _ids(report) & {"W2", "W3", "W4"}
 
 
@@ -169,12 +244,7 @@ def test_later_week_not_used_for_delta_on_backfill():
 def test_insufficient_weight_days():
     report = _check(_payload(weights=(180, 180, 180, None, None, None, None)))
     assert any(r["message"] == "insufficient data" and r["id"] == "W" for r in report["results"])
-    assert "weight n/a" in report["banner"]
-
-
-def test_banner_sleep_na_without_sleep_data():
-    report = _check(_payload(sleep=(None,) * 7))
-    assert "steps 7.1k, sleep n/a" in report["banner"]
+    assert f"{WHITE} Weight no data" in _lines(report)
 
 
 def test_insufficient_nutrition_days():
@@ -256,10 +326,18 @@ def test_d1_when_next_week_is_deload():
 
 
 def test_severity_order_in_banner():
+    # INFO (steps) folds into amber; red, then amber, then green, metric order kept within a tier.
     report = _check(_payload(weights=(120,) * 7, protein=(100,) * 7, steps=(5000,) * 7,
-                             sleep=(6.0, 6.0, 6.0, 8, 8, 8, 8)), protein_low_g=105)
-    assert report["banner"] == ("Weekly: weight 120.0 (new), protein red, steps 5.0k, sleep 7.1 h, "
-                                "1 red (protein low), 1 amber (sleep), 1 info (steps).")
+                             sleep=(6.0, 6.0, 6.0, 8, 8, 8, 8)), protein_low_g=105, protein_avg_min_g=130)
+    assert _lines(report) == [
+        f"Wk Oct 25-31 · logged 7/7 · {RED}1 {AMBER}2",
+        f"{RED} Protein 100g (−30 vs 130)",
+        f"{AMBER} Steps 5.0k (8-10k)",
+        f"{AMBER} Sleep 7.1h (7-9)",
+        f"{GREEN} Cal 2,100",
+        f"{GREEN} Weight 120.0 · new last wk",
+        "→ Fix protein first (<105 g rule).",
+    ]
     assert report["highest"] == "RED"
 
 
