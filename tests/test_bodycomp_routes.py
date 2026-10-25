@@ -51,7 +51,7 @@ def _post(env, body, headers=SECRET):
 def test_weekly_returns_banner_and_stores_report(env):
     resp = _post(env, _weekly())
     assert resp.status_code == 200, resp.data
-    assert resp.get_json()["notification"].startswith("Weekly: weight")
+    assert resp.get_json()["notification"].startswith("Wk ")
     assert len(json.loads(env["weekly"].read_text())) == 1
     assert json.loads((env["reports"] / "2026-10-31.json").read_text())["week_ending"] == "2026-10-31"
 
@@ -162,7 +162,7 @@ def test_dry_run_echoes_input_and_stores_nothing(env):
     assert out["received"]["weights_lb"] == {"count": 2, "values": ["180.4 lb", 181], "read_as": [180.4, 181.0]}
     assert out["received"]["steps_daily"]["count"] == 1
     assert out["summary"]["weight_days"] == 2
-    assert out["notification"].startswith("Weekly:")
+    assert out["notification"].startswith("Wk ")
     assert not env["weekly"].exists() and not env["reports"].exists()
 
 
