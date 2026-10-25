@@ -11,7 +11,7 @@ data to `POST /bodycomp/weekly`. It replaces Step 9b of `SHORTCUTS_GUIDE.md`.
 
 | Piece | State |
 |---|---|
-| Server, secret | Done and tested. The Pi returns the banner (including the sleep average). Telegram was removed on 2026-10-18. |
+| Server, secret | Done and tested. The Pi returns a multi-line banner: a `Wk ...` title line, then one line per metric (protein, calories, weight, steps, sleep) and an action line when one applies. Telegram was removed on 2026-10-18. |
 | Lists | Verified: a list in a Text field arrives as one value per line. |
 | Steps / weight / protein / energy | Built as filtered loops (below). Steps was adding the whole list each pass; fixed by reading the **Repeat Item**. Re-check with a dry run. |
 | Sleep | **Decided: the Shortcut sends none.** The server fills it from the daily `/healthkit` history; rest days now log too, so all 7 nights are there. |

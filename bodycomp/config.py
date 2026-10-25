@@ -17,6 +17,7 @@ DEFAULTS = {
     "bc_phase": "BC-1",            # "BC-1" maintenance build / "BC-2" deficit; never advanced by code
     "bc_phase_start_date": "",
     "baseline_weight_lb": None,    # personal; None → W1 reports "not configured"
+    "dexa_weight_lb": None,        # weight at the DEXA scan; distinct from baseline_weight_lb (BC-1 hold anchor)
     "w1_hold_band_lb": 1.0,
     "w1_max_bc_week": 12,
     "w2_fast_loss_lb": 1.0,
@@ -30,6 +31,7 @@ DEFAULTS = {
     "protein_min_g_per_kg": 1.6,
     "kcal_floor_bc1": None,
     "kcal_floor_bc2": None,
+    "kcal_target": None,           # display target for the Cal banner line; distinct from kcal_floor_bc1/bc2 (E1's rule floor)
     "sleep_short_hrs": 6.5,
     "sleep_short_nights": 3,
     "steps_min_avg": 6000,

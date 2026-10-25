@@ -143,6 +143,9 @@ RULE_LABELS = {
 
 _LB_PER_KG = 2.2046
 
+STEPS_TARGET_RANGE = (8000, 10000)   # generic protocol guidance, not personal (01-protocol.md)
+SLEEP_TARGET_RANGE = (7, 9)          # hours; generic protocol guidance
+
 
 def _bc_week(start: str, week_ending: str):
     try:
@@ -158,31 +161,102 @@ def _recent_deltas(delta, past: list, n: int) -> list:
     return deltas[:n] if len(deltas) >= n else []
 
 
-def _banner(m: dict, results: list, weight_ok: bool, protein_ok: bool) -> str:
-    if weight_ok:
-        delta = "new" if m["delta_lb"] is None else f"{m['delta_lb']:+.1f}"
-        weight = f"weight {m['avg_weight_lb']:.1f} ({delta})"
+def _fmt_signed(value: float, digits: int = 0) -> str:
+    """Explicit + for non-negative, a real minus sign (U+2212) otherwise."""
+    sign = "+" if value >= 0 else "\u2212"
+    return f"{sign}{abs(value):,.{digits}f}"
+
+
+def _format_week_range(week_ending: str) -> str:
+    """Sunday..Saturday as "Oct 25-31", or "Sep 27-Oct 3" across a month boundary."""
+    end = date.fromisoformat(week_ending)
+    start = end - timedelta(days=6)
+    tail = str(end.day) if start.month == end.month else f"{end:%b} {end.day}"
+    return f"{start:%b} {start.day}-{tail}"
+
+
+def _metric_severity(results: list, ids: set) -> str:
+    """RED, else AMBER for any other fired rule (INFO folds in here), else OK."""
+    fired = [r["severity"] for r in results if r["id"] in ids and r["severity"] != "OK"]
+    if "RED" in fired:
+        return "RED"
+    return "AMBER" if fired else "OK"
+
+
+def _action_line(results: list, config: dict) -> str:
+    """One "→" sentence for the rules that change what to do, protein first; "" when none fired."""
+    fired = {r["id"] for r in results if r["severity"] != "OK"}
+    actions = []
+    if "P2" in fired:
+        actions.append(f"Fix protein first (<{config['protein_low_g']:.0f} g rule)")
+    if fired & {"W2", "W3"}:
+        actions.append("+150-200 kcal if weight still falling")
+    if "W4" in fired:
+        actions.append("cut ~150 kcal or add 2,000 steps")
+    return f"→ {', then '.join(actions)}." if actions else ""
+
+
+_BANNER_EMOJI = {"RED": "\U0001F534", "AMBER": "\U0001F7E1", "OK": "\U0001F7E2", "NODATA": "\u26AA"}
+_BANNER_ORDER = {"RED": 0, "AMBER": 1, "OK": 2, "NODATA": 3}
+
+
+def _banner(m: dict, results: list, weight_ok: bool, protein_ok: bool, kcal_ok: bool,
+            config: dict) -> str:
+    """Multi-line banner: title, one line per metric (red, amber, green, no data), action line.
+    P3, L2 and D1 stay in the stored report but are left out here."""
+    lines = []
+
+    def gap(value, target):
+        return "" if target is None else f" ({_fmt_signed(round(value) - target)} vs {target:,.0f})"
+
+    if protein_ok:
+        p = m["avg_protein_g"]
+        lines.append((_metric_severity(results, {"P1", "P2"}),
+                      f"Protein {p:.0f}g{gap(p, config['protein_avg_min_g'])}"))
     else:
-        weight = "weight n/a"
-    fired = {r["id"]: r["severity"] for r in results if r["severity"] != "OK"}
-    pstatus = next((fired[i].lower() for i in ("P2", "P1") if i in fired), "OK")
-    protein = f"protein {pstatus}" if protein_ok else "protein n/a"
-    steps = f"steps {m['avg_steps'] / 1000:.1f}k" if m["avg_steps"] is not None else "steps n/a"
-    sleep = f"sleep {m['avg_sleep_hrs']:.1f} h" if m["avg_sleep_hrs"] is not None else "sleep n/a"
-    text = f"Weekly: {weight}, {protein}, {steps}, {sleep}"
-    counts = []
-    for sev in SEVERITY_ORDER[:-1]:
-        labels = [RULE_LABELS[r["id"]] for r in results if r["severity"] == sev]
-        if labels:
-            counts.append(f"{len(labels)} {sev.lower()} ({', '.join(labels)})")
+        lines.append(("NODATA", "Protein no data"))
+    if kcal_ok:
+        k = m["avg_kcal"]
+        lines.append((_metric_severity(results, {"E1"}), f"Cal {k:,.0f}{gap(k, config['kcal_target'])}"))
+    else:
+        lines.append(("NODATA", "Cal no data"))
+    if weight_ok:
+        avg = m["avg_weight_lb"]
+        last = "new" if m["delta_lb"] is None else _fmt_signed(m["delta_lb"], 1)
+        text = f"Weight {avg:.1f} · {last} last wk"
+        if config["dexa_weight_lb"] is not None:
+            text += f"/{_fmt_signed(round(avg - config['dexa_weight_lb'], 1), 1)} DEXA"
+        lines.append((_metric_severity(results, {"W1", "W2", "W3", "W4"}), text))
+    else:
+        lines.append(("NODATA", "Weight no data"))
+    if m["avg_steps"] is not None:
+        lo, hi = (n // 1000 for n in STEPS_TARGET_RANGE)
+        lines.append((_metric_severity(results, {"S2"}), f"Steps {m['avg_steps'] / 1000:.1f}k ({lo}-{hi}k)"))
+    else:
+        lines.append(("NODATA", "Steps no data"))
+    if m["avg_sleep_hrs"] is not None:
+        lo, hi = SLEEP_TARGET_RANGE
+        lines.append((_metric_severity(results, {"S1"}), f"Sleep {m['avg_sleep_hrs']:.1f}h ({lo}-{hi})"))
+    else:
+        lines.append(("NODATA", "Sleep no data"))
+
+    title = f"Wk {_format_week_range(m['week_ending'])} · logged {m['logged_days']}/7"
+    tally = {sev: sum(1 for bucket, _ in lines if bucket == sev) for sev in ("RED", "AMBER")}
+    counts = [f"{_BANNER_EMOJI[sev]}{n}" for sev, n in tally.items() if n]
     if counts:
-        text += ", " + ", ".join(counts)
-    return text + "."
+        title += " · " + " ".join(counts)
+    lines.sort(key=lambda line: _BANNER_ORDER[line[0]])
+    out = [title] + [f"{_BANNER_EMOJI[bucket]} {text}" for bucket, text in lines]
+    action = _action_line(results, config)
+    if action:
+        out.append(action)
+    return "\n".join(out)
 
 
 def weekly_check(payload: dict, past_reports: list, config: dict, cycle_start: str) -> dict:
     """Run every rule for one week. past_reports: stored reports; only earlier weeks are used."""
     m = summarize_week(payload)
+    m["logged_days"] = max(m["protein_days"], m["kcal_days"])
     week_ending = m["week_ending"]
     phase = config["bc_phase"]
     past = sorted((r for r in past_reports if r.get("week_ending", "") < week_ending),
@@ -243,7 +317,8 @@ def weekly_check(payload: dict, past_reports: list, config: dict, cycle_start: s
             m["protein_g_per_kg"] = round(p / (avg / _LB_PER_KG), 2)
             if m["protein_g_per_kg"] < config["protein_min_g_per_kg"]:
                 add("P3", "INFO", f"Protein {m['protein_g_per_kg']:.2f} g/kg")
-    if m["kcal_days"] < config["min_nutrition_days"]:
+    kcal_ok = m["kcal_days"] >= config["min_nutrition_days"]
+    if not kcal_ok:
         add("E", "INFO", "insufficient data")
     else:
         floor = config["kcal_floor_bc1"] if phase == "BC-1" else config["kcal_floor_bc2"]
@@ -273,5 +348,5 @@ def weekly_check(payload: dict, past_reports: list, config: dict, cycle_start: s
         "metrics": m,
         "results": results,
         "highest": highest,
-        "banner": _banner(m, results, weight_ok, protein_ok),
+        "banner": _banner(m, results, weight_ok, protein_ok, kcal_ok, config),
     }

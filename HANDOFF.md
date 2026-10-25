@@ -18,6 +18,8 @@ Full instructions: **`SUNDAY_SHORTCUT_GUIDE.md`**. Where it stands:
 
 - [x] Server route, secret header: tested end to end. (Telegram removed 2026-10-18; the banner
   now carries the sleep average. See `health-bootcamp/07-claude-code-handoff-remove-telegram.md`.)
+  2026-10-25: the banner is now multi-line with every metric (title line, five metric lines,
+  optional action line); see `docs/superpowers/plans/2026-10-25-weekly-checkin-banner.md`.
 - [x] Steps: Find + Group By Day works; the Shortcut sends the weekly **average**.
 - [ ] **Date window:** use *Start Date is between `Week Start` and `Week End`* (last Sunday
   00:00 → Saturday 23:59). "In the last 7 days" includes today, which pulls the steps
@@ -55,6 +57,8 @@ Terminal SSH session.
   (Delete any leftover `TELEGRAM_*` lines; the code no longer reads them.)
 - `data/bodycomp/config.json` on the Pi: BC-1, start 2026-10-19,
   David's targets (a leftover `telegram_detail` key is ignored and can be deleted). No weekly reports stored yet.
+  To do: add `dexa_weight_lb` and `kcal_target` there for the banner's DEXA delta and Cal gap
+  (unset, those parts are just left out).
 - Backups: `~/run-coach-backup-20261016005539` (pre-deploy code and data, `.env`, test-cleanup
   copies) and `~/run-coach-data-backup-20261016020329` (data before the untrack pull).
 

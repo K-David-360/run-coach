@@ -261,10 +261,26 @@ Spec: `health-bootcamp/06-weekly-checkin-handoff.md` (supersedes 03 sections 3�
 amended by `07-claude-code-handoff-remove-telegram.md` (Telegram removed, 2026-10-18).
 Sunday-morning branch of the daily Shortcut posts 7 daily values (Sun–Sat ending
 yesterday) for weight, protein, dietary energy, steps and sleep to
-`POST /bodycomp/weekly`. Returns a banner such as
-`Weekly: weight 180.0 (+0.2), protein OK, steps 7.1k, sleep 6.8 h, 1 amber (sleep).`
-The banner shows the week's sleep average (`sleep n/a` with no sleep data). The banner
-is the only delivery; `/bodycomp/report/latest` re-reads the stored report.
+`POST /bodycomp/weekly`. Returns a multi-line banner (synthetic numbers):
+
+```
+Wk Oct 25-31 · logged 7/7 · 🔴1 🟡2
+🔴 Protein 105g (−35 vs 140)
+🟡 Cal 2,140 (−160 vs 2,300)
+🟡 Weight 179.4 · −0.6 last wk/−4.6 DEXA
+🟢 Steps 11.9k (8-10k)
+🟢 Sleep 7.6h (7-9)
+→ Fix protein first (<120 g rule), then +150-200 kcal if weight still falling.
+```
+
+Title: week range, food-logged days (`max` of protein and kcal days), 🔴/🟡 line counts
+(zero counts omitted). One line per metric, red → amber (INFO folds in) → green →
+`⚪ <Metric> no data`. Protein gap is vs `protein_avg_min_g`, Cal gap vs `kcal_target`,
+Weight's second delta vs `dexa_weight_lb`; an unset target drops that part. The `→` line
+appears only for P2, W2/W3 or W4 (protein first) and reads the floor from `protein_low_g`.
+P3, L2 and D1 still fire but are left out of the banner (stored report only). The banner
+is the only delivery; `/bodycomp/report/latest` re-reads the stored report. Built by
+`checks._banner`; plan `docs/superpowers/plans/2026-10-25-weekly-checkin-banner.md`.
 
 - **Phases:** `bc_phase` `"BC-1"` (maintenance build) / `"BC-2"` (deficit) in
   `data/bodycomp/config.json`. Not run-coach's run `phase` (1/2/3). Never
@@ -272,7 +288,9 @@ is the only delivery; `/bodycomp/report/latest` re-reads the stored report.
 - **Rules:** W1 hold, W2 fast loss, W3 still dropping (BC-1), W4 flat (BC-2),
   P1/P2/P3 protein, E1 calorie floor, S1 short sleep, S2 steps, L2 sessions
   (optional input), D1 deload next week. Severity RED > AMBER > INFO > OK. A
-  missing personal threshold reports "not configured".
+  missing personal threshold reports "not configured". Banner-only personal keys:
+  `dexa_weight_lb` (not `baseline_weight_lb`, the W1 anchor) and `kcal_target` (not
+  the E1 `kcal_floor_bc1/bc2`).
 - **Routes:** `/bodycomp/weekly`, `/bodycomp/report/latest`, `/bodycomp/measurements`
   (monthly tape), `/bodycomp/review-packet`. All require header `X-Bodycomp-Secret`
   matching env `BODYCOMP_SECRET` (503 if unset).
