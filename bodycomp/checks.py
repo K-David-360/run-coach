@@ -241,8 +241,8 @@ def _banner(m: dict, results: list, weight_ok: bool, protein_ok: bool, kcal_ok: 
         lines.append(("NODATA", "Sleep no data"))
 
     title = f"Wk {_format_week_range(m['week_ending'])} · logged {m['logged_days']}/7"
-    counts = [f"{_BANNER_EMOJI[sev]}{n}" for sev in ("RED", "AMBER")
-              if (n := sum(1 for bucket, _ in lines if bucket == sev))]
+    tally = {sev: sum(1 for bucket, _ in lines if bucket == sev) for sev in ("RED", "AMBER")}
+    counts = [f"{_BANNER_EMOJI[sev]}{n}" for sev, n in tally.items() if n]
     if counts:
         title += " · " + " ".join(counts)
     lines.sort(key=lambda line: _BANNER_ORDER[line[0]])
