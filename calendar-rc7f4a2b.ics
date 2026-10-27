@@ -7,12 +7,11 @@ CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261026
 DTEND;VALUE=DATE:20261027
-SUMMARY:⬇️ 🏋️ Push
+SUMMARY:🏋️ Push
 DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
  –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
- x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: skip today.\n\n⬇️ Ba
- ck off on volume — keep the same weight as planned. Drop to roughly 65% 
- of your normal sets.
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 2 x 10 countermovement j
+ umps (weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-10-26-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
