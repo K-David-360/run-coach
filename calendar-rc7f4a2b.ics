@@ -27,13 +27,12 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261030
 DTEND;VALUE=DATE:20261031
-SUMMARY:⬇️ 🏋️ Full
+SUMMARY:🏋️ Full
 DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
   8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
  Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
- ries 2 x 30–40 m if time allows\n\nJumps: skip today.\n\n⬇️ Back off
-  on volume — keep the same weight as planned. Drop to roughly 65% of you
- r normal sets.
+ ries 2 x 30–40 m if time allows\n\nJumps: 2 x 10 countermovement jumps (
+ weekly target 60). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-10-30-fri@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -47,10 +46,10 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
-SUMMARY:🏃‍♂️ Progression Run — 35 mins
-DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down\n\nOptional: an easy Zone 2 run or a 30–45 mi
- n incline walk. Skip it if sleep or HRV is down.
+SUMMARY:⛔️ 🏃‍♂️ Deload Run — 28 mins
+DESCRIPTION:5 mins walking warm up\n\n18 mins in Zone 2\n\n5 mins walking c
+ ool down\n\nOptional: an easy Zone 2 run or a 30–45 min incline walk. Sk
+ ip it if sleep or HRV is down.
 UID:rc-run-2026-10-31-B@runcoach
 END:VEVENT
 BEGIN:VEVENT
