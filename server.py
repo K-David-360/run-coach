@@ -594,9 +594,9 @@ def post_healthkit():
     `last_processed_workout_date` stored in plan_state.json.
 
     - New workout date → full pipeline: log to history, advance plan counters.
-    - Same date (rest day) → rule engine still runs with fresh data so load
-      and recovery are current, but nothing is logged and plan state is
-      unchanged. `debug.rest_day` will be true in the response.
+    - Same date (e.g. a repeat execution) → rule engine still runs with fresh
+      data; the post replaces today's history entry (last post of the day
+      wins) but plan counters don't advance. `debug.rest_day` will be true.
 
     Expected JSON body:
     {
@@ -779,8 +779,10 @@ def post_healthkit():
     _save_json(CURRENT_SESSION_FILE, session)
 
     if is_rest_day:
-        # Rest day: fresh recommendation based on today's recovery and load,
-        # but don't log to history or advance any plan counters.
+        # Same workout date already processed (e.g. a second execution this morning):
+        # fresh recommendation, and this post replaces today's history entry
+        # (last post of the day wins), but no plan counters advance.
+        _log_history({"run_data": data, "decision": decision, "session": session})
         plan_state["last_execution_date"] = date.today().isoformat()
         plan_state["last_execution_type"] = session["type"]
         plan_state["last_execution_decision"] = decision["decision"]

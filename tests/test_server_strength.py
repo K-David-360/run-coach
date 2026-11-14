@@ -161,3 +161,18 @@ def test_repost_keeps_other_days(client):
     _post(client(datetime.date(2026, 10, 28)), sleep_total_hrs=7.9)
     assert [e["session"]["date"] for e in _history()] == ["2026-10-26", "2026-10-28"]
     assert _history()[-1]["run_data"]["sleep"]["total_hrs"] == 7.9
+
+
+@pytest.mark.parametrize("day", [
+    datetime.date(2026, 10, 27),   # Tuesday (run A)
+    datetime.date(2026, 10, 31),   # Saturday (run B)
+])
+def test_run_day_repost_keeps_latest_data_and_counts_once(client, day):
+    c = client(day)
+    _post(c, last_workout_date=day.isoformat(), sleep_total_hrs=6.1)
+    _post(c, last_workout_date=day.isoformat(), sleep_total_hrs=7.9)
+    history = _history()
+    assert len(history) == 1
+    assert history[0]["session"]["date"] == day.isoformat()
+    assert history[0]["run_data"]["sleep"]["total_hrs"] == 7.9
+    assert json.loads(client.state_file.read_text())["total_runs"] == PI_STATE["total_runs"] + 1

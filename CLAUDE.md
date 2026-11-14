@@ -105,10 +105,11 @@ short-sleep counts and the weekly sleep check see all 7 nights). Plan state and 
 calendar are not touched. Because rest days now log, a low-recovery rest day counts
 toward the "≥ 2 low-recovery days in a row" deload trigger.
 
-**History holds one entry per day.** Every `/healthkit` path (rest, strength, new
-run-day workout) logs through `server._log_history`: a POST whose `session.date`
+**History holds one entry per day.** Every `/healthkit` path (rest, strength, run day —
+first or repeat execution) logs through `server._log_history`: a POST whose `session.date`
 matches an existing entry replaces it, so re-running the Shortcut on the same morning
-(testing) leaves only the last post. History is trimmed to the last 30 entries.
+(testing) leaves only the last post. On run days a repeat execution
+replaces the history entry but does not advance `total_runs`. History is trimmed to the last 30 entries.
 
 ### Intensity class (rule engine decisions)
 
