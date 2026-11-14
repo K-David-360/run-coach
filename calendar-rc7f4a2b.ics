@@ -43,8 +43,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261114
 DTEND;VALUE=DATE:20261115
-SUMMARY:🏃‍♂️ Progression Run — 40 mins
-DESCRIPTION:5 mins walking warm up\n\n22 mins in Zone 2\n8 mins in Zone 3\n
+SUMMARY:⬆️ 🏃‍♂️ Progression Run — 43 mins
+DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n8 mins in Zone 3\n
  \n5 mins walking cool down\n\nOptional: an easy Zone 2 run or a 30–45 mi
  n incline walk. Skip it if sleep or HRV is down.
 UID:rc-run-2026-11-14-B@runcoach
