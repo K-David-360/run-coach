@@ -5,51 +5,6 @@ X-WR-CALNAME:Run Coach
 X-WR-CALDESC:Your personalised running and strength plan
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261109
-DTEND;VALUE=DATE:20261110
-SUMMARY:🏋️ Push
-DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
- –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
- x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: skip this week.
-UID:rc-strength-2026-11-09-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261111
-DTEND;VALUE=DATE:20261112
-SUMMARY:🏋️ Pull
-DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
- -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
- 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: skip this week.
-UID:rc-strength-2026-11-11-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261113
-DTEND;VALUE=DATE:20261114
-SUMMARY:🏋️ Full
-DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
-  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
- Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
- ries 2 x 30–40 m if time allows\n\nJumps: skip this week.
-UID:rc-strength-2026-11-13-fri@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261110
-DTEND;VALUE=DATE:20261111
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 31 mins
-DESCRIPTION:5 mins walking warm up\n\n21 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-11-10-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261114
-DTEND;VALUE=DATE:20261115
-SUMMARY:⬆️ 🏃‍♂️ Progression Run — 43 mins
-DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n8 mins in Zone 3\n
- \n5 mins walking cool down\n\nOptional: an easy Zone 2 run or a 30–45 mi
- n incline walk. Skip it if sleep or HRV is down.
-UID:rc-run-2026-11-14-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261116
 DTEND;VALUE=DATE:20261117
 SUMMARY:🏋️ Push
@@ -195,5 +150,53 @@ DESCRIPTION:5 mins walking warm up\n\n24 mins in Zone 2\n\n5 mins walking c
  ool down\n\nOptional: an easy Zone 2 run or a 30–45 min incline walk. Sk
  ip it if sleep or HRV is down.
 UID:rc-run-2026-12-05-B@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261207
+DTEND;VALUE=DATE:20261208
+SUMMARY:🏋️ Push
+DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
+ –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 3 x 10 countermovement j
+ umps (weekly target 90). Land softly\, rest 30-60 s.
+UID:rc-strength-2026-12-07-mon@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261209
+DTEND;VALUE=DATE:20261210
+SUMMARY:🏋️ Pull
+DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
+ -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
+ 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: 3 x 10 countermovement 
+ jumps (weekly target 90). Land softly\, rest 30-60 s.
+UID:rc-strength-2026-12-09-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261211
+DTEND;VALUE=DATE:20261212
+SUMMARY:🏋️ Full
+DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
+  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
+ Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
+ ries 2 x 30–40 m if time allows\n\nJumps: 3 x 10 countermovement jumps (
+ weekly target 90). Land softly\, rest 30-60 s.
+UID:rc-strength-2026-12-11-fri@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261208
+DTEND;VALUE=DATE:20261209
+SUMMARY:🏃‍♂️ Easy Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n25 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-12-08-A@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261212
+DTEND;VALUE=DATE:20261213
+SUMMARY:🏃‍♂️ Progression Run — 35 mins
+DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down\n\nOptional: an easy Zone 2 run or a 30–45 mi
+ n incline walk. Skip it if sleep or HRV is down.
+UID:rc-run-2026-12-12-B@runcoach
 END:VEVENT
 END:VCALENDAR
