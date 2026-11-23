@@ -5,61 +5,14 @@ X-WR-CALNAME:Run Coach
 X-WR-CALDESC:Your personalised running and strength plan
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261117
-SUMMARY:🏋️ Push
-DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
- –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
- x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 2 x 10 countermovement j
- umps (weekly target 60). Land softly\, rest 30-60 s.
-UID:rc-strength-2026-11-16-mon@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261118
-DTEND;VALUE=DATE:20261119
-SUMMARY:🏋️ Pull
-DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
- -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
- 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: 2 x 10 countermovement 
- jumps (weekly target 60). Land softly\, rest 30-60 s.
-UID:rc-strength-2026-11-18-wed@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261120
-DTEND;VALUE=DATE:20261121
-SUMMARY:🏋️ Full
-DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
-  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
- Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
- ries 2 x 30–40 m if time allows\n\nJumps: 2 x 10 countermovement jumps (
- weekly target 60). Land softly\, rest 30-60 s.
-UID:rc-strength-2026-11-20-fri@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261117
-DTEND;VALUE=DATE:20261118
-SUMMARY:🏃‍♂️ Easy Run — 42 mins
-DESCRIPTION:5 mins walking warm up\n\n32 mins in Zone 2\n\n5 mins walking c
- ool down
-UID:rc-run-2026-11-17-A@runcoach
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20261121
-DTEND;VALUE=DATE:20261122
-SUMMARY:⛔️ 🏃‍♂️ Deload Run — 33 mins
-DESCRIPTION:5 mins walking warm up\n\n23 mins in Zone 2\n\n5 mins walking c
- ool down\n\nOptional: an easy Zone 2 run or a 30–45 min incline walk. Sk
- ip it if sleep or HRV is down.
-UID:rc-run-2026-11-21-B@runcoach
-END:VEVENT
-BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261123
 DTEND;VALUE=DATE:20261124
-SUMMARY:🏋️ Push
+SUMMARY:⛔️ 🏋️ Push
 DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
  –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
- x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 3 x 10 countermovement j
- umps (weekly target 90). Land softly\, rest 30-60 s.
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: skip today.\n\n⛔️ De
+ load week — keep the same weight as planned. Cut your sets to 50% of nor
+ mal.
 UID:rc-strength-2026-11-23-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -198,5 +151,53 @@ DESCRIPTION:5 mins walking warm up\n\n17 mins in Zone 2\n8 mins in Zone 3\n
  \n5 mins walking cool down\n\nOptional: an easy Zone 2 run or a 30–45 mi
  n incline walk. Skip it if sleep or HRV is down.
 UID:rc-run-2026-12-12-B@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261214
+DTEND;VALUE=DATE:20261215
+SUMMARY:🏋️ Push
+DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
+ –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 3 x 10 countermovement j
+ umps (weekly target 90). Land softly\, rest 30-60 s.
+UID:rc-strength-2026-12-14-mon@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261216
+DTEND;VALUE=DATE:20261217
+SUMMARY:🏋️ Pull
+DESCRIPTION:About 45–55 min.\n\nTrap-bar deadlift 3 x 5\nPulldown or pull
+ -up 3 x 8–10\nSuperset: overhead press 3 x 8–10 + face pull 3 x 12–1
+ 5\nIncline dumbbell curl 2–3 x 10–12\n\nJumps: 3 x 10 countermovement 
+ jumps (weekly target 90). Land softly\, rest 30-60 s.
+UID:rc-strength-2026-12-16-wed@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261218
+DTEND;VALUE=DATE:20261219
+SUMMARY:🏋️ Full
+DESCRIPTION:About 45–55 min.\n\nLeg press or split squat 3 x 8\nBench 3 x
+  8–10\nSuperset: single-arm row 3 x 8–10 + lateral raise 3 x 10–15\n
+ Superset: hammer curl + overhead triceps extension 2 x 10–12\nFarmer car
+ ries 2 x 30–40 m if time allows\n\nJumps: 3 x 10 countermovement jumps (
+ weekly target 90). Land softly\, rest 30-60 s.
+UID:rc-strength-2026-12-18-fri@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261215
+DTEND;VALUE=DATE:20261216
+SUMMARY:🏃‍♂️ Easy Run — 37 mins
+DESCRIPTION:5 mins walking warm up\n\n27 mins in Zone 2\n\n5 mins walking c
+ ool down
+UID:rc-run-2026-12-15-A@runcoach
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261219
+DTEND;VALUE=DATE:20261220
+SUMMARY:🏃‍♂️ Progression Run — 37 mins
+DESCRIPTION:5 mins walking warm up\n\n19 mins in Zone 2\n8 mins in Zone 3\n
+ \n5 mins walking cool down\n\nOptional: an easy Zone 2 run or a 30–45 mi
+ n incline walk. Skip it if sleep or HRV is down.
+UID:rc-run-2026-12-19-B@runcoach
 END:VEVENT
 END:VCALENDAR
