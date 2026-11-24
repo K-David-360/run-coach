@@ -7,12 +7,11 @@ CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261123
 DTEND;VALUE=DATE:20261124
-SUMMARY:⛔️ 🏋️ Push
+SUMMARY:🏋️ Push
 DESCRIPTION:About 45–55 min.\n\nSquat 3 x 5–8\nIncline dumbbell press 3
  –4 x 8–10\nSuperset: chest-supported row 3 x 8–10 + lateral raise 3 
- x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: skip today.\n\n⛔️ De
- load week — keep the same weight as planned. Cut your sets to 50% of nor
- mal.
+ x 10–15\nTriceps pushdown 2 x 10–12\n\nJumps: 3 x 10 countermovement j
+ umps (weekly target 90). Land softly\, rest 30-60 s.
 UID:rc-strength-2026-11-23-mon@runcoach
 END:VEVENT
 BEGIN:VEVENT
@@ -39,8 +38,8 @@ END:VEVENT
 BEGIN:VEVENT
 DTSTART;VALUE=DATE:20261124
 DTEND;VALUE=DATE:20261125
-SUMMARY:🏃‍♂️ Easy Run — 43 mins
-DESCRIPTION:5 mins walking warm up\n\n33 mins in Zone 2\n\n5 mins walking c
+SUMMARY:⛔️ 🚶 Recovery Walk — 38 mins
+DESCRIPTION:5 mins walking warm up\n\n28 mins in Zone 1\n\n5 mins walking c
  ool down
 UID:rc-run-2026-11-24-A@runcoach
 END:VEVENT
